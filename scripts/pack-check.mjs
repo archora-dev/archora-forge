@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readdirSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { isAbsolute, join } from 'node:path'
 
@@ -18,11 +18,11 @@ const forbidden = [
   '/prompts/',
   '/.vitepress/',
   '/screenshots/',
-  '/archora-forge-audit-pack/',
   '.map',
 ]
 
 try {
+  const tarballs = []
   for (const packagePath of packages) {
     const pack = spawnSync('pnpm', ['--dir', packagePath, 'pack', '--pack-destination', packDir], {
       cwd: root,
@@ -68,7 +68,68 @@ try {
       throw new Error(`${packagePath} pack is missing dist/index.d.ts`)
     }
 
+    const packageJson = JSON.parse(readFileSync(join(root, packagePath, 'package.json'), 'utf8'))
+    tarballs.push({ name: packageJson.name, path: tarballPath })
     console.log(`${packagePath}: ${entries.length} files`)
+  }
+
+  const consumerDir = mkdtempSync(join(tmpdir(), 'archora-forge-pack-consumer-'))
+  try {
+    writeFileSync(
+      join(consumerDir, 'package.json'),
+      JSON.stringify(
+        {
+          type: 'module',
+          private: true,
+          dependencies: Object.fromEntries(tarballs.map((tarball) => [tarball.name, `file:${tarball.path}`])),
+          pnpm: {
+            overrides: Object.fromEntries(tarballs.map((tarball) => [tarball.name, `file:${tarball.path}`])),
+          },
+        },
+        null,
+        2,
+      ),
+    )
+    const install = spawnSync('pnpm', ['install'], {
+      cwd: consumerDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    if (install.status !== 0) {
+      throw new Error(`consumer install failed:\n${install.stderr || install.stdout}`)
+    }
+
+    writeFileSync(
+      join(consumerDir, 'smoke.mjs'),
+      [
+        "import { createCli } from '@archora/forge-cli'",
+        "import { defineForgeConfig, resolveForgeConfig } from '@archora/forge-config'",
+        "import { createApiClient } from '@archora/forge-runtime'",
+        "import { normalizeOpenApi } from '@archora/forge-core'",
+        "import { mapMetadataField } from '@archora/forge-adapters'",
+        "import { createBarrelTemplate } from '@archora/forge-templates'",
+        '',
+        "if (typeof createCli !== 'function') throw new Error('missing cli export')",
+        "if (defineForgeConfig({ input: './openapi.yaml' }).input !== './openapi.yaml') throw new Error('missing config export')",
+        "if (resolveForgeConfig({ input: './openapi.yaml' }).input !== './openapi.yaml') throw new Error('missing resolved config export')",
+        "if (typeof createApiClient !== 'function') throw new Error('missing runtime export')",
+        "if (normalizeOpenApi({ openapi: '3.0.3', paths: {} }).operations.length !== 0) throw new Error('missing core export')",
+        "if (mapMetadataField({ type: 'string' }).input !== 'text') throw new Error('missing adapters export')",
+        "if (!createBarrelTemplate(['users']).includes(\"'./users.js'\")) throw new Error('missing templates export')",
+        '',
+      ].join('\n'),
+    )
+    const smoke = spawnSync(process.execPath, ['smoke.mjs'], {
+      cwd: consumerDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    if (smoke.status !== 0) {
+      throw new Error(`consumer smoke import failed:\n${smoke.stderr || smoke.stdout}`)
+    }
+    console.log('consumer install smoke: ok')
+  } finally {
+    rmSync(consumerDir, { recursive: true, force: true })
   }
 } finally {
   rmSync(packDir, { recursive: true, force: true })

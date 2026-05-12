@@ -1,143 +1,135 @@
 # Archora Forge
 
-OpenAPI generators give you a client. **Archora Forge gives you a preview frontend module scaffold.**
+Archora Forge turns an OpenAPI contract into a typed frontend resource layer.
 
-Archora Forge is a local-first CLI for turning OpenAPI 3.x contracts into typed Vue frontend module scaffolds: API clients, query keys, composables, schema-driven form/table metadata, pages, routes, permissions, i18n and mocks.
+Archora Forge is in public preview and private beta. It is built for frontend teams that already have a framework and design system, but need a reliable contract layer between OpenAPI and product code. It generates committed TypeScript clients, operation helpers, query keys, form/table metadata, permissions, labels, mocks and CI reports without forcing a UI framework or hosted workflow.
 
-It is built for teams evaluating generated frontend structure, not for treating generated output as production-stable application code.
+Forge is suitable for paid pilots with Vue/OpenAPI teams that want to evaluate one real schema in a branch. It is not positioned as production-ready and does not claim full OpenAPI coverage.
 
-![Archora Forge generated Vue module demo](apps/docs/public/screenshots/forge-demo-users.png)
+It does not try to generate your application UI. Most teams already have a framework, a design system, a table component, a form library and strong opinions about how screens should look. Forge focuses on the part that is repetitive and easy to get wrong: the typed contract between an API schema and frontend code.
 
-[Open full-size screenshot](apps/docs/public/screenshots/forge-demo-users.png)
+From one OpenAPI file, Forge can generate TypeScript clients, operation helpers, query keys, resource metadata, form/table metadata, permissions, labels and mocks. You can then map that metadata into React, Angular, Vue, Svelte, vanilla TypeScript or an internal UI kit.
 
-Expected GitHub Pages docs URL after Pages is enabled: https://akotofff.github.io/Archora-forge/
+## Why This Exists
 
-## Why It Exists
-
-Most OpenAPI generators stop at the transport layer. That still leaves frontend teams to wire query hooks, resource folders, list pages, forms, empty states, permissions, mock data and regeneration rules by hand.
-
-Archora Forge starts from the same OpenAPI contract and generates the module shape around the client:
+OpenAPI client generators are useful, but they usually stop at the transport layer:
 
 ```txt
-Before
-  openapi.yaml
-
-After
-  src/shared/api/generated/
-  src/features/users/
-  src/features/orders/
-  src/features/reports/
-  src/pages/users/
-  src/pages/orders/
-  src/pages/reports/
+openapi.yaml -> client methods and types
 ```
 
-Generated output is designed to be inspected, committed and regenerated safely.
+Frontend teams still have to decide how resources are grouped, which fields are shown in tables, which fields belong in forms, how mocks are organized, how permissions are named and how to tell whether generated output is stale.
+
+Archora Forge generates that resource contract:
+
+```txt
+openapi.yaml
+  -> typed API clients
+  -> operation helpers
+  -> form/table metadata
+  -> permissions and labels
+  -> mocks
+  -> drift checks
+```
+
+The output is plain TypeScript. Commit it, review it, regenerate it when the API changes.
+
+## What It Is Not
+
+Forge is not a UI builder.
+
+It does not emit framework components, pages, drawers or generated HTML. That is intentional. The generated layer should fit into your existing frontend architecture instead of forcing one onto you.
 
 ## Quick Start
 
-Monorepo public-preview flow:
+For the public demo:
 
 ```bash
 pnpm install
 pnpm build
 
-node packages/cli/dist/index.js inspect examples/vue-admin/openapi.yaml
-node packages/cli/dist/index.js diff examples/vue-admin/openapi.yaml
-cd examples/vue-admin
-node ../../packages/cli/dist/index.js generate openapi.yaml --dry-run
-pnpm dev
+node packages/cli/dist/index.js inspect --config examples/public-crm/archora-forge.config.ts
+node packages/cli/dist/index.js lint --config examples/public-crm/archora-forge.config.ts --strict
+node packages/cli/dist/index.js generate --config examples/public-crm/archora-forge.config.ts --dry-run
+node packages/cli/dist/index.js check --config examples/public-crm/archora-forge.config.ts --report html --report-file examples/public-crm/forge-check.html
 ```
 
-For a clean external consumer smoke:
+See `apps/docs/public-demo-walkthrough.md` for the generated public CRM walkthrough.
+
+For local development in this repo:
+
+```bash
+pnpm install
+pnpm build
+
+node packages/cli/dist/index.js inspect test/fixtures/openapi/basic-crud.yaml
+node packages/cli/dist/index.js diff test/fixtures/openapi/basic-crud.yaml
+node packages/cli/dist/index.js generate test/fixtures/openapi/basic-crud.yaml --dry-run
+```
+
+For a clean “external consumer” check:
 
 ```bash
 ./scripts/smoke-external-consumer.sh
 ```
 
-The smoke packs the CLI, installs it into `/tmp/archora-forge-consumer`, runs the installed `archora-forge` binary and verifies generated files.
+That script packs the CLI, installs it into `/tmp/archora-forge-consumer`, runs the installed `archora-forge` binary and verifies the generated files.
 
-## Preview Package Usage
+For v1 onboarding and compatibility guarantees, see `apps/docs/quick-start.md`, `apps/docs/api-stability.md` and `apps/docs/generated-file-contract.md`.
 
-Archora Forge is still a preview/devtool package. Do not treat the package API or generated output as production-stable yet.
-
-Local preview check:
+Once the packages are published, consumer usage should be:
 
 ```bash
-pnpm pack:check
-./scripts/smoke-external-consumer.sh
-```
-
-Consumer install from a packed tarball:
-
-```bash
-pnpm --dir packages/cli pack --pack-destination /tmp/archora-forge-pack
-pnpm add /tmp/archora-forge-pack/archora-forge-cli-*.tgz
+pnpm add -D @archora/forge-cli @archora/forge-adapters
+pnpm exec archora-forge init
+pnpm exec archora-forge doctor ./openapi.yaml
 pnpm exec archora-forge inspect ./openapi.yaml
-```
-
-No npm publish is part of the default workflow. Run `pnpm release:check`, inspect tarball contents and cut a preview tag only after explicit release approval.
-
-## Installed CLI Flow
-
-```bash
-archora-forge init
-archora-forge inspect ./openapi.yaml
-archora-forge diff ./openapi.yaml
-archora-forge generate ./openapi.yaml
+pnpm exec archora-forge generate ./openapi.yaml
 ```
 
 ## CLI
 
 ```bash
 archora-forge init
+archora-forge doctor ./openapi.yaml
 archora-forge inspect ./openapi.yaml
 archora-forge validate ./openapi.yaml
 archora-forge diff ./openapi.yaml
 archora-forge lint ./openapi.yaml
+archora-forge check ./openapi.yaml
 archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml
 archora-forge generate ./openapi.yaml
 ```
 
-During local monorepo development, use:
+The normal workflow is:
 
 ```bash
-node packages/cli/dist/index.js inspect examples/vue-admin/openapi.yaml
+archora-forge inspect ./openapi.yaml
+archora-forge doctor ./openapi.yaml
+archora-forge diff ./openapi.yaml
+archora-forge generate ./openapi.yaml
+archora-forge check ./openapi.yaml
 ```
 
-## What Gets Generated
+## Generated Shape
 
-For each detected resource, Archora Forge can create:
-
-- schema-derived TypeScript types;
-- typed API client methods;
-- typed query keys;
-- Vue composables for list/detail/create/update/delete operations;
-- schema-driven forms;
-- schema-driven tables;
-- generated pages and routes;
-- permissions metadata;
-- i18n labels;
-- mock fixtures, handlers and scenarios;
-- a local Archora UI fallback adapter.
-
-Example tree:
+For a `users` resource, the generated tree looks like this:
 
 ```txt
 src/
   shared/
-    api/generated/users/
-      users.types.ts
-      users.client.ts
-      users.query-keys.ts
-      index.ts
+    api/generated/
+      components.types.ts
+      users/
+        users.types.ts
+        users.client.ts
+        users.query-keys.ts
+        index.ts
     mocks/users/
       users.fixtures.ts
       users.handlers.ts
       users.scenarios.ts
       index.ts
-    ui/
-      archora-ui.ts
   features/users/
     api/
       useUsersQuery.ts
@@ -145,78 +137,133 @@ src/
       useCreateUserMutation.ts
       useUpdateUserMutation.ts
       useDeleteUserMutation.ts
+      index.ts
     model/
       users.config.ts
       users.permissions.ts
       users.i18n.ts
-    ui/
-      UsersTable.generated.vue
-      UsersTable.vue
-      UserForm.generated.vue
-      UserDrawer.generated.vue
-      DeleteUserConfirm.generated.vue
-  pages/users/
-    UsersPage.generated.vue
-    users.routes.ts
-    index.ts
+      index.ts
 ```
 
-## Schema-driven UI
+`users.config.ts` is the key UI integration point. It contains neutral metadata for fields, columns and pagination.
 
-Forms and tables are derived from schema metadata:
+Example:
 
-- required fields become required form metadata;
-- enum fields become select options and badge columns;
-- `format: email`, `date` and `date-time` map to appropriate controls/cell formatting;
-- nullable, read-only and write-only fields influence generated create/edit/table output;
-- paginated list responses become pagination metadata for generated table scaffolds.
+```ts
+export const usersConfig = {
+  resource: 'users',
+  fields: [
+    { name: 'email', label: 'Email', input: 'email', required: true, nullable: false },
+    {
+      name: 'status',
+      label: 'Status',
+      input: 'select',
+      required: true,
+      nullable: false,
+      enumValues: ['active', 'invited', 'disabled'],
+    },
+  ],
+  columns: [
+    { name: 'email', label: 'Email', cell: 'text', sortable: true, nullable: false },
+    { name: 'status', label: 'Status', cell: 'badge', sortable: true, nullable: false },
+  ],
+} as const
+```
 
-## Type-safe Generation
+## UI-kit Integration
 
-Generated clients and composables use schema-derived request, response, path and query types. Entity models exclude response-only/write-only mismatches where possible, while create/update DTOs preserve request fields when the OpenAPI contract provides DTO schemas.
+Forge adapters help turn generated metadata into shapes your UI kit understands.
+
+```ts
+import { toFormFields, toTableColumns } from '@archora/forge-adapters'
+
+import { usersConfig } from './src/features/users/model/users.config'
+
+const columns = toTableColumns(usersConfig.columns)
+const fields = toFormFields(usersConfig.fields)
+```
+
+From there, your app owns the final mapping:
+
+```ts
+const antdColumns = columns.map((column) => ({
+  dataIndex: column.key,
+  title: column.title,
+  sorter: column.sortable,
+}))
+```
+
+See [examples/ui-kit-integration](examples/ui-kit-integration) for a small consumer-owned mapping layer.
+
+The same metadata can be mapped into React, Vue, Svelte or Angular. The docs include a short cookbook for each: [UI-kit Integration](apps/docs/ui-kit-integration.md).
+
+## Runtime Validation
+
+Forge can optionally emit Zod or Valibot schemas for request payload validation:
+
+```ts
+export default defineForgeConfig({
+  input: './openapi.yaml',
+  validation: 'zod',
+})
+```
+
+When enabled, install Zod in the consuming app:
+
+```bash
+pnpm add zod
+```
+
+For Valibot:
+
+```ts
+export default defineForgeConfig({
+  input: './openapi.yaml',
+  validation: 'valibot',
+})
+```
+
+```bash
+pnpm add valibot
+```
+
+Validation output is experimental and conservative. It covers common object, dictionary, enum, `const`, string, string formats, number, boolean, nullable and array shapes, including primitive enum literals and OpenAPI 3.1 nullable type arrays. Recursive OpenAPI references are guarded with a lazy fallback so generation does not crash, while unsupported binary and non-JSON operations remain explicit diagnostics.
 
 ## Regeneration Safety
 
-Generated files use `.generated.*` naming where appropriate. Custom wrappers, such as `features/users/ui/UsersTable.vue`, are protected by default so teams can regenerate from OpenAPI without overwriting hand-written integration code.
-
-Use `diff` before `generate` to see what would be created, updated or protected.
-
-## Local-first and Enterprise-friendly
-
-Archora Forge runs in your repository. API contracts do not need to be uploaded to a SaaS service. Generated output is plain TypeScript/Vue code that can be reviewed in pull requests and adapted behind wrapper files, but the preview generator output is not a stable public API.
-
-The generated fallback `src/shared/ui/archora-ui.ts` keeps demos and consumers working without a UI package. Teams using the real `@archora/ui` can replace that adapter file with re-exports from the package.
-
-## Demo App
-
-The Vue example in `examples/vue-admin` shows generated Users, Orders and Reports modules in one dark-first screenshot-friendly shell with generated artifacts, file output and CLI flow context:
+Use `diff`, `check` or `generate --dry-run` before writing files:
 
 ```bash
-pnpm --filter vue-admin dev
+archora-forge diff ./openapi.yaml
+archora-forge diff ./openapi.yaml --json
+archora-forge check ./openapi.yaml
+archora-forge generate ./openapi.yaml --dry-run
+archora-forge generate ./openapi.yaml --dry-run --json
 ```
 
-## Roadmap
+`check` is intended for CI. It reports generated-output drift and diagnostics without writing files.
 
-Public preview scope stays focused on local OpenAPI-to-Vue module scaffolding. Next areas:
+## Supported Scope
 
-- deeper OpenAPI composition modeling;
-- richer transport customization;
-- real `@archora/ui` package integration path;
-- broader fixture coverage;
-- broader remote schema and CI-oriented workflows;
-- broader generated-app proof for experimental TanStack/Zod modes;
-- additional framework adapters later.
+Archora Forge 1.0 has a preview CLI and generated file contract for the documented scope.
 
-## Current Preview Limitations
+Current scope:
 
-- Vue 3 and TypeScript are the current target.
-- OpenAPI `oneOf`, `anyOf` and complex `allOf` are not deeply modeled yet.
-- Simple object `allOf` can be merged when branches are safe; polymorphic composition is diagnostic-only.
-- Transport behavior is intentionally small; bearer/api-key header presets exist, but OAuth refresh, retries and typed error envelopes are future work.
-- TanStack Vue Query and Zod generation are experimental opt-in modes with isolated generated TypeScript proof, not full app integration.
-- Multi-schema, Nuxt and plugin APIs are experimental foundations, not ready feature claims.
-- The Archora UI integration has a fallback adapter and an experimental opt-in real `@archora/ui` import mode.
-- React is on the roadmap later, not in the current MVP.
+- TypeScript output.
+- OpenAPI 3.x contracts.
+- Typed clients and operation helpers.
+- Form/table metadata.
+- Permissions, labels and mocks.
+- Drift checks and contract diagnostics.
+
+Known limits:
+
+- Framework component generation is intentionally out of scope.
+- Discriminator polymorphism and complex `allOf` are not deeply modeled yet.
+- Transport behavior is intentionally small; OAuth refresh and typed error envelopes are application responsibilities.
+- Zod and Valibot generation are experimental opt-in.
+- Multi-schema generation is supported for configured inputs and requires distinct output directories when files would collide.
+- TanStack-style usage is currently an integration pattern, not a finished first-party adapter.
 
 ## Development Verification
 
@@ -225,8 +272,5 @@ pnpm test
 pnpm lint
 pnpm typecheck
 pnpm build
-pnpm --filter docs build
-pnpm --filter vue-admin typecheck
-pnpm --filter vue-admin build
 ./scripts/smoke-external-consumer.sh
 ```

@@ -109,16 +109,41 @@ components:
           enum: [active, invited, disabled]
 YAML
 
-pnpm exec archora-forge inspect openapi.yaml
-pnpm exec archora-forge validate openapi.yaml
-pnpm exec archora-forge diff openapi.yaml
-pnpm exec archora-forge generate openapi.yaml --dry-run
-pnpm exec archora-forge generate openapi.yaml
-pnpm exec archora-forge check openapi.yaml
+pnpm exec archora-forge init --input ./openapi.yaml --validation valibot
+test -f archora-forge.config.ts
+grep -q "@archora/forge-cli" archora-forge.config.ts
+grep -q "validation: 'valibot'" archora-forge.config.ts
+
+pnpm exec archora-forge doctor --json --report-file forge-doctor.json
+grep -q '"ok": true' forge-doctor.json
+grep -q '"resourceCount": 1' forge-doctor.json
+pnpm exec archora-forge inspect --json --report-file forge-inspect.json
+grep -q '"ok": true' forge-inspect.json
+grep -q '"resourceCount": 1' forge-inspect.json
+pnpm exec archora-forge validate --json --report-file forge-validate.json
+grep -q '"ok": true' forge-validate.json
+grep -q '"score": 94' forge-validate.json
+pnpm exec archora-forge lint --json --report-file forge-lint.json
+grep -q '"ok": true' forge-lint.json
+grep -q '"missing-error-response"' forge-lint.json
+pnpm exec archora-forge diff
+pnpm exec archora-forge diff --json --report-file forge-diff.json
+grep -q '"ok": true' forge-diff.json
+grep -q '"create": 18' forge-diff.json
+pnpm exec archora-forge generate --dry-run --json --report-file forge-generate.json
+grep -q '"ok": true' forge-generate.json
+grep -q '"dryRun": true' forge-generate.json
+pnpm exec archora-forge generate
+pnpm exec archora-forge check --report markdown --report-file forge-check.md
+test -f forge-check.md
 
 test -f src/shared/api/generated/users/users.client.ts
-test -f src/features/users/ui/UsersTable.generated.vue
-test -f src/pages/users/UsersPage.generated.vue
+test -f src/features/users/model/users.config.ts
+test ! -e src/features/users/api/useUpdateUserMutation.ts
+test ! -e src/features/users/api/useDeleteUserMutation.ts
+test ! -e src/features/users/ui/UsersTable.generated.vue
+test ! -e src/pages/users/UsersPage.generated.vue
 grep -q "listUsers" src/shared/api/generated/users/users.client.ts
+grep -q "columns:" src/features/users/model/users.config.ts
 
 echo "External consumer smoke passed: $CONSUMER_DIR"

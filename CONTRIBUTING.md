@@ -1,6 +1,6 @@
 # Contributing
 
-Archora Forge is a preview project. Keep changes small, verifiable and honest about limitations.
+Archora Forge is a production-oriented developer tool. Keep changes small, verifiable and honest about the documented scope.
 
 ## Local Setup
 
@@ -20,11 +20,9 @@ pnpm lint
 pnpm typecheck
 pnpm build
 pnpm --filter docs build
-pnpm --filter vue-admin typecheck
-pnpm --filter vue-admin build
 ./scripts/smoke-external-consumer.sh
 ```
 
 ## Release Safety
 
-Do not publish packages from a feature branch. Use `pnpm release:check` and inspect package tarballs before any preview tag.
+Do not publish packages from a feature branch. Use `pnpm release:check` and inspect package tarballs before any release tag.

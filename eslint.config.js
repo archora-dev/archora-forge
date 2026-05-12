@@ -5,10 +5,12 @@ export default tseslint.config(
   {
     ignores: [
       '**/dist/**',
+      'examples/public-crm/generated/**',
       '**/.vitepress/cache/**',
       '**/.vitepress/dist/**',
       '**/node_modules/**',
-      'archora-forge-audit-pack/**',
+      'tmp/**',
+      '.*/**',
     ],
   },
   js.configs.recommended,

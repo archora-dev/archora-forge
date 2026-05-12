@@ -9,8 +9,6 @@
 - [ ] `pnpm typecheck`
 - [ ] `pnpm build`
 - [ ] `pnpm --filter docs build`
-- [ ] `pnpm --filter vue-admin typecheck`
-- [ ] `pnpm --filter vue-admin build`
 - [ ] `./scripts/smoke-external-consumer.sh`
 
 ## Notes
