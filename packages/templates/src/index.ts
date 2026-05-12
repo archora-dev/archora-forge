@@ -1,2 +1,2 @@
 export * from './shared/barrelTemplate.js'
-export * from './vue/permissions.template.js'
+export * from './resource/permissions.template.js'

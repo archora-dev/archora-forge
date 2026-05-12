@@ -1,3 +1,3 @@
-export * from './archora-ui/fieldAdapter.js'
-export * from './archora-ui/tableAdapter.js'
-export * from './vue/vueTarget.js'
+export * from './metadata/fieldAdapter.js'
+export * from './metadata/resourceAdapter.js'
+export * from './metadata/tableAdapter.js'

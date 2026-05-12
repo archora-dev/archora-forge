@@ -11,20 +11,30 @@ export type ForgeOutputConfig = {
   mocksDir?: string
 }
 
-export type ForgeConfig = {
-  input: string
-  inputs?: Array<{
-    name: string
-    path: string
-    basePath?: string
-    output?: ForgeOutputConfig
-  }>
+export type ForgeInputConfig = {
+  name: string
+  path: string
+  basePath?: string
+  output?: ForgeOutputConfig
+}
+
+type ForgeConfigInput =
+  | {
+      input: string
+      inputs?: ForgeInputConfig[]
+    }
+  | {
+      input?: string
+      inputs: ForgeInputConfig[]
+    }
+
+export type ForgeConfig = ForgeConfigInput & {
   output?: ForgeOutputConfig
   target?: {
-    framework?: 'vue' | 'nuxt'
+    framework?: 'neutral'
     language?: 'typescript'
-    query?: 'promise' | 'tanstack-vue-query'
-    ui?: 'fallback' | 'archora-ui' | 'vanilla-ts' | 'custom'
+    query?: 'promise'
+    ui?: 'metadata' | 'custom'
     architecture?: 'feature-sliced' | 'simple' | 'custom'
   }
   validation?: 'none' | 'zod' | 'valibot'
@@ -56,6 +66,7 @@ export type ForgeConfig = {
     failOnUnsupportedFeatures?: boolean
     failOnMissingSchemas?: boolean
     failOnDrift?: boolean
+    minHealthScore?: number
   }
   resources?: Record<string, ForgeResourceConfig>
   overwrite?: {
@@ -94,10 +105,10 @@ export type ResolvedForgeConfig = {
     mocksDir: string
   }
   target: {
-    framework: 'vue' | 'nuxt'
+    framework: 'neutral'
     language: 'typescript'
-    query: 'promise' | 'tanstack-vue-query'
-    ui: 'fallback' | 'archora-ui' | 'vanilla-ts' | 'custom'
+    query: 'promise'
+    ui: 'metadata' | 'custom'
     architecture: 'feature-sliced' | 'simple' | 'custom'
   }
   validation: 'none' | 'zod' | 'valibot'
@@ -122,6 +133,7 @@ export type ResolvedForgeConfig = {
     failOnUnsupportedFeatures: boolean
     failOnMissingSchemas: boolean
     failOnDrift: boolean
+    minHealthScore?: number
   }
   resources: Record<string, ForgeResourceConfig>
   overwrite: {
@@ -132,7 +144,7 @@ export type ResolvedForgeConfig = {
 
 export function resolveForgeConfig(config: ForgeConfig): ResolvedForgeConfig {
   return {
-    input: config.input,
+    input: config.input ?? config.inputs?.[0]?.path ?? '',
     inputs: config.inputs ?? [],
     output: {
       root: config.output?.root ?? './src',
@@ -142,10 +154,10 @@ export function resolveForgeConfig(config: ForgeConfig): ResolvedForgeConfig {
       mocksDir: config.output?.mocksDir ?? './src/shared/mocks',
     },
     target: {
-      framework: config.target?.framework ?? 'vue',
+      framework: config.target?.framework ?? 'neutral',
       language: config.target?.language ?? 'typescript',
       query: config.target?.query ?? 'promise',
-      ui: config.target?.ui ?? 'fallback',
+      ui: config.target?.ui ?? 'metadata',
       architecture: config.target?.architecture ?? 'feature-sliced',
     },
     validation: config.validation ?? 'none',
@@ -170,6 +182,7 @@ export function resolveForgeConfig(config: ForgeConfig): ResolvedForgeConfig {
       failOnUnsupportedFeatures: config.ci?.failOnUnsupportedFeatures ?? true,
       failOnMissingSchemas: config.ci?.failOnMissingSchemas ?? false,
       failOnDrift: config.ci?.failOnDrift ?? true,
+      minHealthScore: config.ci?.minHealthScore,
     },
     resources: config.resources ?? {},
     overwrite: {
@@ -214,14 +227,34 @@ export async function loadForgeConfig(filePath: string): Promise<ForgeConfig> {
 
 function parseConfig(value: unknown): ForgeConfig {
   if (!isForgeConfig(value)) {
-    throw new Error('Invalid Archora Forge config: `input` must be a string.')
+    throw new Error('Invalid Archora Forge config: `input` must be a string or `inputs` must contain at least one schema entry.')
   }
 
   return value
 }
 
 function isForgeConfig(value: unknown): value is ForgeConfig {
-  return typeof value === 'object' && value !== null && 'input' in value && typeof value.input === 'string'
+  if (typeof value !== 'object' || value === null) return false
+  if ('input' in value && value.input !== undefined && typeof value.input !== 'string') return false
+  if ('input' in value && typeof value.input === 'string') return true
+
+  return (
+    'inputs' in value &&
+    Array.isArray(value.inputs) &&
+    value.inputs.length > 0 &&
+    value.inputs.every((input) => isInputEntry(input))
+  )
+}
+
+function isInputEntry(value: unknown): value is NonNullable<ForgeConfig['inputs']>[number] {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'name' in value &&
+    typeof value.name === 'string' &&
+    'path' in value &&
+    typeof value.path === 'string'
+  )
 }
 
 function loadConfigFromSource(source: string): ForgeConfig | null {

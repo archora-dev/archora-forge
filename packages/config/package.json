@@ -1,16 +1,16 @@
 {
   "name": "@archora/forge-config",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Configuration loading and defaults for Archora Forge.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/AKotofff/Archora-forge.git"
+    "url": "git+https://github.com/archora-dev/archora-forge.git"
   },
   "bugs": {
-    "url": "https://github.com/AKotofff/Archora-forge/issues"
+    "url": "https://github.com/archora-dev/archora-forge/issues"
   },
-  "homepage": "https://github.com/AKotofff/Archora-forge#readme",
+  "homepage": "https://github.com/archora-dev/archora-forge#readme",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
