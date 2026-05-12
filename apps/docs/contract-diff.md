@@ -5,9 +5,10 @@
 ```bash
 archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml
 archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml --json
+archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml --json --report-file contract-diff.json
 ```
 
-Detected preview categories:
+Detected categories:
 
 - removed endpoint;
 - added endpoint;
@@ -17,4 +18,4 @@ Detected preview categories:
 - type changed;
 - request/response schema presence changes.
 
-The command also returns affected resources and generated files. It is not a full OpenAPI diff engine; it focuses on practical frontend generation risk.
+The JSON report includes `ok`, `oldSchema`, `newSchema`, affected resources and affected generated files. It is not a full OpenAPI diff engine; it focuses on practical frontend generation risk.

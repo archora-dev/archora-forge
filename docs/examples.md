@@ -2,19 +2,19 @@
 
 Available examples:
 
-- `examples/vue-admin` — generated Vue admin preview with Users, Orders and Reports resources.
+- `examples/ui-kit-integration` — consumer-owned UI kit mapping example for generated resource metadata.
 
 Recommended first run:
 
 ```bash
 pnpm install
 pnpm build
-pnpm --filter vue-admin dev
+pnpm --filter ui-kit-integration typecheck
 ```
 
 CLI generation smoke:
 
 ```bash
-node packages/cli/dist/index.js inspect examples/vue-admin/openapi.yaml
-node packages/cli/dist/index.js generate examples/vue-admin/openapi.yaml --dry-run
+node packages/cli/dist/index.js inspect test/fixtures/openapi/basic-crud.yaml
+node packages/cli/dist/index.js generate test/fixtures/openapi/basic-crud.yaml --dry-run
 ```

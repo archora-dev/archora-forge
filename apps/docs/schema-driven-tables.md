@@ -1,28 +1,15 @@
 # Schema-driven Tables
 
-Tables are generated from list response and entity schemas. This gives each resource a useful first screen immediately after generation.
+Forge generates table metadata, not table components.
 
-Current mappings:
+Columns are derived from response schema metadata:
 
-- `string` -> text cell.
-- `number` and `integer` -> number cell.
-- `boolean` -> readable boolean badge.
-- `enum` -> badge cell.
-- `format: date` and `format: date-time` -> formatted date cell.
-- nested objects and arrays -> safe JSON display.
-- `writeOnly` fields are excluded from table output.
+- enum fields become badge-like cell metadata;
+- `date` and `date-time` formats are preserved;
+- boolean, number, object and array fields get stable cell kinds;
+- deprecated schema fields are exposed as `deprecated`;
+- paginated list responses become pagination metadata.
 
-Tables include loading, empty and error states. When list responses look paginated, for example an object with `items`, `total` and `page`, Forge emits pagination metadata.
+Consumers map `columns` from `<resource>.config.ts` into their UI kit.
 
-Explicit columns can be configured:
-
-```ts
-resources: {
-  users: {
-    table: {
-      columns: ['email', 'status', 'verified', 'createdAt'],
-      filters: ['status'],
-    },
-  },
-}
-```
+When `resources.<name>.table.filters` is configured, Forge also emits `filters` in `<resource>.config.ts` using the same field metadata shape as forms, so consumers can pass it through `toFilterFields()`.

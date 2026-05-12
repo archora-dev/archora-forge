@@ -1,0 +1,69 @@
+# Why Forge
+
+Archora Forge is not a replacement for every OpenAPI generator. It targets the frontend layer that generic generators usually leave to teams.
+
+Forge is currently positioned for public preview, private beta and paid pilot evaluation. Use it when the cost of hand-maintaining frontend resource contracts is high enough to justify a focused pilot.
+
+## Compared with openapi-generator
+
+`openapi-generator` is broad and mature. It can generate clients for many languages and frameworks.
+
+Forge is narrower:
+
+- TypeScript-first;
+- local-first;
+- frontend resource oriented;
+- generated query keys, resource metadata, permissions, i18n and mocks;
+- CI drift checks and schema readiness diagnostics.
+
+Use `openapi-generator` when you need broad language support. Use Forge when the frontend contract around the client is the expensive repetitive part.
+
+## Compared with Orval
+
+Orval is strong for TypeScript clients and TanStack Query style workflows.
+
+Forge focuses on a different layer:
+
+- resource detection;
+- schema-driven form/table metadata;
+- generated mocks and permissions;
+- HTML/JSON/Markdown reports;
+- contract drift and frontend-readiness checks.
+
+Use Orval when client/query generation is enough. Use Forge when frontend teams need a committed resource contract that also informs UI metadata and CI.
+
+TanStack-style usage is currently an integration pattern. Forge generates query keys and operation helpers that can be wrapped by the consuming app, but a finished first-party TanStack adapter is not part of the preview claim.
+
+## What Forge Generates
+
+- typed clients;
+- operation helpers;
+- query keys;
+- TypeScript schema types;
+- schema-derived form/table metadata;
+- permissions constants;
+- i18n label scaffolds;
+- mock fixtures, handlers and scenarios;
+- JSON, Markdown and HTML reports.
+
+## What Forge Does Not Generate
+
+- application pages;
+- framework components;
+- design-system components;
+- OAuth token acquisition;
+- a hosted registry;
+- custom business workflows.
+
+The consuming application owns UI, state management and runtime auth policy.
+
+## Pilot Fit
+
+Forge is a strong paid pilot candidate when a Vue/OpenAPI team wants to answer:
+
+- what resource layer would be generated from a real schema;
+- which schema issues block better frontend generation;
+- whether CI drift checks catch contract changes early;
+- how generated metadata maps into the team's table, form and permission conventions.
+
+It is not a broad production-license pitch yet.

@@ -1,0 +1,75 @@
+# Evaluate Forge in 30 Minutes
+
+Use this flow to decide whether Archora Forge fits one real OpenAPI schema.
+
+Forge is in public preview/private beta. Treat this evaluation as a paid-pilot readiness check, not as proof that the tool is production-ready for every OpenAPI contract.
+
+For a no-private-data walkthrough first, run the public CRM demo:
+
+```bash
+pnpm build
+node packages/cli/dist/index.js inspect --config examples/public-crm/archora-forge.config.ts
+node packages/cli/dist/index.js lint --config examples/public-crm/archora-forge.config.ts --strict
+node packages/cli/dist/index.js generate --config examples/public-crm/archora-forge.config.ts --dry-run
+```
+
+## 1. Install
+
+```bash
+pnpm add -D @archora/forge-cli @archora/forge-adapters
+pnpm exec archora-forge init --input ./openapi.yaml
+```
+
+## 2. Inspect the Schema
+
+```bash
+pnpm exec archora-forge doctor
+pnpm exec archora-forge inspect ./openapi.yaml --report html --report-file forge-inspect.html
+pnpm exec archora-forge lint ./openapi.yaml --json --report-file forge-lint.json
+```
+
+Review:
+
+- detected resources;
+- diagnostics by code;
+- missing response schemas;
+- unsupported operations;
+- auth/header modeling.
+
+## 3. Preview Generated Output
+
+```bash
+pnpm exec archora-forge diff ./openapi.yaml
+pnpm exec archora-forge generate ./openapi.yaml --dry-run --json --report-file forge-generate.json
+```
+
+Check whether the generated resource names and operation helpers match your frontend architecture.
+
+## 4. Generate in a Branch
+
+```bash
+git switch -c evaluate-archora-forge
+pnpm exec archora-forge generate ./openapi.yaml
+pnpm exec archora-forge check ./openapi.yaml --report html --report-file forge-check.html
+```
+
+The generated output should be committed and reviewed like application code.
+
+## 5. Decision Criteria
+
+Forge is a good fit when:
+
+- the schema produces useful typed clients and operation helpers;
+- diagnostics are understandable and actionable;
+- generated metadata maps into your forms/tables/design system;
+- `check` can be used as a CI gate;
+- regeneration does not overwrite custom code.
+- preview limitations are acceptable for a private beta or paid pilot.
+
+Forge is not a good fit when:
+
+- you need generated pages/components;
+- your API has no stable OpenAPI contract;
+- discriminator-heavy polymorphism is central to the domain;
+- you need a hosted schema registry rather than local code generation.
+- you need a broad production license before proving the workflow on one schema.

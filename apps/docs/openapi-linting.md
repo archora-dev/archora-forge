@@ -8,7 +8,7 @@ archora-forge lint ./openapi.yaml --strict
 archora-forge lint ./openapi.yaml --json
 ```
 
-Preview rules include:
+Rules include:
 
 - missing `operationId`;
 - missing tags;

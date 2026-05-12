@@ -1,41 +1,10 @@
 # Type-safe Generation
 
-Forge derives TypeScript types from OpenAPI schemas and reuses them across clients, query keys and Vue composables.
+Forge derives TypeScript types from OpenAPI schemas and reuses them across clients, query keys and operation helpers.
 
-```ts
-export type UserStatus = 'active' | 'blocked' | 'pending'
-
-export interface User {
-  id: string
-  email: string
-  status: UserStatus
-  age?: number | null
-  verified?: boolean
-}
-
-export interface UsersListResponse {
-  items?: User[]
-  total?: number
-  page?: number
-}
-```
-
-Generated client methods keep request and response types attached to operations:
-
-```ts
-export const usersClient: {
-  listUsers: (params?: UsersListParams) => Promise<UsersListResponse>
-  getUser: (id: UserId) => Promise<User>
-  createUser: (payload: CreateUserRequest) => Promise<User>
-  updateUser: (id: UserId, payload: UpdateUserRequest) => Promise<User>
-  deleteUser: (id: UserId) => Promise<void>
-}
-```
-
-Generated composables preserve those types:
-
-```ts
-export function useUsersQuery(params?: UsersListParams): Promise<UsersListResponse>
-```
-
-The current model supports objects, primitive fields, enums, arrays, nullable fields, nested objects, operation params and operation response aliases. Deep `oneOf`, `anyOf` and `allOf` support is a roadmap item.
+Generated clients use schema-derived request, response, path and query types. Entity models exclude response-only/write-only mismatches where possible, while create/update DTOs preserve request fields when the OpenAPI contract provides DTO schemas.
+Pure dictionary schemas using `additionalProperties` are emitted as `Record<string, ...>` types, including nested map fields such as metadata or labels.
+OpenAPI 3.1 nullable type arrays such as `type: ['string', 'null']` are emitted as nullable TypeScript unions.
+Enum literals preserve primitive value types, so numeric and boolean enums are not converted into string literal types.
+OpenAPI `const` values are emitted as literal TypeScript types.
+Simple non-discriminated `oneOf` and `anyOf` branches are emitted as TypeScript unions; discriminator-based polymorphism is reported as a diagnostic.

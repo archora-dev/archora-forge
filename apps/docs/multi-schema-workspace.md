@@ -1,10 +1,9 @@
-# Experimental Multi-schema Workspace Foundation
+# Multi-schema Workspace
 
-The config shape reserves `inputs` for future multi-schema workspaces:
+Use `inputs` for monorepos or products that split OpenAPI contracts by service:
 
 ```ts
 export default defineForgeConfig({
-  input: './openapi.yaml',
   inputs: [
     { name: 'users', path: './contracts/users.yaml' },
     { name: 'billing', path: './contracts/billing.yaml' },
@@ -14,8 +13,11 @@ export default defineForgeConfig({
 
 Current status:
 
-- single-schema flow remains the supported default;
-- config typing accepts `inputs`, but runtime behavior still uses single `input`;
-- CLI orchestration across all schemas and service-specific output namespaces are not complete.
+- single-schema `input` remains the simplest default;
+- `archora-forge doctor --json`, `inspect --json`, `validate --json`, `lint --json`, `check --json`, `diff --json` and `generate --json` aggregate all configured `inputs` when no schema argument is passed;
+- `check` reports per-input schema entries in `schemas`, including config path, health score, resources, generated/protected file counts, drift count, diagnostics count and failed checks;
+- top-level `check` JSON still aggregates resources, generated files, protected files, drift, diagnostics and failed checks across all inputs;
+- `diff` and `generate` include per-input `schemas` entries plus top-level aggregate file counts;
+- top-level JSON keeps backward-compatible primary schema fields while `schemas` contains per-input detail.
 
-Do not promise collision-free multi-service generation until CLI and generator orchestration are finished.
+Set a distinct `output.generatedDir` per input for generated artifacts. `generate` refuses multi-schema plans that would write the same generated path from more than one input.

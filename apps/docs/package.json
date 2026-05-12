@@ -1,8 +1,8 @@
 {
   "name": "docs",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
-  "description": "Archora Forge public preview documentation site.",
+  "description": "Archora Forge documentation site.",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -12,7 +12,6 @@
   },
   "devDependencies": {
     "typescript": "^5.8.3",
-    "vue": "^3.5.22",
     "vitepress": "^1.6.3"
   }
 }
