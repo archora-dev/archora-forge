@@ -46,31 +46,48 @@ function createCrudOperations(operations: NormalizedOperation[]): Partial<Record
 
 function classifyCrudOperation(operation: NormalizedOperation): CrudOperation | null {
   if (operation.operationKind !== 'crud-resource') return null
-  const hasPathParam = /\{[^}]+\}/.test(operation.path)
-  if (operation.method === 'get' && !hasPathParam) return 'list'
-  if (operation.method === 'get' && hasPathParam) return 'detail'
-  if (operation.method === 'post' && !hasPathParam) return 'create'
-  if ((operation.method === 'patch' || operation.method === 'put') && hasPathParam) return 'update'
-  if (operation.method === 'delete' && hasPathParam) return 'delete'
+  const hasResourceIdentityParam = isResourceIdentityPath(operation.path)
+  if (operation.method === 'get' && !hasResourceIdentityParam) return 'list'
+  if (operation.method === 'get' && hasResourceIdentityParam) return 'detail'
+  if (operation.method === 'post' && !hasResourceIdentityParam) return 'create'
+  if ((operation.method === 'patch' || operation.method === 'put') && hasResourceIdentityParam) return 'update'
+  if (operation.method === 'delete' && hasResourceIdentityParam) return 'delete'
   return null
+}
+
+function isResourceIdentityPath(path: string): boolean {
+  return significantSegments(path).at(-1)?.startsWith('{') ?? false
 }
 
 function createResourceGroupName(operation: NormalizedOperation): string {
   const segments = meaningfulSegments(operation.path)
   if (operation.operationKind === 'crud-resource') {
-    return segments.at(-1) ?? operation.id ?? 'resource'
+    return createCrudResourceGroupName(operation.path) ?? operation.id ?? 'resource'
   }
   return segments.length > 0 ? segments.join('-') : operation.id ?? 'operation'
 }
 
+function createCrudResourceGroupName(path: string): string | null {
+  const segments = significantSegments(path)
+  const lastIndex = segments.length - 1
+  const last = segments.at(lastIndex)
+  if (!last) return null
+  if (last.startsWith('{')) {
+    return segments.slice(0, lastIndex).filter((segment) => !segment.startsWith('{')).at(-1) ?? null
+  }
+  return last
+}
+
 function meaningfulSegments(path: string): string[] {
-  const segments = path
+  return significantSegments(path)
+    .filter((segment) => !segment.startsWith('{'))
+}
+
+function significantSegments(path: string): string[] {
+  return path
     .split('/')
     .filter(Boolean)
-    .filter((segment) => !segment.startsWith('{'))
     .filter((segment) => !['api', 'v1', 'v2', 'v3'].includes(segment.toLowerCase()))
-
-  return segments
 }
 
 function groupByKind(operations: NormalizedOperation[]): Partial<Record<OperationKind, NormalizedOperation[]>> {

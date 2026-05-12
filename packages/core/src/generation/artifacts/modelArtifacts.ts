@@ -1,5 +1,6 @@
 import type { ForgeResourceConfig } from '@archora/forge-config'
 
+import { pluralizeTypeName } from '../identifiers.js'
 import type { ResourceUiModel } from '../resourceUiModel.js'
 import { toCode } from './serialization.js'
 
@@ -12,18 +13,19 @@ export function createPermissionsArtifact(resourceName: string, config?: ForgeRe
 }
 
 export function createI18nArtifact(resourceName: string, entity: string, model: ResourceUiModel): string {
-  const fields = [...model.formFields.map((field) => field.name), ...model.tableColumns.map((column) => column.name)]
+  const collection = pluralizeTypeName(entity)
+  const fields = [
+    ...model.formFields.map((field) => field.name),
+    ...model.filterFields.map((field) => field.name),
+    ...model.tableColumns.map((column) => column.name),
+  ]
   const uniqueFields = [...new Set(fields)]
     .map((field) => `    ${field}: '${field.replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase())}',`)
     .join('\n')
 
-  return `export const ${resourceName}I18n = {\n  title: '${entity}s',\n  create: 'Create ${entity.toLowerCase()}',\n  edit: 'Edit ${entity.toLowerCase()}',\n  delete: 'Delete ${entity.toLowerCase()}',\n  fields: {\n${uniqueFields}\n  },\n} as const\n`
+  return `export const ${resourceName}I18n = {\n  title: '${collection}',\n  create: 'Create ${entity.toLowerCase()}',\n  edit: 'Edit ${entity.toLowerCase()}',\n  delete: 'Delete ${entity.toLowerCase()}',\n  fields: {\n${uniqueFields}\n  },\n} as const\n`
 }
 
 export function createResourceConfigArtifact(resourceName: string, model: ResourceUiModel): string {
-  return `export const ${resourceName}Config = {\n  resource: '${resourceName}',\n  pagination: ${toCode(model.pagination)},\n  fields: ${toCode(model.formFields)},\n  columns: ${toCode(model.tableColumns)},\n} as const\n`
-}
-
-export function createRoutesArtifact(resourceName: string, entity: string): string {
-  return `import { ${resourceName}Permissions } from '../../features/${resourceName}/model/${resourceName}.permissions'\n\nexport const ${resourceName}Routes = [{\n  path: '/${resourceName}',\n  name: '${resourceName}',\n  component: () => import('./${entity}sPage.generated.vue'),\n  meta: { permission: ${resourceName}Permissions.view },\n}] as const\n`
+  return `export const ${resourceName}Config = {\n  resource: '${resourceName}',\n  pagination: ${toCode(model.pagination)},\n  fields: ${toCode(model.formFields)},\n  filters: ${toCode(model.filterFields)},\n  columns: ${toCode(model.tableColumns)},\n} as const\n`
 }

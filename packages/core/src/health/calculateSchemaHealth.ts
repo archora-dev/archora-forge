@@ -9,7 +9,7 @@ export function calculateSchemaHealth(normalized: NormalizedOpenApi): SchemaHeal
     const target = `${operation.method.toUpperCase()} ${operation.path}`
     if (!operation.id) warnings.push({ code: 'operation-id-missing', message: 'Operation has no operationId.', target })
     if (operation.tags.length === 0) warnings.push({ code: 'tags-missing', message: 'Operation has no tags.', target })
-    if (!operation.responseSchema) warnings.push({ code: 'response-schema-missing', message: 'Operation has no explicit 2xx response schema.', target })
+    if (!operation.responseSchema && !operation.responseBodyEmpty) warnings.push({ code: 'response-schema-missing', message: 'Operation has no explicit 2xx response schema.', target })
     if (!operation.hasErrorResponse) warnings.push({ code: 'error-response-missing', message: 'Operation has no 4xx/5xx response.', target })
   }
 

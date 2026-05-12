@@ -1,16 +1,16 @@
 {
   "name": "@archora/forge-core",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Core OpenAPI analysis and generation engine for Archora Forge.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/AKotofff/Archora-forge.git"
+    "url": "git+https://github.com/archora-dev/archora-forge.git"
   },
   "bugs": {
-    "url": "https://github.com/AKotofff/Archora-forge/issues"
+    "url": "https://github.com/archora-dev/archora-forge/issues"
   },
-  "homepage": "https://github.com/AKotofff/Archora-forge#readme",
+  "homepage": "https://github.com/archora-dev/archora-forge#readme",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -43,14 +43,10 @@
     "yaml": "^2.8.4"
   },
   "peerDependencies": {
-    "@tanstack/vue-query": ">=5.0.0",
     "valibot": ">=0.30.0",
     "zod": ">=3.22.0"
   },
   "peerDependenciesMeta": {
-    "@tanstack/vue-query": {
-      "optional": true
-    },
     "zod": {
       "optional": true
     },

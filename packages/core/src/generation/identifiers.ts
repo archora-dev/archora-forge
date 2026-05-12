@@ -143,6 +143,12 @@ export function toSafeFileName(value: string, fallback = 'file'): string {
   return toSafeIdentifier(value, fallback)
 }
 
+export function pluralizeTypeName(value: string): string {
+  if (/(s|x|z|ch|sh)$/i.test(value)) return `${value}es`
+  if (/[^aeiou]y$/i.test(value)) return `${value.slice(0, -1)}ies`
+  return `${value}s`
+}
+
 export function createIdentifierRegistry(): {
   identifier: (value: string, fallback?: string) => string
   typeName: (value: string, fallback?: string) => string

@@ -19,8 +19,7 @@ export async function formatGeneratedContent(path: string, content: string): Pro
   }
 }
 
-function getParser(path: string): 'typescript' | 'vue' | null {
+function getParser(path: string): 'typescript' | null {
   if (path.endsWith('.ts')) return 'typescript'
-  if (path.endsWith('.vue')) return 'vue'
   return null
 }

@@ -1,50 +1,45 @@
 import type { DetectedResource } from '../../resources/resources.types.js'
-import { createOperationTypeNames, getOperationParams } from '../typeGeneration.js'
+import { pluralizeTypeName, quoteObjectKeyIfNeeded, toSafeIdentifier } from '../identifiers.js'
+import { createOperationTypeNames, getOperationParams, getPathParams } from '../typeGeneration.js'
 import { createResourceTypeNames } from '../typeGeneration.js'
 
-export type QueryMode = 'promise' | 'tanstack-vue-query'
-
-export function createListComposable(resourceName: string, resource: DetectedResource, queryMode: QueryMode): string {
+export function createListComposable(resourceName: string, resource: DetectedResource): string {
   const names = createResourceTypeNames(resource)
-  if (!resource.operations.list?.id) return createMissingComposable(`use${resource.entity}sQuery`)
-  if (queryMode === 'tanstack-vue-query') {
-    return `import { useQuery } from '@tanstack/vue-query'\n\nimport { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.listParamsType}, ${names.listResponseType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function use${resource.entity}sQuery(params?: ${names.listParamsType}) {\n  return useQuery<${names.listResponseType}>({\n    queryKey: ${resourceName}QueryKeys.list(params),\n    queryFn: () => ${resourceName}Client.${resource.operations.list.id}(params),\n  })\n}\n`
-  }
-  return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.listParamsType}, ${names.listResponseType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function use${resource.entity}sQuery(params?: ${names.listParamsType}): Promise<${names.listResponseType}> {\n  ${resourceName}QueryKeys.list(params)\n  return ${resourceName}Client.${resource.operations.list.id}(params)\n}\n`
+  const collection = pluralizeTypeName(resource.entity)
+  if (!resource.operations.list?.id) return createMissingComposable(`use${collection}Query`)
+  const requiresParams = getPathParams(resource.operations.list).length > 0
+  return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.listParamsType}, ${names.listResponseType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function use${collection}Query(params${requiresParams ? '' : '?'}: ${names.listParamsType}): Promise<${names.listResponseType}> {\n  ${resourceName}QueryKeys.list(params)\n  return ${resourceName}Client.${resource.operations.list.id}(params)\n}\n`
 }
 
-export function createDetailComposable(resourceName: string, resource: DetectedResource, queryMode: QueryMode): string {
+export function createDetailComposable(resourceName: string, resource: DetectedResource): string {
   const names = createResourceTypeNames(resource)
   if (!resource.operations.detail?.id) return createMissingComposable(`use${resource.entity}Query`)
-  if (queryMode === 'tanstack-vue-query') {
-    return `import { useQuery } from '@tanstack/vue-query'\n\nimport { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.detailResponseType}, ${names.idType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function use${resource.entity}Query(id: ${names.idType} | null | undefined) {\n  return useQuery<${names.detailResponseType}>({\n    queryKey: id == null ? ${resourceName}QueryKeys.all : ${resourceName}QueryKeys.detail(id),\n    queryFn: () => ${resourceName}Client.${resource.operations.detail.id}(id as ${names.idType}),\n    enabled: id != null,\n  })\n}\n`
-  }
   return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.detailResponseType}, ${names.idType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function use${resource.entity}Query(id: ${names.idType}): Promise<${names.detailResponseType}> {\n  ${resourceName}QueryKeys.detail(id)\n  return ${resourceName}Client.${resource.operations.detail.id}(id)\n}\n`
 }
 
-export function createCreateMutation(resourceName: string, resource: DetectedResource, queryMode: QueryMode): string {
+export function createCreateMutation(resourceName: string, resource: DetectedResource): string {
   const names = createResourceTypeNames(resource)
   if (!resource.operations.create?.id) return createMissingComposable(`useCreate${resource.entity}Mutation`)
-  if (queryMode === 'tanstack-vue-query') {
-    return `import { useMutation } from '@tanstack/vue-query'\n\nimport { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.createRequestType}, ${names.createResponseType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useCreate${resource.entity}Mutation() {\n  return useMutation<${names.createResponseType}, Error, ${names.createRequestType}>({\n    mutationFn: (payload) => ${resourceName}Client.${resource.operations.create.id}(payload),\n    meta: { invalidate: ${resourceName}QueryKeys.list() },\n  })\n}\n`
+  const pathParams = getPathParams(resource.operations.create)
+  if (pathParams.length > 0) {
+    return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.listParamsType}, ${names.createRequestType}, ${names.createResponseType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useCreate${resource.entity}Mutation(): {\n  mutate: (input: { params: ${names.listParamsType}; payload: ${names.createRequestType} }) => Promise<${names.createResponseType}>\n  invalidate: (params: ${names.listParamsType}) => ReturnType<typeof ${resourceName}QueryKeys.list>\n} {\n  return {\n    mutate: (input) => ${resourceName}Client.${resource.operations.create.id}(input.params, input.payload),\n    invalidate: (params) => ${resourceName}QueryKeys.list(params),\n  }\n}\n`
   }
   return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.createRequestType}, ${names.createResponseType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useCreate${resource.entity}Mutation(): {\n  mutate: (payload: ${names.createRequestType}) => Promise<${names.createResponseType}>\n  invalidate: () => ReturnType<typeof ${resourceName}QueryKeys.list>\n} {\n  return {\n    mutate: (payload: ${names.createRequestType}) => ${resourceName}Client.${resource.operations.create.id}(payload),\n    invalidate: () => ${resourceName}QueryKeys.list(),\n  }\n}\n`
 }
 
-export function createUpdateMutation(resourceName: string, resource: DetectedResource, queryMode: QueryMode): string {
+export function createUpdateMutation(resourceName: string, resource: DetectedResource): string {
   const names = createResourceTypeNames(resource)
   if (!resource.operations.update?.id) return createMissingComposable(`useUpdate${resource.entity}Mutation`)
-  if (queryMode === 'tanstack-vue-query') {
-    return `import { useMutation } from '@tanstack/vue-query'\n\nimport { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.idType}, ${names.updateRequestType}, ${names.updateResponseType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useUpdate${resource.entity}Mutation() {\n  return useMutation<${names.updateResponseType}, Error, { id: ${names.idType}; payload: ${names.updateRequestType} }>({\n    mutationFn: ({ id, payload }) => ${resourceName}Client.${resource.operations.update.id}(id, payload),\n    meta: { invalidate: ${resourceName}QueryKeys.list() },\n  })\n}\n`
-  }
   return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.idType}, ${names.updateRequestType}, ${names.updateResponseType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useUpdate${resource.entity}Mutation(): {\n  mutate: (input: { id: ${names.idType}; payload: ${names.updateRequestType} }) => Promise<${names.updateResponseType}>\n  invalidate: (id: ${names.idType}) => ReturnType<typeof ${resourceName}QueryKeys.detail>\n} {\n  return {\n    mutate: ({ id, payload }) => ${resourceName}Client.${resource.operations.update.id}(id, payload),\n    invalidate: (id) => ${resourceName}QueryKeys.detail(id),\n  }\n}\n`
 }
 
-export function createDeleteMutation(resourceName: string, resource: DetectedResource, queryMode: QueryMode): string {
+export function createDeleteMutation(resourceName: string, resource: DetectedResource): string {
   const names = createResourceTypeNames(resource)
   if (!resource.operations.delete?.id) return createMissingComposable(`useDelete${resource.entity}Mutation`)
-  if (queryMode === 'tanstack-vue-query') {
-    return `import { useMutation } from '@tanstack/vue-query'\n\nimport { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.idType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useDelete${resource.entity}Mutation() {\n  return useMutation<void, Error, ${names.idType}>({\n    mutationFn: (id) => ${resourceName}Client.${resource.operations.delete.id}(id),\n    meta: { invalidate: ${resourceName}QueryKeys.list() },\n  })\n}\n`
+  const requiresListParams = getPathParams(resource.operations.delete).length > 1
+  if (requiresListParams) {
+    const collectionParams = createCollectionParamsFromIdentity(getPathParams(resource.operations.delete))
+    return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.idType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useDelete${resource.entity}Mutation(): {\n  mutate: (id: ${names.idType}) => Promise<void>\n  invalidate: (id: ${names.idType}) => ReturnType<typeof ${resourceName}QueryKeys.list>\n} {\n  return {\n    mutate: (id) => ${resourceName}Client.${resource.operations.delete.id}(id),\n    invalidate: (id) => ${resourceName}QueryKeys.list(${collectionParams}),\n  }\n}\n`
   }
   return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.idType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useDelete${resource.entity}Mutation(): {\n  mutate: (id: ${names.idType}) => Promise<void>\n  invalidate: () => ReturnType<typeof ${resourceName}QueryKeys.list>\n} {\n  return {\n    mutate: (id) => ${resourceName}Client.${resource.operations.delete.id}(id),\n    invalidate: () => ${resourceName}QueryKeys.list(),\n  }\n}\n`
 }
@@ -52,7 +47,6 @@ export function createDeleteMutation(resourceName: string, resource: DetectedRes
 export function createOperationComposable(
   resourceName: string,
   operation: DetectedResource['operationsList'][number],
-  queryMode: QueryMode,
 ): string {
   const names = createOperationTypeNames(operation)
   const composableName = operationComposableName(operation)
@@ -64,10 +58,6 @@ export function createOperationComposable(
     names.responseType,
   ]
 
-  if (queryMode === 'tanstack-vue-query') {
-    return `import { useMutation } from '@tanstack/vue-query'\n\nimport { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport type { ${imports.join(', ')} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\ntype ${toInputTypeName(operation)} = ${operationInputType(names, hasPayload, hasParams)}\n\nexport function ${composableName}() {\n  return useMutation<${names.responseType}, Error, ${toInputTypeName(operation)}>({\n    mutationFn: (input) => ${operationClientCall(resourceName, operation, hasPayload, hasParams, true)},\n  })\n}\n`
-  }
-
   return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport type { ${imports.join(', ')} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\ntype ${toInputTypeName(operation)} = ${operationInputType(names, hasPayload, hasParams)}\n\nexport function ${composableName}(): {\n  mutate: (input: ${toInputTypeName(operation)}) => Promise<${names.responseType}>\n} {\n  return {\n    mutate: (input) => ${operationClientCall(resourceName, operation, hasPayload, hasParams, true)},\n  }\n}\n`
 }
 
@@ -78,6 +68,11 @@ export function operationComposableName(operation: DetectedResource['operationsL
 
 function createMissingComposable(name: string): string {
   return `export function ${name}(): never {\n  throw new Error('${name} is not available: missing OpenAPI operation for this resource.')\n}\n`
+}
+
+function createCollectionParamsFromIdentity(pathParams: ReturnType<typeof getPathParams>): string {
+  const parentParams = pathParams.slice(0, -1)
+  return `{ ${parentParams.map((param) => `${quoteObjectKeyIfNeeded(param.name)}: id.${toSafeIdentifier(param.name)}`).join(', ')} }`
 }
 
 function toInputTypeName(operation: DetectedResource['operationsList'][number]): string {

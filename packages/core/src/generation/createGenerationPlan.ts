@@ -21,18 +21,13 @@ import {
   createI18nArtifact,
   createPermissionsArtifact,
   createResourceConfigArtifact,
-  createRoutesArtifact,
 } from './artifacts/modelArtifacts.js'
-import { createDrawerArtifact, createDeleteConfirmArtifact } from './artifacts/shellArtifacts.js'
-import { createFormArtifact } from './artifacts/formArtifact.js'
 import { createIndex } from './artifacts/indexArtifact.js'
-import { createPageArtifact } from './artifacts/pageArtifact.js'
 import { createQueryKeysArtifact } from './artifacts/queryKeysArtifact.js'
-import { createTableArtifact } from './artifacts/tableArtifact.js'
-import { createUiAdapter } from './artifacts/uiAdapterArtifact.js'
 import { createValidationSchemas } from './artifacts/validationArtifact.js'
 import { formatGeneratedContent } from './formatGeneratedContent.js'
 import type { GeneratedFile, GenerationPlan } from './generation.types.js'
+import { pluralizeTypeName } from './identifiers.js'
 import { createResourceUiModel, type ResourceUiModel } from './resourceUiModel.js'
 import { loadTemplateOverride, type TemplateRegistry } from './templates.js'
 import { createSharedSchemaTypes, createTypeScriptTypes } from './typeGeneration.js'
@@ -41,13 +36,12 @@ type ForgeGenerationConfig = {
   output: {
     generatedDir: string
     featuresDir: string
-    pagesDir?: string
     mocksDir?: string
   }
   target?: {
-    framework?: 'vue' | 'nuxt'
-    query?: 'promise' | 'tanstack-vue-query'
-    ui?: 'fallback' | 'archora-ui' | 'vanilla-ts' | 'custom'
+    framework?: 'neutral'
+    query?: 'promise'
+    ui?: 'metadata' | 'custom'
   }
   validation?: 'none' | 'zod' | 'valibot'
   plugins?: unknown[]
@@ -69,14 +63,16 @@ export type CreateGenerationPlanInput = {
 
 export async function createGenerationPlan(input: CreateGenerationPlanInput): Promise<GenerationPlan> {
   const files: GeneratedFile[] = [
-    await createFile(input.cwd, join('./src/shared/ui', 'archora-ui.ts'), 'generated', createUiAdapter(input.config.target?.ui ?? 'fallback'), true),
     await createFile(input.cwd, join(input.config.output.generatedDir, 'components.types.ts'), 'generated', createSharedSchemaTypes(input.normalized), true),
   ]
   const templateOverrides = await loadTemplateOverrides(input.config.templates?.override, input.cwd)
+  const resolvedResources: DetectedResource[] = []
 
   for (const resource of input.resources) {
     if (input.config.resources?.[resource.name]?.enabled === false) continue
-    files.push(...(await createResourceFiles(input, resource, templateOverrides)))
+    const resolvedResource = applyResourceConfig(resource, input.config.resources?.[resource.name])
+    resolvedResources.push(resolvedResource)
+    files.push(...(await createResourceFiles(input, resolvedResource, templateOverrides)))
   }
 
   for (const artifact of await runPluginArtifactHooks({ plugins: input.config.plugins, normalized: input.normalized, cwd: input.cwd })) {
@@ -86,7 +82,7 @@ export async function createGenerationPlan(input: CreateGenerationPlanInput): Pr
   await runPluginAfterGenerateHooks({ plugins: input.config.plugins, files })
 
   return {
-    resources: input.resources.map((resource) => ({
+    resources: resolvedResources.map((resource) => ({
       ...resource,
       outputName: resource.name,
       permissions: {
@@ -97,6 +93,13 @@ export async function createGenerationPlan(input: CreateGenerationPlanInput): Pr
       },
     })),
     files,
+  }
+}
+
+function applyResourceConfig(resource: DetectedResource, config: ForgeResourceConfig | undefined): DetectedResource {
+  return {
+    ...resource,
+    entity: config?.entity ?? resource.entity,
   }
 }
 
@@ -111,7 +114,6 @@ async function createResourceFiles(
     config: input.config.resources?.[resource.name],
   })
   const paths = resourcePaths(input.config, resource)
-  const queryMode = input.config.target?.query ?? 'promise'
   const validation = input.config.validation ?? 'none'
   const apiExports = [`${resource.name}.client`, `${resource.name}.types`, `${resource.name}.query-keys`]
   const validationArtifact = validation === 'none' ? null : createValidationSchemas(input.normalized, resource.name, resource, validation)
@@ -123,40 +125,54 @@ async function createResourceFiles(
     [join(paths.apiDir, `${resource.name}.query-keys.ts`), createQueryKeysArtifact(resource.name, resource)],
     ...(validationArtifact ? ([[join(paths.apiDir, `${resource.name}.validation.ts`), validationArtifact]] as Array<[string, string]>) : []),
     [join(paths.apiDir, 'index.ts'), createIndex(apiExports)],
-    ...createFeatureApiFiles(paths.featureApiDir, resource.name, resource, queryMode),
+    ...createFeatureApiFiles(paths.featureApiDir, resource.name, resource),
     ...await createModelFiles(input, resource, paths.featureModelDir, uiModel, templateOverrides),
-    ...await createUiFiles(input, resource, paths.featureUiDir, uiModel, templateOverrides),
-    ...await createPageFiles(input, resource, paths.pagesDir, uiModel, templateOverrides),
     ...createMockFiles(paths.mocksDir, resource),
   ]
 
-  const files = await Promise.all(generatedFiles.map(([path, content]) => createFile(input.cwd, path, 'generated', content, true)))
-  files.push(await createCustomTableWrapper(input, paths.featureUiDir, resource))
-
-  return files
+  return Promise.all(generatedFiles.map(([path, content]) => createFile(input.cwd, path, 'generated', content, true)))
 }
 
-function createFeatureApiFiles(featureApiDir: string, resourceName: string, resource: DetectedResource, queryMode: 'promise' | 'tanstack-vue-query'): Array<[string, string]> {
+function createFeatureApiFiles(featureApiDir: string, resourceName: string, resource: DetectedResource): Array<[string, string]> {
   const entity = resource.entity
-  const operationComposables = resource.operationsList.filter(isGeneratedOperation).map((operation) => {
-    const composableName = operationComposableName(operation)
-    return [join(featureApiDir, `${composableName}.ts`), createOperationComposable(resourceName, operation, queryMode)] as [string, string]
-  })
-  const operationExports = resource.operationsList.filter(isGeneratedOperation).map(operationComposableName)
+  const collection = pluralizeTypeName(entity)
+  const crudComposables: Array<[string, string]> = []
+  const crudExports: string[] = []
 
-  return [
-    [join(featureApiDir, `use${entity}sQuery.ts`), createListComposable(resourceName, resource, queryMode)],
-    [join(featureApiDir, `use${entity}Query.ts`), createDetailComposable(resourceName, resource, queryMode)],
-    [join(featureApiDir, `useCreate${entity}Mutation.ts`), createCreateMutation(resourceName, resource, queryMode)],
-    [join(featureApiDir, `useUpdate${entity}Mutation.ts`), createUpdateMutation(resourceName, resource, queryMode)],
-    [join(featureApiDir, `useDelete${entity}Mutation.ts`), createDeleteMutation(resourceName, resource, queryMode)],
-    ...operationComposables,
-    [join(featureApiDir, 'index.ts'), createIndex([`use${entity}sQuery`, `use${entity}Query`, `useCreate${entity}Mutation`, `useUpdate${entity}Mutation`, `useDelete${entity}Mutation`, ...operationExports])],
-  ]
+  if (resource.operations.list?.id) {
+    crudComposables.push([join(featureApiDir, `use${collection}Query.ts`), createListComposable(resourceName, resource)])
+    crudExports.push(`use${collection}Query`)
+  }
+  if (resource.operations.detail?.id) {
+    crudComposables.push([join(featureApiDir, `use${entity}Query.ts`), createDetailComposable(resourceName, resource)])
+    crudExports.push(`use${entity}Query`)
+  }
+  if (resource.operations.create?.id) {
+    crudComposables.push([join(featureApiDir, `useCreate${entity}Mutation.ts`), createCreateMutation(resourceName, resource)])
+    crudExports.push(`useCreate${entity}Mutation`)
+  }
+  if (resource.operations.update?.id) {
+    crudComposables.push([join(featureApiDir, `useUpdate${entity}Mutation.ts`), createUpdateMutation(resourceName, resource)])
+    crudExports.push(`useUpdate${entity}Mutation`)
+  }
+  if (resource.operations.delete?.id) {
+    crudComposables.push([join(featureApiDir, `useDelete${entity}Mutation.ts`), createDeleteMutation(resourceName, resource)])
+    crudExports.push(`useDelete${entity}Mutation`)
+  }
+
+  const generatedOperations = resource.operationsList.filter((operation) => isGeneratedOperation(resource, operation))
+  const operationComposables = generatedOperations.map((operation) => {
+    const composableName = operationComposableName(operation)
+    return [join(featureApiDir, `${composableName}.ts`), createOperationComposable(resourceName, operation)] as [string, string]
+  })
+  const operationExports = generatedOperations.map(operationComposableName)
+  const exports = [...crudExports, ...operationExports]
+
+  return [...crudComposables, ...operationComposables, ...(exports.length > 0 ? ([[join(featureApiDir, 'index.ts'), createIndex(exports)]] as Array<[string, string]>) : [])]
 }
 
-function isGeneratedOperation(operation: DetectedResource['operationsList'][number]): boolean {
-  return operation.operationKind !== 'crud-resource' && operation.operationKind !== 'unsupported-operation' && Boolean(operation.id)
+function isGeneratedOperation(resource: DetectedResource, operation: DetectedResource['operationsList'][number]): boolean {
+  return operation.operationKind !== 'unsupported-operation' && Boolean(operation.id) && !Object.values(resource.operations).includes(operation)
 }
 
 async function createModelFiles(
@@ -175,37 +191,6 @@ async function createModelFiles(
   ]
 }
 
-async function createUiFiles(
-  input: CreateGenerationPlanInput,
-  resource: DetectedResource,
-  featureUiDir: string,
-  uiModel: ResourceUiModel,
-  templateOverrides: TemplateRegistry,
-): Promise<Array<[string, string]>> {
-  const entity = resource.entity
-  return [
-    [join(featureUiDir, `${entity}sTable.generated.vue`), await renderTemplate(templateOverrides.table, input.cwd, resource, uiModel, () => createTableArtifact(entity, resource.name, uiModel, resource))],
-    [join(featureUiDir, `${entity}Form.generated.vue`), await renderTemplate(templateOverrides.form, input.cwd, resource, uiModel, () => createFormArtifact(entity, uiModel))],
-    [join(featureUiDir, `${entity}Drawer.generated.vue`), createDrawerArtifact(entity)],
-    [join(featureUiDir, `Delete${entity}Confirm.generated.vue`), createDeleteConfirmArtifact(entity)],
-  ]
-}
-
-async function createPageFiles(
-  input: CreateGenerationPlanInput,
-  resource: DetectedResource,
-  pagesDir: string,
-  uiModel: ResourceUiModel,
-  templateOverrides: TemplateRegistry,
-): Promise<Array<[string, string]>> {
-  const entity = resource.entity
-  return [
-    [join(pagesDir, `${entity}sPage.generated.vue`), await renderTemplate(templateOverrides.page, input.cwd, resource, uiModel, () => createPageArtifact(entity, resource.name, uiModel))],
-    [join(pagesDir, `${resource.name}.routes.ts`), createRoutesArtifact(resource.name, entity)],
-    [join(pagesDir, 'index.ts'), `export { default as ${entity}sPageGenerated } from './${entity}sPage.generated.vue'\nexport * from './${resource.name}.routes'\n`],
-  ]
-}
-
 function createMockFiles(mocksDir: string, resource: DetectedResource): Array<[string, string]> {
   return [
     [join(mocksDir, `${resource.name}.fixtures.ts`), createFixturesArtifact(resource.name, resource.entity)],
@@ -220,21 +205,8 @@ function resourcePaths(config: ForgeGenerationConfig, resource: DetectedResource
     apiDir: join(config.output.generatedDir, resource.name),
     featureApiDir: join(config.output.featuresDir, resource.name, 'api'),
     featureModelDir: join(config.output.featuresDir, resource.name, 'model'),
-    featureUiDir: join(config.output.featuresDir, resource.name, 'ui'),
-    pagesDir: join(config.output.pagesDir ?? './src/pages', resource.name),
     mocksDir: join(config.output.mocksDir ?? './src/shared/mocks', resource.name),
   }
-}
-
-async function createCustomTableWrapper(input: CreateGenerationPlanInput, featureUiDir: string, resource: DetectedResource): Promise<GeneratedFile> {
-  const entity = resource.entity
-  return createFile(
-    input.cwd,
-    join(featureUiDir, `${entity}sTable.vue`),
-    'custom',
-    `<script setup lang="ts">\nimport ${entity}sTableGenerated from './${entity}sTable.generated.vue'\n\ndefineProps<{\n  rows?: Record<string, unknown>[]\n  loading?: boolean\n  error?: string | null\n}>()\n</script>\n\n<template>\n  <${entity}sTableGenerated :rows="rows" :loading="loading" :error="error" />\n</template>\n`,
-    input.config.overwrite.custom,
-  )
 }
 
 async function loadTemplateOverrides(overrides: NonNullable<ForgeGenerationConfig['templates']>['override'] | undefined, cwd: string): Promise<TemplateRegistry> {

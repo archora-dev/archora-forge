@@ -48,7 +48,7 @@ export function lintOpenApi(normalized: NormalizedOpenApi, options: OpenApiLintO
         suggestion: 'Add an application/json request schema for typed generated payloads.',
       })
     }
-    if (operation.method !== 'delete' && !operation.responseSchema) {
+    if (operation.method !== 'delete' && !operation.responseSchema && !operation.responseBodyEmpty) {
       diagnostics.push({
         severity: 'warning',
         code: 'missing-response-schema',

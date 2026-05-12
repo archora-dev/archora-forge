@@ -1,5 +1,5 @@
 import type { NormalizedOpenApi, OpenApiSchema } from '../openapi/openapi.types.js'
-import { analyzeAllOfSchema } from '../openapi/composition.js'
+import { analyzeAllOfSchema, unwrapAnnotationOnlyAllOfSchema } from '../openapi/composition.js'
 import { runPluginDiagnostics } from '../plugins/plugins.js'
 
 export type ForgeDiagnostic = {
@@ -19,12 +19,15 @@ export function collectDiagnostics(normalized: NormalizedOpenApi, options: Colle
   const diagnostics: ForgeDiagnostic[] = []
   const groupedParameters = new Map<string, { in: 'header' | 'cookie'; name: string; locations: string[] }>()
 
-  if (normalized.document.components?.securitySchemes && Object.keys(normalized.document.components.securitySchemes).length > 0) {
+  const unsupportedSecuritySchemes = Object.entries(normalized.document.components?.securitySchemes ?? {}).filter(
+    ([, scheme]) => !isRuntimeSupportedSecurityScheme(scheme),
+  )
+  if (unsupportedSecuritySchemes.length > 0) {
     diagnostics.push({
       severity: 'warning',
       code: 'unsupported-security-schemes',
-      message: 'Security schemes are detected but are not wired into generated clients yet.',
-      location: 'components.securitySchemes',
+      message: 'Unsupported security schemes are detected.',
+      location: unsupportedSecuritySchemes.map(([name]) => `components.securitySchemes.${name}`).join(', '),
       suggestion: 'Configure auth headers through the runtime client until security scheme generation is supported.',
     })
   }
@@ -56,7 +59,7 @@ export function collectDiagnostics(normalized: NormalizedOpenApi, options: Colle
       })
     }
 
-    if (!operation.responseSchema && operation.method !== 'delete') {
+    if (!operation.responseSchema && !operation.responseBodyEmpty && operation.method !== 'delete') {
       diagnostics.push({
         severity: 'warning',
         code: responseContentTypes.some((type) => !isJsonCompatibleContentType(type)) ? 'unsupported-content-type' : 'missing-response-schema',
@@ -69,7 +72,13 @@ export function collectDiagnostics(normalized: NormalizedOpenApi, options: Colle
 
     for (const parameter of operation.parameters) {
       if (parameter.in === 'header' || parameter.in === 'cookie') {
-        if (parameter.name.toLowerCase() === 'authorization') {
+        if (parameter.in === 'header' && parameter.name.toLowerCase() === 'authorization') {
+          continue
+        }
+        if (parameter.in === 'header' && operation.operationKind !== 'crud-resource' && parameter.name.toLowerCase() !== 'authorization') {
+          continue
+        }
+        if (parameter.in === 'cookie' && parameter.name.toLowerCase() === 'authorization') {
           const key = `${parameter.in}:${parameter.name.toLowerCase()}`
           const grouped = groupedParameters.get(key) ?? { in: parameter.in, name: parameter.name, locations: [] }
           grouped.locations.push(location)
@@ -115,7 +124,7 @@ export function collectDiagnostics(normalized: NormalizedOpenApi, options: Colle
     const originalSchema = normalized.document.components?.schemas?.[schema.name] ?? schema.schema
     collectSchemaDiagnostics(normalized, originalSchema, `#/components/schemas/${schema.name}`, schemaDiagnostics)
   }
-  diagnostics.push(...groupSchemaDiagnostics(schemaDiagnostics))
+  diagnostics.push(...schemaDiagnostics)
 
   diagnostics.push(...runPluginDiagnostics({ plugins: options.plugins, normalized }))
 
@@ -129,16 +138,12 @@ function collectSchemaDiagnostics(
   diagnostics: ForgeDiagnostic[],
 ): void {
   if (schema.allOf) {
-    const analysis = analyzeAllOfSchema(normalized.document, schema)
-    if (analysis.kind === 'mergeable') {
-      diagnostics.push({
-        severity: 'warning',
-        code: 'supported-allof-object-merge',
-        message: `${location} uses simple object allOf composition that can be merged safely.`,
-        location,
-        impact: 'Generated types use a safe merged object shape.',
-        suggestion: 'Review merged generated types; complex allOf semantics remain outside public-preview support.',
-      })
+    const unwrapped = unwrapAnnotationOnlyAllOfSchema(schema)
+    const analysis = unwrapped ? null : analyzeAllOfSchema(normalized.document, schema)
+    if (!analysis) {
+      // Annotation-only wrappers such as allOf: [$ref, { default }] are type-transparent.
+    } else if (analysis.kind === 'mergeable') {
+      // Safe allOf merges are represented in the normalized schema, so they are not surfaced as user-facing warnings.
     } else if (analysis.kind === 'conflicting') {
       diagnostics.push({
         severity: 'error',
@@ -159,13 +164,21 @@ function collectSchemaDiagnostics(
   }
   for (const key of ['oneOf', 'anyOf'] as const) {
     if (!schema[key]) continue
+    if (!schema.discriminator && isSimpleUnion(schema[key])) continue
+    const branches = schema[key]
+      .map((_, index) => `${location}/${key}/${index}`)
+      .join(', ')
       diagnostics.push({
         severity: 'warning',
         code: `unsupported-${key.toLowerCase()}`,
         message: `${location} uses ${key}, which is reported but not deeply modeled yet.`,
         location,
-        impact: 'Generated types may fall back to a broader shape for this schema branch.',
-        suggestion: 'Prefer a concrete object schema for public preview generation, or validate generated fallback types carefully.',
+        impact: schema.discriminator
+          ? `Generated types may fall back to a broader shape for discriminator-based branches: ${branches}.`
+          : `Generated types may fall back to a broader shape for branches: ${branches}.`,
+        suggestion: schema.discriminator
+          ? 'Discriminator is present; validate generated fallback types carefully or prefer an explicit non-polymorphic response shape for v1 generation.'
+          : 'Prefer a concrete object schema for v1 generation, or validate generated fallback types carefully.',
       })
   }
   if (schema.discriminator) {
@@ -178,16 +191,6 @@ function collectSchemaDiagnostics(
       suggestion: 'Avoid discriminator-dependent generation until composition support is expanded.',
     })
   }
-  if (schema.format === 'binary') {
-    diagnostics.push({
-      severity: 'warning',
-      code: 'unsupported-binary-file',
-      message: `${location} uses binary file data, which is not generated yet.`,
-      location,
-      impact: 'Generated UI uses explicit file/action limitations instead of a full upload control.',
-      suggestion: 'Handle uploads/downloads with custom runtime code for now.',
-    })
-  }
   for (const [name, property] of Object.entries(schema.properties ?? {})) {
     collectSchemaDiagnostics(normalized, property, `${location}/properties/${name}`, diagnostics)
   }
@@ -196,32 +199,30 @@ function collectSchemaDiagnostics(
   }
 }
 
+function isSimpleUnion(branches: OpenApiSchema[]): boolean {
+  return branches.length > 0 && branches.every(isSimpleUnionBranch)
+}
+
+function isSimpleUnionBranch(schema: OpenApiSchema): boolean {
+  if (schema.$ref || schema.discriminator || schema.allOf || schema.oneOf || schema.anyOf) return false
+  if (schema.type === 'object' && !schema.properties && schema.additionalProperties === undefined) return true
+  if (schema.properties || schema.additionalProperties !== undefined) return false
+  if (schema.type === 'object' || schema.type === 'array') return false
+  return Boolean(schema.type || schema.enum?.length || Object.hasOwn(schema, 'const'))
+}
+
+function isRuntimeSupportedSecurityScheme(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false
+  const scheme = value as { type?: unknown; scheme?: unknown; in?: unknown }
+  if (scheme.type === 'http' && typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'bearer') return true
+  if (scheme.type === 'oauth2') return true
+  return scheme.type === 'apiKey' && scheme.in === 'header'
+}
+
 function getContentTypes(value: unknown): string[] {
   if (!value || typeof value !== 'object' || !('content' in value)) return []
   const content = (value as { content?: unknown }).content
   return content && typeof content === 'object' ? Object.keys(content) : []
-}
-
-function groupSchemaDiagnostics(diagnostics: ForgeDiagnostic[]): ForgeDiagnostic[] {
-  const supportedAllOf = diagnostics.filter((diagnostic) => diagnostic.code === 'supported-allof-object-merge')
-  const rest = diagnostics.filter((diagnostic) => diagnostic.code !== 'supported-allof-object-merge')
-  if (supportedAllOf.length <= 1) return diagnostics
-
-  return [
-    ...rest,
-    {
-      severity: 'warning',
-      code: 'supported-allof-object-merge',
-      message: `${supportedAllOf.length} schemas use simple object allOf composition that can be merged safely.`,
-      location: supportedAllOf
-        .map((diagnostic) => diagnostic.location)
-        .filter(Boolean)
-        .slice(0, 5)
-        .join(', ') + (supportedAllOf.length > 5 ? ', ...' : ''),
-      impact: 'Repeated safe allOf merge notes are grouped to keep diagnostics readable.',
-      suggestion: 'Review generated merged types where needed; complex allOf semantics remain outside public-preview support.',
-    },
-  ]
 }
 
 function isJsonCompatibleContentType(contentType: string): boolean {

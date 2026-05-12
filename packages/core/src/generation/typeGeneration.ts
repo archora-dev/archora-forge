@@ -1,6 +1,7 @@
 import type { NormalizedOpenApi, NormalizedOperation, OpenApiParameter, OpenApiSchema } from '../openapi/openapi.types.js'
+import { unwrapAnnotationOnlyAllOfSchema } from '../openapi/composition.js'
 import type { DetectedResource } from '../resources/resources.types.js'
-import { quoteObjectKeyIfNeeded, toSafeTypeName } from './identifiers.js'
+import { pluralizeTypeName, quoteObjectKeyIfNeeded, toSafeTypeName } from './identifiers.js'
 
 export type ResourceOperationTypes = {
   idType: string
@@ -22,11 +23,12 @@ export type OperationTypeNames = {
 
 export function createResourceTypeNames(resource: DetectedResource): ResourceOperationTypes {
   const entity = toSafeTypeName(resource.entity)
+  const collection = pluralizeTypeName(entity)
   return {
     idType: `${entity}Id`,
     detailResponseType: `${entity}DetailResponse`,
-    listParamsType: `${entity}sListParams`,
-    listResponseType: `${entity}sListResponse`,
+    listParamsType: `${collection}ListParams`,
+    listResponseType: `${collection}ListResponse`,
     createRequestType: `Create${entity}Request`,
     createResponseType: `Create${entity}Response`,
     updateRequestType: `Update${entity}Request`,
@@ -81,11 +83,26 @@ export function schemaToTypeScript(
 ): string {
   if (!schema) return 'unknown'
   if (schema.$ref) return toSafeTypeName(schema.$ref.split('/').at(-1) ?? 'unknown')
-  if (schema.enum) return schema.enum.map((value) => `'${value}'`).join(' | ')
+  const unwrappedAllOf = unwrapAnnotationOnlyAllOfSchema(schema)
+  if (unwrappedAllOf) return schemaToTypeScript(normalized, unwrappedAllOf, options)
+  if (Array.isArray(schema.type)) {
+    const nonNullTypes = schema.type.filter((type) => type !== 'null')
+    if (nonNullTypes.length !== 1) return 'unknown'
+    const base = schemaToTypeScript(normalized, { ...schema, type: nonNullTypes[0] }, options)
+    return schema.type.includes('null') ? `${base} | null` : base
+  }
+  if (schema.oneOf?.length || schema.anyOf?.length) {
+    return (schema.oneOf ?? schema.anyOf ?? []).map((branch) => schemaToTypeScript(normalized, branch, options)).join(' | ')
+  }
+  if (hasConst(schema)) return enumValueToTypeScript(schema.const)
+  if (schema.enum) return schema.enum.map(enumValueToTypeScript).join(' | ')
+  if (schema.type === 'string' && schema.format === 'binary') return options.mode === 'request' || options.indent !== undefined ? 'Blob | File' : 'Blob'
   if (schema.type === 'string') return 'string'
   if (schema.type === 'number' || schema.type === 'integer') return 'number'
   if (schema.type === 'boolean') return 'boolean'
-  if (schema.type === 'array') return `${schemaToTypeScript(normalized, schema.items, options)}[]`
+  if (schema.type === 'array') return `${toArrayElementType(schemaToTypeScript(normalized, schema.items, options))}[]`
+  if (isPureDictionarySchema(schema)) return createDictionaryType(normalized, schema.additionalProperties, options)
+  if (schema.type === 'object' && !schema.properties) return 'Record<string, unknown>'
   if (schema.type === 'object' || schema.properties) {
     const indent = options.indent ?? 0
     const childIndent = ' '.repeat(indent + 2)
@@ -101,6 +118,8 @@ export function schemaToTypeScript(
           indent: indent + 2,
         })}${nullable}`
       })
+    const indexSignature = createAdditionalPropertiesIndex(normalized, schema, options, childIndent, required)
+    if (indexSignature) lines.push(indexSignature)
 
     return `{\n${lines.join('\n')}\n${closeIndent}}`
   }
@@ -116,8 +135,31 @@ export function getQueryParams(operation: NormalizedOperation | undefined): Open
   return (operation?.parameters ?? []).filter((parameter) => parameter.in === 'query')
 }
 
+export function getHeaderParams(operation: NormalizedOperation | undefined): OpenApiParameter[] {
+  return (operation?.parameters ?? []).filter((parameter) => parameter.in === 'header')
+}
+
 export function getOperationParams(operation: NormalizedOperation | undefined): OpenApiParameter[] {
-  return (operation?.parameters ?? []).filter((parameter) => parameter.in === 'path' || parameter.in === 'query')
+  return (operation?.parameters ?? []).filter((parameter) => parameter.in === 'path' || parameter.in === 'query' || parameter.in === 'header')
+}
+
+export function getCollectionParams(resource: DetectedResource): OpenApiParameter[] {
+  const params = [
+    ...getPathParams(resource.operations.list),
+    ...getQueryParams(resource.operations.list),
+    ...getPathParams(resource.operations.create),
+  ]
+  const seen = new Set<string>()
+  return params.filter((param) => {
+    const key = `${param.in}:${param.name}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+export function getIdentityParams(resource: DetectedResource): OpenApiParameter[] {
+  return [resource.operations.detail, resource.operations.update, resource.operations.delete].map((operation) => getPathParams(operation)).find((params) => params.length > 0) ?? []
 }
 
 export function resolveSchema(normalized: NormalizedOpenApi, schema: OpenApiSchema | null | undefined): OpenApiSchema | null {
@@ -138,6 +180,14 @@ function createSchemaDeclaration(
   schema: OpenApiSchema,
   enumAliases: Map<string, string>,
 ): string {
+  if (schema.oneOf?.length || schema.anyOf?.length) {
+    return `export type ${name} = ${schemaToTypeScript(normalized, schema, { mode: 'response' })}`
+  }
+
+  if (isPureDictionarySchema(schema)) {
+    return `export type ${name} = ${createDictionaryType(normalized, schema.additionalProperties, { mode: 'response' })}`
+  }
+
   const mode = name.endsWith('Dto') ? 'request' : 'response'
   const required = new Set(schema.required ?? [])
   const lines = Object.entries(schema.properties ?? {})
@@ -145,42 +195,100 @@ function createSchemaDeclaration(
     .map(([propertyName, property]) => {
       const enumName = property.enum ? `${name}${toSafeTypeName(propertyName)}` : undefined
       if (enumName && property.enum) {
-        enumAliases.set(enumName, property.enum.map((value) => `'${value}'`).join(' | '))
+        enumAliases.set(enumName, property.enum.map(enumValueToTypeScript).join(' | '))
       }
       const optional = required.has(propertyName) ? '' : '?'
       const baseType = enumName ?? schemaToTypeScript(normalized, property, { mode, indent: 2 })
       const nullable = property.nullable ? ' | null' : ''
       return `  ${quoteObjectKeyIfNeeded(propertyName)}${optional}: ${baseType}${nullable}`
     })
+  const indexSignature = createAdditionalPropertiesIndex(normalized, schema, { mode, indent: 0 }, '  ', required)
+  if (indexSignature) lines.push(indexSignature)
 
   return `export interface ${name} {\n${lines.join('\n')}\n}`
 }
 
+function isPureDictionarySchema(schema: OpenApiSchema): boolean {
+  return Boolean(
+    (schema.type === 'object' || schema.additionalProperties !== undefined) &&
+      schema.additionalProperties !== undefined &&
+      Object.keys(schema.properties ?? {}).length === 0,
+  )
+}
+
+function createDictionaryType(
+  normalized: NormalizedOpenApi,
+  additionalProperties: boolean | OpenApiSchema | undefined,
+  options: { mode: 'request' | 'response'; enumName?: string; indent?: number },
+): string {
+  if (additionalProperties === false) return 'Record<string, never>'
+  if (additionalProperties === true || additionalProperties === undefined) return 'Record<string, unknown>'
+  return `Record<string, ${schemaToTypeScript(normalized, additionalProperties, options)}>`
+}
+
+function createAdditionalPropertiesIndex(
+  normalized: NormalizedOpenApi,
+  schema: OpenApiSchema,
+  options: { mode: 'request' | 'response'; enumName?: string; indent?: number },
+  childIndent: string,
+  required: Set<string>,
+): string | null {
+  if (schema.additionalProperties === undefined || schema.additionalProperties === false || isPureDictionarySchema(schema)) return null
+
+  const valueTypes = new Set<string>()
+  if (schema.additionalProperties === true) {
+    valueTypes.add('unknown')
+  } else {
+    valueTypes.add(schemaToTypeScript(normalized, schema.additionalProperties, options))
+  }
+
+  for (const [propertyName, property] of Object.entries(schema.properties ?? {})) {
+    if (options.mode === 'request' && property.readOnly) continue
+    if (options.mode === 'response' && property.writeOnly) continue
+    valueTypes.add(schemaToTypeScript(normalized, property, options))
+    if (property.nullable) valueTypes.add('null')
+    if (!required.has(propertyName)) valueTypes.add('undefined')
+  }
+
+  return `${childIndent}[key: string]: ${[...valueTypes].join(' | ')}`
+}
+
+function toArrayElementType(type: string): string {
+  return type.includes(' | ') ? `(${type})` : type
+}
+
+function enumValueToTypeScript(value: string | number | boolean | null): string {
+  if (typeof value === 'string') return JSON.stringify(value)
+  if (value === null) return 'null'
+  return String(value)
+}
+
+function hasConst(schema: OpenApiSchema): schema is OpenApiSchema & { const: string | number | boolean | null } {
+  return Object.hasOwn(schema, 'const')
+}
+
 function createOperationAliases(normalized: NormalizedOpenApi, resource: DetectedResource): string {
   const names = createResourceTypeNames(resource)
-  const detailIdParam = getPathParams(resource.operations.detail)[0] ?? getPathParams(resource.operations.update)[0]
-  const idType = detailIdParam?.schema ? schemaToTypeScript(normalized, detailIdParam.schema, { mode: 'request' }) : 'string'
-  const listParams = createParamsInterface(normalized, names.listParamsType, getQueryParams(resource.operations.list))
-  const listResponse = createResponseDeclaration(normalized, names.listResponseType, resource.operations.list?.responseSchema)
-  const detailResponse = createResponseType(normalized, resource.operations.detail?.responseSchema, names.entityType)
+  const identityParams = getIdentityParams(resource)
+  const idDeclaration =
+    identityParams.length > 1
+      ? createParamsInterface(normalized, names.idType, identityParams)
+      : `export type ${names.idType} = ${identityParams[0]?.schema ? schemaToTypeScript(normalized, identityParams[0].schema, { mode: 'request' }) : 'string'}`
+  const listParams = createParamsInterface(normalized, names.listParamsType, getCollectionParams(resource))
+  const listResponse = createResponseDeclaration(normalized, names.listResponseType, resource.operations.list)
+  const detailResponse = createResponseType(normalized, resource.operations.detail, names.entityType)
   const createRequest =
-    resolveSchemaName(resource.operations.create?.requestBodySchema) ??
-    (resource.operations.create?.requestBodySchema
-      ? schemaToTypeScript(normalized, resource.operations.create.requestBodySchema, { mode: 'request' })
-      : `Partial<${resource.entity}>`)
+    createRequestBodyType(normalized, resource.operations.create) ?? `Partial<${resource.entity}>`
   const updateRequest =
-    resolveSchemaName(resource.operations.update?.requestBodySchema) ??
-    (resource.operations.update?.requestBodySchema
-      ? schemaToTypeScript(normalized, resource.operations.update.requestBodySchema, { mode: 'request' })
-      : `Partial<${resource.entity}>`)
-  const createResponse = createResponseType(normalized, resource.operations.create?.responseSchema, names.entityType)
-  const updateResponse = createResponseType(normalized, resource.operations.update?.responseSchema, names.entityType)
+    createRequestBodyType(normalized, resource.operations.update) ?? `Partial<${resource.entity}>`
+  const createResponse = createResponseType(normalized, resource.operations.create, names.entityType)
+  const updateResponse = createResponseType(normalized, resource.operations.update, names.entityType)
   const operationAliases = resource.operationsList
-    .filter((operation) => operation.operationKind !== 'crud-resource')
+    .filter((operation) => operation.operationKind !== 'unsupported-operation' && !Object.values(resource.operations).includes(operation))
     .map((operation) => createOperationAlias(normalized, operation))
 
   return [
-    `export type ${names.idType} = ${idType}`,
+    idDeclaration,
     `export type ${names.detailResponseType} = ${detailResponse}`,
     listParams,
     listResponse,
@@ -197,12 +305,33 @@ function createOperationAliases(normalized: NormalizedOpenApi, resource: Detecte
 function createOperationAlias(normalized: NormalizedOpenApi, operation: NormalizedOperation): string {
   const names = createOperationTypeNames(operation)
   const params = createParamsInterface(normalized, names.paramsType, getOperationParams(operation))
-  const request =
-    resolveSchemaName(operation.requestBodySchema) ??
-    (operation.requestBodySchema ? schemaToTypeScript(normalized, operation.requestBodySchema, { mode: 'request' }) : 'void')
-  const response = createResponseType(normalized, operation.responseSchema, 'unknown')
+  const request = createRequestBodyType(normalized, operation) ?? 'void'
+  const response = createResponseType(normalized, operation, 'unknown')
 
   return [params, `export type ${names.requestType} = ${request}`, `export type ${names.responseType} = ${response}`].join('\n\n')
+}
+
+function createRequestBodyType(normalized: NormalizedOpenApi, operation: NormalizedOperation | undefined): string | null {
+  if (!operation?.requestBodySchema) return null
+  if (operation.requestContentTypes.some(isMultipartContentType)) return 'FormData'
+  if (operation.requestContentTypes.some(isFormUrlEncodedContentType)) return 'URLSearchParams'
+  if (operation.requestContentTypes.some(isBinaryContentType)) return 'Blob | ArrayBuffer | ReadableStream'
+  return resolveSchemaName(operation.requestBodySchema) ?? schemaToTypeScript(normalized, operation.requestBodySchema, { mode: 'request' })
+}
+
+function isMultipartContentType(contentType: string): boolean {
+  const normalized = contentType.split(';')[0]?.trim().toLowerCase() ?? ''
+  return normalized === 'multipart/form-data'
+}
+
+function isFormUrlEncodedContentType(contentType: string): boolean {
+  const normalized = contentType.split(';')[0]?.trim().toLowerCase() ?? ''
+  return normalized === 'application/x-www-form-urlencoded'
+}
+
+function isBinaryContentType(contentType: string): boolean {
+  const normalized = contentType.split(';')[0]?.trim().toLowerCase() ?? ''
+  return normalized === 'application/octet-stream' || normalized === 'application/pdf' || normalized.startsWith('image/')
 }
 
 function createParamsInterface(normalized: NormalizedOpenApi, name: string, params: OpenApiParameter[]): string {
@@ -218,16 +347,20 @@ function createParamsInterface(normalized: NormalizedOpenApi, name: string, para
   return `export interface ${name} {\n${lines.join('\n')}\n}`
 }
 
-function createResponseDeclaration(normalized: NormalizedOpenApi, name: string, schema: OpenApiSchema | null | undefined): string {
+function createResponseDeclaration(normalized: NormalizedOpenApi, name: string, operation: NormalizedOperation | undefined): string {
+  if (operation?.responseBodyEmpty) return `export type ${name} = void`
+  const schema = operation?.responseSchema
   const schemaName = resolveSchemaName(schema)
   if (schemaName) return `export type ${name} = ${schemaName}`
   if (!schema) return `export type ${name} = unknown`
 
-  const type = schemaToTypeScript(normalized, schema, { mode: 'response', indent: 0 })
+  const type = schemaToTypeScript(normalized, schema, { mode: 'response' })
   return type.startsWith('{') ? `export interface ${name} ${type}` : `export type ${name} = ${type}`
 }
 
-function createResponseType(normalized: NormalizedOpenApi, schema: OpenApiSchema | null | undefined, fallback: string): string {
+function createResponseType(normalized: NormalizedOpenApi, operation: NormalizedOperation | undefined, fallback: string): string {
+  if (operation?.responseBodyEmpty) return 'void'
+  const schema = operation?.responseSchema
   return resolveSchemaName(schema) ?? (schema ? schemaToTypeScript(normalized, schema, { mode: 'response' }) : fallback)
 }
 

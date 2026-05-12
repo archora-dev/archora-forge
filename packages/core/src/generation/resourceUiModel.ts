@@ -1,9 +1,9 @@
 import type { ForgeResourceConfig } from '@archora/forge-config'
 
-import type { NormalizedOpenApi, NormalizedOperation, OpenApiSchema } from '../openapi/openapi.types.js'
+import type { NormalizedOpenApi, NormalizedOperation, OpenApiEnumValue, OpenApiSchema } from '../openapi/openapi.types.js'
 import type { DetectedResource } from '../resources/resources.types.js'
 
-export type FormInputKind = 'text' | 'email' | 'number' | 'switch' | 'select' | 'date' | 'dateTime' | 'password' | 'textarea'
+export type FormInputKind = 'text' | 'email' | 'url' | 'number' | 'switch' | 'select' | 'date' | 'dateTime' | 'password' | 'textarea'
 export type TableCellKind = 'text' | 'number' | 'boolean' | 'badge' | 'date' | 'dateTime' | 'json'
 
 export type ResourceFormField = {
@@ -13,7 +13,9 @@ export type ResourceFormField = {
   component: string
   required: boolean
   nullable: boolean
-  enumValues?: string[]
+  enumValues?: OpenApiEnumValue[]
+  defaultValue?: unknown
+  deprecated?: boolean
   hint?: string
   validation: {
     minLength?: number
@@ -29,6 +31,7 @@ export type ResourceTableColumn = {
   cell: TableCellKind
   sortable: boolean
   nullable: boolean
+  deprecated?: boolean
   hint?: string
 }
 
@@ -43,6 +46,7 @@ export type ResourceUiModel = {
   resourceName: string
   entityName: string
   formFields: ResourceFormField[]
+  filterFields: ResourceFormField[]
   tableColumns: ResourceTableColumn[]
   pagination: ResourcePaginationModel
 }
@@ -67,6 +71,9 @@ export function createResourceUiModel(input: CreateResourceUiModelInput): Resour
     formFields: selectProperties(formProperties, input.config?.form?.fields)
       .filter(([, schema]) => !schema.readOnly)
       .map(([name, schema]) => createFormField(name, schema, formRequired.has(name))),
+    filterFields: selectProperties(tableProperties, input.config?.table?.filters)
+      .filter(([, schema]) => !schema.writeOnly)
+      .map(([name, schema]) => createFormField(name, schema, false)),
     tableColumns: selectProperties(tableProperties, input.config?.table?.columns)
       .filter(([, schema]) => !schema.writeOnly)
       .map(([name, schema]) => createTableColumn(name, schema)),
@@ -95,8 +102,10 @@ function createFormField(name: string, schema: OpenApiSchema, required: boolean)
     input: mapFormInput(name, schema),
     component: mapFieldComponent(name, schema),
     required,
-    nullable: schema.nullable ?? false,
+    nullable: schema.nullable ?? isNullableTypeArray(schema),
     enumValues: schema.enum,
+    ...(Object.hasOwn(schema, 'default') ? { defaultValue: schema.default } : {}),
+    ...(schema.deprecated ? { deprecated: true } : {}),
     hint: schema.description,
     validation: {
       minLength: schema.minLength,
@@ -108,24 +117,28 @@ function createFormField(name: string, schema: OpenApiSchema, required: boolean)
 }
 
 function createTableColumn(name: string, schema: OpenApiSchema): ResourceTableColumn {
+  const type = primarySchemaType(schema)
   return {
     name,
     label: toLabel(name),
     cell: mapTableCell(schema),
-    sortable: ['string', 'number', 'integer'].includes(schema.type ?? '') || schema.format === 'date' || schema.format === 'date-time',
-    nullable: schema.nullable ?? false,
+    sortable: ['string', 'number', 'integer'].includes(type ?? '') || schema.format === 'date' || schema.format === 'date-time',
+    nullable: schema.nullable ?? isNullableTypeArray(schema),
+    ...(schema.deprecated ? { deprecated: true } : {}),
     hint: schema.description,
   }
 }
 
 function mapFormInput(name: string, schema: OpenApiSchema): FormInputKind {
   if (schema.enum) return 'select'
+  const type = primarySchemaType(schema)
   if (name.toLowerCase().includes('password')) return 'password'
   if (schema.format === 'email') return 'email'
+  if (schema.format === 'uri') return 'url'
   if (schema.format === 'date') return 'date'
   if (schema.format === 'date-time') return 'dateTime'
-  if (schema.type === 'number' || schema.type === 'integer') return 'number'
-  if (schema.type === 'boolean') return 'switch'
+  if (type === 'number' || type === 'integer') return 'number'
+  if (type === 'boolean') return 'switch'
   if ((schema.maxLength ?? 0) > 160) return 'textarea'
   return 'text'
 }
@@ -141,12 +154,21 @@ function mapFieldComponent(name: string, schema: OpenApiSchema): string {
 
 function mapTableCell(schema: OpenApiSchema): TableCellKind {
   if (schema.enum) return 'badge'
+  const type = primarySchemaType(schema)
   if (schema.format === 'date') return 'date'
   if (schema.format === 'date-time') return 'dateTime'
-  if (schema.type === 'boolean') return 'boolean'
-  if (schema.type === 'number' || schema.type === 'integer') return 'number'
-  if (schema.type === 'object' || schema.type === 'array') return 'json'
+  if (type === 'boolean') return 'boolean'
+  if (type === 'number' || type === 'integer') return 'number'
+  if (type === 'object' || type === 'array') return 'json'
   return 'text'
+}
+
+function primarySchemaType(schema: OpenApiSchema): string | undefined {
+  return Array.isArray(schema.type) ? schema.type.find((type) => type !== 'null') : schema.type
+}
+
+function isNullableTypeArray(schema: OpenApiSchema): boolean {
+  return Array.isArray(schema.type) && schema.type.includes('null')
 }
 
 function detectPagination(normalized: NormalizedOpenApi, operation: NormalizedOperation | undefined): ResourcePaginationModel {

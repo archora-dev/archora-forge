@@ -17,21 +17,24 @@ export type OpenApiDocument = {
   }
   paths?: Record<string, OpenApiPathItem>
   components?: {
+    parameters?: Record<string, OpenApiParameter>
     schemas?: Record<string, OpenApiSchema>
     securitySchemes?: Record<string, unknown>
   }
   tags?: Array<{ name: string; description?: string }>
 }
 
+export type OpenApiParameterLike = OpenApiParameter | { $ref: string }
+
 export type OpenApiPathItem = Partial<Record<HttpMethod, OpenApiOperation>> & {
-  parameters?: OpenApiParameter[]
+  parameters?: OpenApiParameterLike[]
 }
 
 export type OpenApiOperation = {
   operationId?: string
   summary?: string
   tags?: string[]
-  parameters?: OpenApiParameter[]
+  parameters?: OpenApiParameterLike[]
   requestBody?: unknown
   responses?: Record<string, OpenApiResponse>
   security?: unknown[]
@@ -46,19 +49,25 @@ export type OpenApiParameter = {
   name: string
   in: 'path' | 'query' | 'header' | 'cookie'
   required?: boolean
+  style?: 'form' | string
+  explode?: boolean
   schema?: OpenApiSchema
 }
 
 export type OpenApiSchema = {
-  type?: string
+  type?: string | string[]
   format?: string
-  enum?: string[]
+  const?: OpenApiEnumValue
+  default?: unknown
+  enum?: OpenApiEnumValue[]
   properties?: Record<string, OpenApiSchema>
+  additionalProperties?: boolean | OpenApiSchema
   required?: string[]
   items?: OpenApiSchema
   $ref?: string
   description?: string
   nullable?: boolean
+  deprecated?: boolean
   readOnly?: boolean
   writeOnly?: boolean
   minLength?: number
@@ -71,8 +80,11 @@ export type OpenApiSchema = {
   discriminator?: unknown
 }
 
+export type OpenApiEnumValue = string | number | boolean | null
+
 export type NormalizedOperation = {
   id: string | null
+  sourceOperationId: string | null
   method: HttpMethod
   path: string
   tags: string[]
@@ -86,6 +98,7 @@ export type NormalizedOperation = {
   operationKind: OperationKind
   requestBodySchema: OpenApiSchema | null
   responseSchema: OpenApiSchema | null
+  responseBodyEmpty: boolean
   hasErrorResponse: boolean
   operation: OpenApiOperation
 }

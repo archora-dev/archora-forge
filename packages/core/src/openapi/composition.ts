@@ -15,6 +15,8 @@ export function analyzeAllOfSchema(document: OpenApiDocument, schema: OpenApiSch
 
 export function mergeSimpleAllOfSchema(document: OpenApiDocument, schema: OpenApiSchema): OpenApiSchema | null {
   if (!schema.allOf) return schema
+  const unwrapped = unwrapAnnotationOnlyAllOfSchema(schema)
+  if (unwrapped) return unwrapped
 
   const analysis = mergeAllOfBranches(document, schema.allOf, new Set())
   if (analysis.kind !== 'mergeable') return null
@@ -24,6 +26,18 @@ export function mergeSimpleAllOfSchema(document: OpenApiDocument, schema: OpenAp
     type: 'object',
     properties: analysis.properties,
     required: analysis.required.length > 0 ? analysis.required : undefined,
+  }
+}
+
+export function unwrapAnnotationOnlyAllOfSchema(schema: OpenApiSchema): OpenApiSchema | null {
+  if (!schema.allOf) return null
+  const structuralBranches = schema.allOf.filter((branch) => !isAnnotationOnlySchema(branch))
+  if (structuralBranches.length !== 1) return null
+
+  return {
+    ...structuralBranches[0],
+    nullable: schema.nullable ?? structuralBranches[0]?.nullable,
+    description: schema.description ?? structuralBranches[0]?.description,
   }
 }
 
@@ -92,6 +106,11 @@ function resolveRef(document: OpenApiDocument, ref: string, seenRefs: Set<string
 
 function isObjectLikeSchema(schema: OpenApiSchema): boolean {
   return schema.type === 'object' || Boolean(schema.properties)
+}
+
+function isAnnotationOnlySchema(schema: OpenApiSchema): boolean {
+  const annotationKeys = new Set(['default', 'description', 'deprecated', 'example', 'examples', 'nullable', 'title'])
+  return Object.keys(schema).length > 0 && Object.keys(schema).every((key) => annotationKeys.has(key))
 }
 
 function areCompatibleProperties(left: OpenApiSchema, right: OpenApiSchema): boolean {

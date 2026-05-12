@@ -39,7 +39,8 @@ async function readOpenApiSource(filePath: string): Promise<{ source: string; ki
 async function fetchOpenApiSource(filePath: string, options: ParseOpenApiOptions): Promise<{ source: string; kind: 'json' | 'yaml' }> {
   const fetchImpl = options.fetchImpl ?? fetch
   const controller = new AbortController()
-  const timeout = options.timeoutMs ? setTimeout(() => controller.abort(), options.timeoutMs) : undefined
+  const timeoutReason = options.timeoutMs ? `Request timed out after ${options.timeoutMs}ms` : undefined
+  const timeout = timeoutReason ? setTimeout(() => controller.abort(new DOMException(timeoutReason, 'TimeoutError')), options.timeoutMs) : undefined
 
   try {
     const response = await fetchImpl(filePath, {
@@ -60,8 +61,9 @@ async function fetchOpenApiSource(filePath: string, options: ParseOpenApiOptions
     }
   } catch (error) {
     if (error instanceof ForgeError) throw error
-    throw new ForgeError(`Failed to fetch OpenAPI schema: ${filePath}`, {
-      reason: error instanceof Error ? error.message : 'Unknown network error',
+    const reason = error instanceof Error ? error.message : 'Unknown network error'
+    throw new ForgeError(`Failed to fetch OpenAPI schema: ${filePath}${reason ? ` (${reason})` : ''}`, {
+      reason,
       suggestion: 'Check the remote schema URL, network access and configured request headers.',
     })
   } finally {
