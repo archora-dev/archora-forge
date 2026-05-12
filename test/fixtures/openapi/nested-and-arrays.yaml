@@ -1,0 +1,33 @@
+openapi: 3.0.3
+info: { title: Nested Arrays, version: 1.0.0 }
+paths:
+  /orders:
+    get:
+      operationId: listOrders
+      responses:
+        '200':
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Order' }
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        tags:
+          type: array
+          items: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              sku: { type: string }
+        customer:
+          type: object
+          nullable: true
+          properties:
+            name: { type: string }

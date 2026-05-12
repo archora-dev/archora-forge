@@ -1,0 +1,28 @@
+openapi: 3.0.3
+info: { title: Unsupported Transport, version: 1.0.0 }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }
+  schemas:
+    Upload:
+      type: object
+      properties:
+        file: { type: string, format: binary }
+paths:
+  /uploads:
+    post:
+      operationId: uploadFile
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: x-trace-id, in: header, schema: { type: string } }
+        - { name: session, in: cookie, schema: { type: string } }
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: { $ref: '#/components/schemas/Upload' }
+      responses:
+        '201':
+          description: Upload
+          content:
+            text/plain:
+              schema: { type: string }

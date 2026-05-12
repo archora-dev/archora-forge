@@ -1,0 +1,51 @@
+{
+  "name": "archora-forge-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local-first OpenAPI to typed Vue frontend module generator.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/AKotofff/Archora-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AKotofff/Archora-forge/issues"
+  },
+  "homepage": "https://github.com/AKotofff/Archora-forge#readme",
+  "type": "module",
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "pnpm -r dev",
+    "build": "pnpm -r build",
+    "build:cli": "pnpm --filter @archora/forge-cli build",
+    "build:core": "pnpm --filter @archora/forge-core build",
+    "dev:docs": "pnpm --filter docs dev",
+    "build:docs": "pnpm --filter docs build",
+    "forge:inspect": "node packages/cli/dist/index.js inspect examples/vue-admin/openapi.yaml",
+    "forge:diff": "node packages/cli/dist/index.js diff examples/vue-admin/openapi.yaml",
+    "forge:generate": "node packages/cli/dist/index.js generate examples/vue-admin/openapi.yaml",
+    "forge:check": "node packages/cli/dist/index.js check examples/vue-admin/openapi.yaml",
+    "test": "vitest run",
+    "test:e2e": "node scripts/smoke-demo-build.mjs",
+    "test:watch": "vitest --watch",
+    "typecheck": "pnpm build && pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "pack:check": "pnpm build && node scripts/pack-check.mjs",
+    "release:check": "pnpm test && pnpm lint && pnpm typecheck && pnpm pack:check && ./scripts/smoke-external-consumer.sh",
+    "changeset:version": "node scripts/changeset-version-check.mjs",
+    "benchmark:large-schema": "node scripts/generate-large-fixture.mjs && pnpm build && node scripts/benchmark-large-schema.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "@types/node": "^22.15.17",
+    "eslint": "^9.26.0",
+    "prettier": "^3.5.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.0",
+    "vue": "^3.5.22",
+    "vitepress": "^1.6.3",
+    "vitest": "^3.1.3"
+  }
+}

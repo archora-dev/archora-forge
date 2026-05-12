@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info: { title: Unsupported Composition, version: 1.0.0 }
+paths:
+  /pets:
+    get:
+      operationId: listPets
+      responses:
+        '200':
+          description: Pets
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Pet' }
+components:
+  schemas:
+    Pet:
+      oneOf:
+        - { type: string }
+        - { type: number }
+      discriminator: { propertyName: type }
+    Cat:
+      allOf:
+        - { type: object, properties: { id: { type: string } } }
+    Dog:
+      anyOf:
+        - { type: object, properties: { name: { type: string } } }

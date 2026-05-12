@@ -1,0 +1,26 @@
+name: Config question
+description: Ask about Forge config or OpenAPI modeling.
+labels: ["question", "config"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What are you trying to generate?
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Config
+      render: ts
+      description: Paste relevant `archora-forge.config.*`.
+    validations:
+      required: false
+  - type: textarea
+    id: schema
+    attributes:
+      label: OpenAPI snippet
+      render: yaml
+    validations:
+      required: false

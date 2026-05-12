@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info: { title: Partial CRUD, version: 1.0.0 }
+paths:
+  /reports:
+    get:
+      operationId: listReports
+      responses:
+        '200':
+          description: Reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Report' }
+components:
+  schemas:
+    Report:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }

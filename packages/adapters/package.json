@@ -1,0 +1,38 @@
+{
+  "name": "@archora/forge-adapters",
+  "version": "0.0.0",
+  "description": "Design-system adapter mappings for Archora Forge generated modules.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/AKotofff/Archora-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AKotofff/Archora-forge/issues"
+  },
+  "homepage": "https://github.com/AKotofff/Archora-forge#readme",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  }
+}

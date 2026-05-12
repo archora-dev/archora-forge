@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose a focused Forge improvement.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What frontend generation workflow should this improve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Describe the smallest useful behavior.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - CLI
+        - generator
+        - runtime
+        - docs
+        - demo
+        - package/release
+    validations:
+      required: true

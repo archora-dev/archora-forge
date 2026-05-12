@@ -1,0 +1,61 @@
+{
+  "name": "@archora/forge-core",
+  "version": "0.0.0",
+  "description": "Core OpenAPI analysis and generation engine for Archora Forge.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/AKotofff/Archora-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AKotofff/Archora-forge/issues"
+  },
+  "homepage": "https://github.com/AKotofff/Archora-forge#readme",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@archora/forge-config": "workspace:^",
+    "jiti": "^2.7.0",
+    "prettier": "^3.5.3",
+    "yaml": "^2.8.4"
+  },
+  "peerDependencies": {
+    "@tanstack/vue-query": ">=5.0.0",
+    "valibot": ">=0.30.0",
+    "zod": ">=3.22.0"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/vue-query": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    },
+    "valibot": {
+      "optional": true
+    }
+  }
+}

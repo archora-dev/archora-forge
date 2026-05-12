@@ -1,0 +1,15 @@
+openapi: 3.0.3
+info: { title: Missing Schemas, version: 1.0.0 }
+paths:
+  /reports:
+    get:
+      operationId: listReports
+      responses:
+        '200': { description: Missing content }
+    post:
+      operationId: createReport
+      requestBody:
+        content:
+          application/json: {}
+      responses:
+        '204': { description: Empty }

@@ -1,0 +1,42 @@
+{
+  "name": "@archora/forge-config",
+  "version": "0.0.0",
+  "description": "Configuration loading and defaults for Archora Forge.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/AKotofff/Archora-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AKotofff/Archora-forge/issues"
+  },
+  "homepage": "https://github.com/AKotofff/Archora-forge#readme",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "jiti": "^2.7.0",
+    "yaml": "^2.8.4"
+  }
+}

@@ -1,0 +1,63 @@
+import { defineConfig } from 'vitepress'
+
+export default defineConfig({
+  base: process.env.VITEPRESS_BASE ?? '/',
+  title: 'Archora Forge',
+  description: 'Local-first OpenAPI to typed Vue frontend module generator',
+  themeConfig: {
+    nav: [
+      { text: 'Guide', link: '/introduction' },
+      { text: 'CLI', link: '/cli' },
+      { text: 'Roadmap', link: '/roadmap' },
+    ],
+    sidebar: [
+      {
+        text: 'Guide',
+        items: [
+          { text: 'Introduction', link: '/introduction' },
+          { text: 'Installation', link: '/installation' },
+          { text: 'Quick Start', link: '/quick-start' },
+          { text: 'Demo Flow', link: '/guide/demo-flow' },
+          { text: 'CLI', link: '/cli' },
+          { text: 'Configuration', link: '/configuration' },
+          { text: 'Preview Release', link: '/release-preview' },
+          { text: 'Docs Deployment', link: '/docs-deployment' },
+          { text: 'OpenAPI Requirements', link: '/openapi-requirements' },
+          { text: 'Diagnostics', link: '/diagnostics' },
+          { text: 'OpenAPI Linting', link: '/openapi-linting' },
+          { text: 'Contract Diff', link: '/contract-diff' },
+          { text: 'Remote Schema Loading', link: '/remote-schema-loading' },
+          { text: 'Resource Detection', link: '/resource-detection' },
+          { text: 'Generated Output', link: '/generated-output' },
+          { text: 'Runtime Client', link: '/runtime-client' },
+          { text: 'Auth Basics', link: '/auth-basics' },
+          { text: 'Customization', link: '/customization' },
+          { text: 'Type-safe Generation', link: '/type-safe-generation' },
+          { text: 'Schema-driven Forms', link: '/schema-driven-forms' },
+          { text: 'Schema-driven Tables', link: '/schema-driven-tables' },
+          { text: 'Vue Target', link: '/vue-target' },
+          { text: 'Archora UI Adapter', link: '/archora-ui-adapter' },
+          { text: 'Regeneration Safety', link: '/regeneration-safety' },
+          { text: 'Mocks', link: '/mocks' },
+          { text: 'Permissions', link: '/permissions' },
+          { text: 'i18n', link: '/i18n' },
+          { text: 'Comparison', link: '/comparison' },
+          { text: 'Limitations', link: '/limitations' },
+          { text: 'CI Mode', link: '/ci' },
+          { text: 'Roadmap', link: '/roadmap' },
+        ],
+      },
+      {
+        text: 'Experimental',
+        items: [
+          { text: 'TanStack Vue Query', link: '/tanstack-vue-query' },
+          { text: 'Validation Generation', link: '/validation-generation' },
+          { text: 'Multi-schema Workspace', link: '/multi-schema-workspace' },
+          { text: 'Nuxt Target', link: '/nuxt-target' },
+          { text: 'Plugin API', link: '/plugin-api' },
+          { text: 'Performance', link: '/performance' },
+        ],
+      },
+    ],
+  },
+})

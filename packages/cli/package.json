@@ -1,0 +1,51 @@
+{
+  "name": "@archora/forge-cli",
+  "version": "0.0.0",
+  "description": "CLI for generating typed Vue frontend modules from OpenAPI contracts.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/AKotofff/Archora-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AKotofff/Archora-forge/issues"
+  },
+  "homepage": "https://github.com/AKotofff/Archora-forge#readme",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "archora-forge": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "cac": "^6.7.14",
+    "jiti": "^2.7.0",
+    "picocolors": "^1.1.1",
+    "prettier": "^3.5.3",
+    "yaml": "^2.8.4"
+  },
+  "devDependencies": {
+    "@archora/forge-config": "workspace:*",
+    "@archora/forge-core": "workspace:*",
+    "@types/node": "^22.15.17",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  }
+}
