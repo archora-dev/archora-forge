@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: Demo Notifications API
+  version: 1.0.0
+paths:
+  /notifications:
+    get:
+      operationId: listNotifications
+      responses:
+        "200":
+          description: Notification list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+    post:
+      operationId: createNotification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNotificationDto"
+      responses:
+        "201":
+          description: Notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+  /notifications/{id}:
+    get:
+      operationId: getNotification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+    patch:
+      operationId: updateNotification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNotificationDto"
+      responses:
+        "200":
+          description: Notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+    delete:
+      operationId: deleteNotification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /channels:
+    get:
+      operationId: listChannels
+      responses:
+        "200":
+          description: Channel list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Channel"
+    post:
+      operationId: createChannel
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChannelDto"
+      responses:
+        "201":
+          description: Channel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Channel"
+  /channels/{id}:
+    get:
+      operationId: getChannel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Channel"
+    patch:
+      operationId: updateChannel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChannelDto"
+      responses:
+        "200":
+          description: Channel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Channel"
+    delete:
+      operationId: deleteChannel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    Notification:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+    CreateNotificationDto:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+    Channel:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateChannelDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

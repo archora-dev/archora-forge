@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: Demo Workflows API
+  version: 1.0.0
+paths:
+  /workflows:
+    get:
+      operationId: listWorkflows
+      responses:
+        "200":
+          description: Workflow list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Workflow"
+    post:
+      operationId: createWorkflow
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkflowDto"
+      responses:
+        "201":
+          description: Workflow
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workflow"
+  /workflows/{id}:
+    get:
+      operationId: getWorkflow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Workflow
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workflow"
+    patch:
+      operationId: updateWorkflow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkflowDto"
+      responses:
+        "200":
+          description: Workflow
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workflow"
+    delete:
+      operationId: deleteWorkflow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /tasks:
+    get:
+      operationId: listTasks
+      responses:
+        "200":
+          description: Task list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskDto"
+      responses:
+        "201":
+          description: Task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    patch:
+      operationId: updateTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskDto"
+      responses:
+        "200":
+          description: Task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    delete:
+      operationId: deleteTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    Workflow:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateWorkflowDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    Task:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateTaskDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

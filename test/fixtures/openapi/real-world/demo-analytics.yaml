@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: Demo Analytics API
+  version: 1.0.0
+paths:
+  /events:
+    get:
+      operationId: listEvents
+      responses:
+        "200":
+          description: Event list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventDto"
+      responses:
+        "201":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+  /events/{id}:
+    get:
+      operationId: getEvent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    patch:
+      operationId: updateEvent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventDto"
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    delete:
+      operationId: deleteEvent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /metrics:
+    get:
+      operationId: listMetrics
+      responses:
+        "200":
+          description: Metric list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Metric"
+    post:
+      operationId: createMetric
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMetricDto"
+      responses:
+        "201":
+          description: Metric
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+  /metrics/{id}:
+    get:
+      operationId: getMetric
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Metric
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+    patch:
+      operationId: updateMetric
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMetricDto"
+      responses:
+        "200":
+          description: Metric
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+    delete:
+      operationId: deleteMetric
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    Event:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        payload:
+          type: string
+    CreateEventDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        payload:
+          type: string
+    Metric:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateMetricDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

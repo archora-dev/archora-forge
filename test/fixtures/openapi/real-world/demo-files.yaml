@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: Demo Files API
+  version: 1.0.0
+paths:
+  /files:
+    get:
+      operationId: listFiles
+      responses:
+        "200":
+          description: File list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/File"
+    post:
+      operationId: createFile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFileDto"
+      responses:
+        "201":
+          description: File
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+  /files/{id}:
+    get:
+      operationId: getFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+    patch:
+      operationId: updateFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFileDto"
+      responses:
+        "200":
+          description: File
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+    delete:
+      operationId: deleteFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /folders:
+    get:
+      operationId: listFolders
+      responses:
+        "200":
+          description: Folder list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Folder"
+    post:
+      operationId: createFolder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFolderDto"
+      responses:
+        "201":
+          description: Folder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+  /folders/{id}:
+    get:
+      operationId: getFolder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Folder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+    patch:
+      operationId: updateFolder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFolderDto"
+      responses:
+        "200":
+          description: Folder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+    delete:
+      operationId: deleteFolder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    File:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        size:
+          type: number
+    CreateFileDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        size:
+          type: number
+    Folder:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateFolderDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

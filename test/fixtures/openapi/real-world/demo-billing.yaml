@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: Demo Billing API
+  version: 1.0.0
+paths:
+  /invoices:
+    get:
+      operationId: listInvoices
+      responses:
+        "200":
+          description: Invoice list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+    post:
+      operationId: createInvoice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvoiceDto"
+      responses:
+        "201":
+          description: Invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+    patch:
+      operationId: updateInvoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvoiceDto"
+      responses:
+        "200":
+          description: Invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+    delete:
+      operationId: deleteInvoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /payments:
+    get:
+      operationId: listPayments
+      responses:
+        "200":
+          description: Payment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentDto"
+      responses:
+        "201":
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+  /payments/{id}:
+    get:
+      operationId: getPayment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+    patch:
+      operationId: updatePayment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentDto"
+      responses:
+        "200":
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+    delete:
+      operationId: deletePayment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /refunds:
+    get:
+      operationId: listRefunds
+      responses:
+        "200":
+          description: Refund list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Refund"
+    post:
+      operationId: createRefund
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRefundDto"
+      responses:
+        "201":
+          description: Refund
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Refund"
+  /refunds/{id}:
+    get:
+      operationId: getRefund
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Refund
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Refund"
+    patch:
+      operationId: updateRefund
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRefundDto"
+      responses:
+        "200":
+          description: Refund
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Refund"
+    delete:
+      operationId: deleteRefund
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    Invoice:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        number:
+          type: string
+        total:
+          type: number
+    CreateInvoiceDto:
+      type: object
+      required:
+        - number
+      properties:
+        number:
+          type: string
+        total:
+          type: number
+    Payment:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreatePaymentDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    Refund:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateRefundDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

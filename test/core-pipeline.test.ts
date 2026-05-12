@@ -177,7 +177,7 @@ describe('resource detection and health', () => {
     expect(report.crudCandidateCount).toBe(1)
     expect(report.enumCount).toBe(1)
     expect(report.score).toBeGreaterThan(70)
-    expect(report.warnings.some((warning) => warning.code === 'response-schema-missing')).toBe(true)
+    expect(report.warnings.some((warning) => warning.code === 'response-schema-missing')).toBe(false)
   })
 })
 
@@ -186,7 +186,7 @@ describe('config and generation planning', () => {
     const resolved = resolveForgeConfig({ input: './openapi.yaml' })
 
     expect(resolved.output.generatedDir).toBe('./src/shared/api/generated')
-    expect(resolved.target.framework).toBe('vue')
+    expect(resolved.target.framework).toBe('neutral')
     expect(resolved.overwrite.generated).toBe(true)
     expect(resolved.overwrite.custom).toBe(false)
   })
@@ -205,13 +205,10 @@ describe('config and generation planning', () => {
     expect(loaded.input).toBe('./schema.yaml')
   })
 
-  test('creates generation plan and protects custom files', async () => {
+  test('creates framework-neutral generation plan without custom UI wrappers', async () => {
     const dir = await createTempDir()
     const normalized = normalizeOpenApi(usersSchema)
     const resources = detectResources(normalized.operations)
-    await mkdir(join(dir, 'src/features/users/ui'), { recursive: true })
-    await writeFile(join(dir, 'src/features/users/ui/UsersTable.vue'), '<template />', 'utf8')
-
     const plan = await createGenerationPlan({
       config: resolveForgeConfig({ input: './openapi.yaml' }),
       normalized,
@@ -221,8 +218,10 @@ describe('config and generation planning', () => {
     const summary = summarizeFilePlan(plan.files)
 
     expect(plan.files.some((file) => file.path.endsWith('users.client.ts'))).toBe(true)
+    expect(plan.files.some((file) => file.path.endsWith('users.config.ts'))).toBe(true)
+    expect(plan.files.some((file) => file.path.endsWith('.vue'))).toBe(false)
     expect(summary.create).toBeGreaterThan(0)
-    expect(summary.protected).toBe(1)
+    expect(summary.protected).toBe(0)
   })
 })
 

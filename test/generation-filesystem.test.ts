@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
@@ -43,8 +43,8 @@ const schema = {
   },
 }
 
-describe('Vue module generation MVP', () => {
-  test('plans generated API, feature, mock, page and custom wrapper files', async () => {
+describe('framework-agnostic resource contract generation', () => {
+  test('plans generated API, feature metadata and mock files without framework components', async () => {
     const normalized = normalizeOpenApi(schema)
     const resources = detectResources(normalized.operations)
     const plan = await createGenerationPlan({
@@ -64,21 +64,18 @@ describe('Vue module generation MVP', () => {
         'src/features/users/api/useCreateUserMutation.ts',
         'src/features/users/model/users.permissions.ts',
         'src/features/users/model/users.i18n.ts',
-        'src/features/users/ui/UsersTable.generated.vue',
-        'src/features/users/ui/UserForm.generated.vue',
-        'src/pages/users/UsersPage.generated.vue',
-        'src/pages/users/users.routes.ts',
+        'src/features/users/model/users.config.ts',
         'src/shared/mocks/users/users.fixtures.ts',
         'src/shared/mocks/users/users.handlers.ts',
       ]),
     )
+    expect(paths.some((path) => path.endsWith('.vue'))).toBe(false)
+    expect(paths).not.toContain('src/shared/ui/archora-ui.ts')
+    expect(paths.some((path) => path.startsWith('src/pages/'))).toBe(false)
   })
 
-  test('writes generated files and skips existing custom files', async () => {
+  test('writes generated files without protecting removed framework wrappers', async () => {
     const cwd = await createTempDir()
-    await mkdir(join(cwd, 'src/features/users/ui'), { recursive: true })
-    await writeFile(join(cwd, 'src/features/users/ui/UsersTable.vue'), '<template>Custom</template>\n', 'utf8')
-
     const normalized = normalizeOpenApi(schema)
     const plan = await createGenerationPlan({
       config: resolveForgeConfig({ input: './openapi.yaml' }),
@@ -89,14 +86,27 @@ describe('Vue module generation MVP', () => {
     const result = await writeGeneratedFiles(plan.files, { cwd, dryRun: false })
 
     expect(result.created).toBeGreaterThan(10)
-    expect(result.protected).toBe(1)
+    expect(result.protected).toBe(0)
     await expect(readFile(join(cwd, 'src/shared/api/generated/users/users.client.ts'), 'utf8')).resolves.toContain(
       'listUsers',
     )
-    await expect(readFile(join(cwd, 'src/features/users/ui/UsersTable.vue'), 'utf8')).resolves.toBe(
-      '<template>Custom</template>\n',
-    )
-    expect(summarizeFilePlan(plan.files).protected).toBe(1)
+    expect(summarizeFilePlan(plan.files).protected).toBe(0)
+  })
+
+  test('skips rewriting generated files when content is unchanged', async () => {
+    const cwd = await createTempDir()
+    const normalized = normalizeOpenApi(schema)
+    const config = resolveForgeConfig({ input: './openapi.yaml' })
+    const resources = detectResources(normalized.operations)
+    const firstPlan = await createGenerationPlan({ config, normalized, resources, cwd })
+    await writeGeneratedFiles(firstPlan.files, { cwd, dryRun: false })
+    const secondPlan = await createGenerationPlan({ config, normalized, resources, cwd })
+
+    const result = await writeGeneratedFiles(secondPlan.files, { cwd, dryRun: false })
+
+    expect(result.unchanged).toBeGreaterThan(10)
+    expect(result.updated).toBe(0)
+    expect(result.created).toBe(0)
   })
 })
 

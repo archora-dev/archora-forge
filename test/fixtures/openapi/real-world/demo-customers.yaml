@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: Demo Customers API
+  version: 1.0.0
+paths:
+  /customers:
+    get:
+      operationId: listCustomers
+      responses:
+        "200":
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerDto"
+      responses:
+        "201":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    patch:
+      operationId: updateCustomer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerDto"
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    delete:
+      operationId: deleteCustomer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /addresses:
+    get:
+      operationId: listAddresss
+      responses:
+        "200":
+          description: Address list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Address"
+    post:
+      operationId: createAddress
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAddressDto"
+      responses:
+        "201":
+          description: Address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+  /addresses/{id}:
+    get:
+      operationId: getAddress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+    patch:
+      operationId: updateAddress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAddressDto"
+      responses:
+        "200":
+          description: Address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+    delete:
+      operationId: deleteAddress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /preferences:
+    get:
+      operationId: listPreferences
+      responses:
+        "200":
+          description: Preference list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Preference"
+    post:
+      operationId: createPreference
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePreferenceDto"
+      responses:
+        "201":
+          description: Preference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preference"
+  /preferences/{id}:
+    get:
+      operationId: getPreference
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Preference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preference"
+    patch:
+      operationId: updatePreference
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePreferenceDto"
+      responses:
+        "200":
+          description: Preference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preference"
+    delete:
+      operationId: deletePreference
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    Customer:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+    CreateCustomerDto:
+      type: object
+      required:
+        - displayName
+      properties:
+        displayName:
+          type: string
+        email:
+          type: string
+    Address:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateAddressDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    Preference:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreatePreferenceDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

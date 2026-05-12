@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
@@ -12,7 +12,13 @@ import {
   summarizeFilePlan,
 } from '../packages/core/src/index.js'
 import { resolveForgeConfig } from '../packages/config/src/index.js'
-import { mapArchoraUiField, mapArchoraUiTableCell } from '../packages/adapters/src/index.js'
+import {
+  mapMetadataField,
+  mapMetadataTableCell,
+  toFilterFields,
+  toFormFields,
+  toTableColumns,
+} from '../packages/adapters/src/index.js'
 
 const realWorldSchema = {
   openapi: '3.0.3',
@@ -97,9 +103,10 @@ const realWorldSchema = {
         properties: {
           id: { type: 'string', readOnly: true },
           email: { type: 'string', format: 'email', description: 'Work email', maxLength: 120 },
-          name: { type: 'string', minLength: 2, maxLength: 80 },
+          name: { type: 'string', minLength: 2, maxLength: 80, deprecated: true },
+          website: { type: 'string', format: 'uri' },
           age: { type: 'integer', minimum: 18, nullable: true },
-          status: { type: 'string', enum: ['active', 'blocked', 'pending'] },
+          status: { type: 'string', enum: ['active', 'blocked', 'pending'], deprecated: true },
           verified: { type: 'boolean' },
           createdAt: { type: 'string', format: 'date-time', readOnly: true },
           password: { type: 'string', writeOnly: true, minLength: 12 },
@@ -117,8 +124,9 @@ const realWorldSchema = {
         properties: {
           email: { type: 'string', format: 'email', description: 'Invitation email' },
           password: { type: 'string', writeOnly: true, minLength: 12 },
-          status: { type: 'string', enum: ['active', 'blocked', 'pending'] },
-          verified: { type: 'boolean' },
+          website: { type: 'string', format: 'uri' },
+          status: { type: 'string', enum: ['active', 'blocked', 'pending'], default: 'pending' },
+          verified: { type: 'boolean', default: false },
         },
       },
       UpdateUserDto: {
@@ -134,16 +142,87 @@ const realWorldSchema = {
 
 describe('Schema-driven UI model', () => {
   test('centralizes Archora UI adapter mappings', () => {
-    expect(mapArchoraUiField({ type: 'string', format: 'email' })).toEqual({
+    expect(mapMetadataField({ type: 'string', format: 'email' })).toEqual({
       input: 'email',
-      component: 'ArchInput',
+      component: 'text',
     })
-    expect(mapArchoraUiField({ type: 'string', enum: ['active'] })).toEqual({
+    expect(mapMetadataField({ type: 'string', format: 'uri' })).toEqual({
+      input: 'url',
+      component: 'text',
+    })
+    expect(mapMetadataField({ type: 'string', enum: ['active'] })).toEqual({
       input: 'select',
-      component: 'ArchSelect',
+      component: 'select',
     })
-    expect(mapArchoraUiTableCell({ type: 'boolean' })).toBe('boolean')
-    expect(mapArchoraUiTableCell({ type: 'object' })).toBe('json')
+    expect(mapMetadataTableCell({ type: 'boolean' })).toBe('boolean')
+    expect(mapMetadataTableCell({ type: 'object' })).toBe('json')
+  })
+
+  test('maps generated resource metadata into generic UI-kit adapter contracts', () => {
+    const resourceConfig = {
+      resource: 'users',
+      pagination: { enabled: true, itemsPath: 'items', totalPath: 'total' },
+      fields: [
+        {
+          name: 'email',
+          label: 'Email',
+          input: 'email',
+          component: 'ArchInput',
+          required: true,
+          nullable: false,
+          validation: {},
+        },
+        {
+          name: 'status',
+          label: 'Status',
+          input: 'select',
+          component: 'ArchSelect',
+          required: false,
+          nullable: false,
+          enumValues: ['active', 'blocked'],
+          defaultValue: 'active',
+          deprecated: true,
+          validation: {},
+        },
+      ],
+      columns: [
+        { name: 'email', label: 'Email', cell: 'text', sortable: true, nullable: false },
+        { name: 'status', label: 'Status', cell: 'badge', sortable: true, nullable: false },
+        { name: 'profile', label: 'Profile', cell: 'json', sortable: false, nullable: true },
+      ],
+    } as const
+
+    expect(toTableColumns(resourceConfig.columns)).toEqual([
+      { key: 'email', title: 'Email', cell: 'text', sortable: true, nullable: false },
+      { key: 'status', title: 'Status', cell: 'badge', sortable: true, nullable: false },
+      { key: 'profile', title: 'Profile', cell: 'json', sortable: false, nullable: true },
+    ])
+    expect(toFormFields(resourceConfig.fields)).toEqual([
+      {
+        key: 'email',
+        label: 'Email',
+        input: 'email',
+        required: true,
+        nullable: false,
+        options: undefined,
+        validation: {},
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        input: 'select',
+        required: false,
+        nullable: false,
+        options: ['active', 'blocked'],
+        defaultValue: 'active',
+        deprecated: true,
+        validation: {},
+      },
+    ])
+    expect(toFilterFields(resourceConfig.fields)).toEqual([
+      { key: 'email', label: 'Email', input: 'email', options: undefined },
+      { key: 'status', label: 'Status', input: 'select', options: ['active', 'blocked'], defaultValue: 'active', deprecated: true },
+    ])
   })
 
   test('maps form fields from schema with validation and readOnly filtering', () => {
@@ -153,17 +232,18 @@ describe('Schema-driven UI model', () => {
       normalized,
       resource,
       config: {
-        form: { fields: ['email', 'password', 'status', 'verified', 'id'] },
+        form: { fields: ['email', 'password', 'website', 'status', 'verified', 'id'] },
       },
     })
 
-    expect(model.formFields.map((field) => field.name)).toEqual(['email', 'password', 'status', 'verified'])
+    expect(model.formFields.map((field) => field.name)).toEqual(['email', 'password', 'website', 'status', 'verified'])
     expect(model.formFields).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: 'email', input: 'email', component: 'ArchInput', required: true }),
         expect.objectContaining({ name: 'password', input: 'password', component: 'ArchInput', required: true }),
-        expect.objectContaining({ name: 'status', input: 'select', component: 'ArchSelect', enumValues: ['active', 'blocked', 'pending'] }),
-        expect.objectContaining({ name: 'verified', input: 'switch', component: 'ArchSwitch' }),
+        expect.objectContaining({ name: 'website', input: 'url', component: 'ArchInput' }),
+        expect.objectContaining({ name: 'status', input: 'select', component: 'ArchSelect', enumValues: ['active', 'blocked', 'pending'], defaultValue: 'pending' }),
+        expect.objectContaining({ name: 'verified', input: 'switch', component: 'ArchSwitch', defaultValue: false }),
       ]),
     )
     expect(model.formFields.find((field) => field.name === 'password')?.validation.minLength).toBe(12)
@@ -185,7 +265,7 @@ describe('Schema-driven UI model', () => {
     expect(model.tableColumns).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: 'email', cell: 'text' }),
-        expect.objectContaining({ name: 'status', cell: 'badge' }),
+        expect.objectContaining({ name: 'status', cell: 'badge', deprecated: true }),
         expect.objectContaining({ name: 'verified', cell: 'boolean' }),
         expect.objectContaining({ name: 'createdAt', cell: 'dateTime' }),
         expect.objectContaining({ name: 'profile', cell: 'json' }),
@@ -194,10 +274,8 @@ describe('Schema-driven UI model', () => {
     expect(model.pagination.enabled).toBe(true)
   })
 
-  test('generates polished formatted form and table output while protecting custom wrappers', async () => {
+  test('generates UI-kit neutral form and table metadata without framework wrappers', async () => {
     const cwd = await createTempDir()
-    await mkdir(join(cwd, 'src/features/users/ui'), { recursive: true })
-    await writeFile(join(cwd, 'src/features/users/ui/UsersTable.vue'), '<template>Custom users table</template>\n', 'utf8')
 
     const normalized = normalizeOpenApi(realWorldSchema)
     const resources = detectResources(normalized.operations)
@@ -206,7 +284,7 @@ describe('Schema-driven UI model', () => {
         input: './openapi.yaml',
         resources: {
           users: {
-            table: { columns: ['email', 'status', 'verified', 'createdAt', 'profile'] },
+            table: { columns: ['email', 'status', 'verified', 'createdAt', 'profile'], filters: ['email', 'name'] },
             form: { fields: ['email', 'password', 'status', 'verified'] },
           },
         },
@@ -216,38 +294,31 @@ describe('Schema-driven UI model', () => {
       cwd,
     })
     const summary = summarizeFilePlan(plan.files)
-    const form = plan.files.find((file) => file.path.endsWith('UserForm.generated.vue'))?.content ?? ''
-    const table = plan.files.find((file) => file.path.endsWith('UsersTable.generated.vue'))?.content ?? ''
+    const config = plan.files.find((file) => file.path.endsWith('users.config.ts'))?.content ?? ''
+    const i18n = plan.files.find((file) => file.path.endsWith('users.i18n.ts'))?.content ?? ''
+    const paths = plan.files.map((file) => file.path)
 
-    expect(summary.protected).toBe(1)
-    expect(form).toContain('const formFields')
-    expect(form).toContain('type ModelValue = string | number | boolean | null | undefined')
-    expect(form).toContain('const formModel = ref<FormModel>({ ...props.modelValue })')
-    expect(form).toContain('function updateField(name: string, value: ModelValue)')
-    expect(form).toContain("emit('submit', { ...formModel.value })")
-    expect(form).toContain(':model-value="formModel[field.name]"')
-    expect(form).toContain('@update:model-value="(value: unknown) => updateField(field.name, value as ModelValue)"')
-    expect(form).toContain("component: 'ArchSelect'")
-    expect(form).toContain("minLength: 12")
-    expect(form).not.toContain("name: 'id'")
-    expect(table).toContain('const tableColumns')
-    expect(table).toContain("cell: 'badge'")
-    expect(table).toContain('formatCellValue')
-    expect(table).toContain('function formatDateValue')
-    expect(table).toContain('function formatBooleanValue')
-    expect(table).toContain('function formatEnumValue')
-    expect(table).toContain('function formatNestedValue')
-    expect(table).toContain('function formatNullableValue')
-    expect(table).toContain('function formatNumberValue')
-    expect(table).toContain('Page 1 of 1')
-    expect(table).toContain("{{ props.rows.length }} {{ props.rows.length === 1 ? 'record' : 'records' }}")
-    expect(table).not.toContain('Pagination ready')
-    expect(table).not.toContain('Total: {{ pagination.totalPath }}')
-    expect(table).not.toContain('JSON.stringify(value)')
-    expect(table).toContain('Loading users...')
+    expect(summary.protected).toBe(0)
+    expect(config).toContain("resource: 'users'")
+    expect(config).toContain('fields:')
+    expect(config).toContain('columns:')
+    expect(config).toContain('filters:')
+    expect(config).toContain("component: 'ArchSelect'")
+    expect(config).toContain("defaultValue: 'pending'")
+    expect(config).toContain('defaultValue: false')
+    expect(config).toContain('deprecated: true')
+    expect(config).toContain("minLength: 12")
+    expect(config).not.toContain("name: 'id'")
+    expect(config).toContain("cell: 'badge'")
+    expect(config).toContain("cell: 'dateTime'")
+    expect(config).toContain("cell: 'boolean'")
+    expect(config).toContain("cell: 'json'")
+    expect(config).toContain("name: 'email'")
+    expect(i18n).toContain("name: 'Name'")
+    expect(paths.some((path) => path.endsWith('.vue'))).toBe(false)
   })
 
-  test('hides table actions when matching CRUD operations are missing', async () => {
+  test('metadata generation does not create framework table actions', async () => {
     const normalized = normalizeOpenApi({
       ...realWorldSchema,
       paths: {
@@ -281,12 +352,12 @@ describe('Schema-driven UI model', () => {
       resources: detectResources(normalized.operations),
       cwd: await createTempDir(),
     })
-    const table = plan.files.find((file) => file.path.endsWith('ReportsTable.generated.vue'))?.content ?? ''
+    const config = plan.files.find((file) => file.path.endsWith('reports.config.ts'))?.content ?? ''
 
-    expect(table).not.toContain('Create report')
-    expect(table).not.toContain('Edit</ArchButton>')
-    expect(table).not.toContain('Delete</ArchButton>')
-    expect(table).not.toContain('aria-label="Actions"')
+    expect(config).toContain("resource: 'reports'")
+    expect(plan.files.some((file) => file.path.endsWith('.vue'))).toBe(false)
+    expect(config).not.toContain('ArchButton')
+    expect(config).not.toContain('aria-label="Actions"')
   })
 })
 

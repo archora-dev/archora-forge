@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: Demo Search API
+  version: 1.0.0
+paths:
+  /saved-queries:
+    get:
+      operationId: listSavedQuerys
+      responses:
+        "200":
+          description: SavedQuery list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SavedQuery"
+    post:
+      operationId: createSavedQuery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSavedQueryDto"
+      responses:
+        "201":
+          description: SavedQuery
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedQuery"
+  /saved-queries/{id}:
+    get:
+      operationId: getSavedQuery
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: SavedQuery
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedQuery"
+    patch:
+      operationId: updateSavedQuery
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSavedQueryDto"
+      responses:
+        "200":
+          description: SavedQuery
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedQuery"
+    delete:
+      operationId: deleteSavedQuery
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /suggestions:
+    get:
+      operationId: listSuggestions
+      responses:
+        "200":
+          description: Suggestion list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Suggestion"
+    post:
+      operationId: createSuggestion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSuggestionDto"
+      responses:
+        "201":
+          description: Suggestion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suggestion"
+  /suggestions/{id}:
+    get:
+      operationId: getSuggestion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Suggestion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suggestion"
+    patch:
+      operationId: updateSuggestion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSuggestionDto"
+      responses:
+        "200":
+          description: Suggestion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suggestion"
+    delete:
+      operationId: deleteSuggestion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    SavedQuery:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateSavedQueryDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    Suggestion:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateSuggestionDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

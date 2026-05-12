@@ -1,6 +1,8 @@
+import { readFile } from 'node:fs/promises'
+
 import { describe, expect, test } from 'vitest'
 
-import { archoraUiFieldAdapter, vueTarget } from '../packages/adapters/src/index.js'
+import { metadataFieldAdapter } from '../packages/adapters/src/index.js'
 import { createCli } from '../packages/cli/src/index.js'
 import { defineForgeConfig } from '../packages/config/src/index.js'
 import { ForgeError, forgeCoreVersion } from '../packages/core/src/index.js'
@@ -11,12 +13,17 @@ describe('foundation exports', () => {
     const config = defineForgeConfig({
       input: './openapi.yaml',
       target: {
-        framework: 'vue',
+        framework: 'neutral',
       },
     })
 
     expect(config.input).toBe('./openapi.yaml')
-    expect(config.target?.framework).toBe('vue')
+    expect(config.target?.framework).toBe('neutral')
+
+    const multiSchemaConfig = defineForgeConfig({
+      inputs: [{ name: 'users', path: './contracts/users.yaml' }],
+    })
+    expect(multiSchemaConfig.inputs[0]?.name).toBe('users')
   })
 
   test('exposes core primitives', () => {
@@ -24,13 +31,12 @@ describe('foundation exports', () => {
       suggestion: 'Provide an OpenAPI 3.x document.',
     })
 
-    expect(forgeCoreVersion).toBe('0.0.0')
+    expect(forgeCoreVersion).toBe('1.0.0')
     expect(error.details.suggestion).toContain('OpenAPI')
   })
 
   test('exposes adapter mappings', () => {
-    expect(archoraUiFieldAdapter.enum).toBe('ArchSelect')
-    expect(vueTarget.query).toBe('tanstack-vue-query')
+    expect(metadataFieldAdapter.enum).toBe('select')
   })
 
   test('exposes template helpers', () => {
@@ -54,6 +60,29 @@ describe('cli foundation', () => {
     const cli = createCli()
     const commandNames = cli.commands.map((command) => command.name)
 
-    expect(commandNames).toEqual(expect.arrayContaining(['init', 'generate', 'inspect', 'validate', 'diff', 'lint', 'contract-diff']))
+    expect(commandNames).toEqual(expect.arrayContaining(['init', 'doctor', 'generate', 'inspect', 'validate', 'diff', 'lint', 'contract-diff']))
+  })
+})
+
+describe('repository automation', () => {
+  test('ships a primary CI workflow for release checks', async () => {
+    const workflow = await readFile('.github/workflows/ci.yml', 'utf8')
+
+    expect(workflow).toContain('pnpm release:check')
+    expect(workflow).toContain('pull_request:')
+    expect(workflow).toContain('node-version: 22')
+  })
+
+  test('CLI version is read from package metadata instead of a hardcoded literal', async () => {
+    const source = await readFile('packages/cli/src/index.ts', 'utf8')
+
+    expect(source).not.toContain("cli.version('0.0.0')")
+    expect(source).toContain('cli.version(cliVersion)')
+  })
+
+  test('external consumer smoke covers the readiness command', async () => {
+    const script = await readFile('scripts/smoke-external-consumer.sh', 'utf8')
+
+    expect(script).toContain('pnpm exec archora-forge doctor')
   })
 })

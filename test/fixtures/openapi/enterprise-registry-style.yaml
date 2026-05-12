@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: Enterprise Registry Style API
+  version: 1.0.0
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/registry/persons/search:
+    post:
+      operationId: RegistryPersons_Search
+      tags: [Person Registry]
+      parameters:
+        - { name: x-tenant-id, in: header, required: true, schema: { type: string } }
+        - { name: x-request-id, in: header, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PersonSearchRequest' }
+      responses:
+        '200':
+          description: Matching persons
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/PersonCard' }
+  /api/v1/registry/persons/{personId}/documents:
+    post:
+      operationId: uploadPersonDocument
+      tags: [Document Registry]
+      parameters:
+        - { name: personId, in: path, required: true, schema: { type: string } }
+        - { name: x-tenant-id, in: header, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: '#/components/schemas/DocumentUpload' }
+      responses:
+        '201':
+          description: Uploaded document
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DocumentMetadata' }
+  /api/v1/registry/persons/{personId}/documents/{documentId}/content:
+    get:
+      operationId: downloadPersonDocument
+      tags: [Document Registry]
+      parameters:
+        - { name: personId, in: path, required: true, schema: { type: string } }
+        - { name: documentId, in: path, required: true, schema: { type: string } }
+        - { name: x-tenant-id, in: header, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Raw document bytes
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+  /api/v1/registry/persons/{personId}/lifecycle/approve:
+    post:
+      operationId: approveRegistryPerson
+      tags: [Person Registry]
+      parameters:
+        - { name: personId, in: path, required: true, schema: { type: string } }
+        - { name: x-tenant-id, in: header, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Approved }
+  /api/v1/registry/export:
+    get:
+      operationId: exportRegistryCsv
+      tags: [Registry Export]
+      responses:
+        '200':
+          description: CSV export
+          content:
+            text/csv:
+              schema: { type: string }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }
+  schemas:
+    AuditFields:
+      type: object
+      required: [createdAt]
+      properties:
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        sourceSystem: { type: string, enum: [registry, import, operator] }
+    PersonCard:
+      allOf:
+        - { $ref: '#/components/schemas/AuditFields' }
+        - type: object
+          required: [id, fullName]
+          properties:
+            id: { type: string }
+            fullName: { type: string }
+            status: { type: string, enum: [draft, active, archived] }
+            addresses:
+              type: array
+              items: { $ref: '#/components/schemas/Address' }
+    Address:
+      allOf:
+        - type: object
+          required: [region]
+          properties:
+            region: { type: string }
+        - type: object
+          properties:
+            city: { type: string }
+            street: { type: string }
+    PersonSearchRequest:
+      type: object
+      properties:
+        query: { type: string }
+        statuses:
+          type: array
+          items: { type: string, enum: [draft, active, archived] }
+        paging:
+          type: object
+          properties:
+            page: { type: integer, default: 1 }
+            size: { type: integer, default: 20 }
+    DocumentUpload:
+      type: object
+      required: [file, kind]
+      properties:
+        file: { type: string, format: binary }
+        kind: { type: string, enum: [passport, attachment, decision] }
+    DocumentMetadata:
+      allOf:
+        - { $ref: '#/components/schemas/AuditFields' }
+        - type: object
+          required: [id, fileName]
+          properties:
+            id: { type: string }
+            fileName: { type: string }
+            size: { type: integer, format: int64 }

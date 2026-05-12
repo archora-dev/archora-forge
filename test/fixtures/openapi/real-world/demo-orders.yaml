@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: Demo Orders API
+  version: 1.0.0
+paths:
+  /orders:
+    get:
+      operationId: listOrders
+      responses:
+        "200":
+          description: Order list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderDto"
+      responses:
+        "201":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    patch:
+      operationId: updateOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderDto"
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    delete:
+      operationId: deleteOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /order-items:
+    get:
+      operationId: listOrderItems
+      responses:
+        "200":
+          description: OrderItem list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderItem"
+    post:
+      operationId: createOrderItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderItemDto"
+      responses:
+        "201":
+          description: OrderItem
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderItem"
+  /order-items/{id}:
+    get:
+      operationId: getOrderItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OrderItem
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderItem"
+    patch:
+      operationId: updateOrderItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderItemDto"
+      responses:
+        "200":
+          description: OrderItem
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderItem"
+    delete:
+      operationId: deleteOrderItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /shipments:
+    get:
+      operationId: listShipments
+      responses:
+        "200":
+          description: Shipment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Shipment"
+    post:
+      operationId: createShipment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShipmentDto"
+      responses:
+        "201":
+          description: Shipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shipment"
+  /shipments/{id}:
+    get:
+      operationId: getShipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shipment"
+    patch:
+      operationId: updateShipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShipmentDto"
+      responses:
+        "200":
+          description: Shipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shipment"
+    delete:
+      operationId: deleteShipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    Order:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        reference:
+          type: string
+        total:
+          type: number
+    CreateOrderDto:
+      type: object
+      required:
+        - reference
+      properties:
+        reference:
+          type: string
+        total:
+          type: number
+    OrderItem:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateOrderItemDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    Shipment:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateShipmentDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

@@ -63,13 +63,27 @@ describe('Real API operation model', () => {
 
     expect(normalized.operations[0]).toMatchObject({
       requestContentTypes: ['application/vnd.company.search+json'],
-      responseContentTypes: ['application/json;charset=utf-8'],
+      responseContentTypes: ['application/json'],
       isJsonRequest: true,
       isJsonResponse: true,
       operationKind: 'search-resource',
     })
     expect(normalized.operations[0]?.requestBodySchema?.$ref).toBe('#/components/schemas/SearchRequest')
     expect(normalized.operations[0]?.responseSchema?.$ref).toBe('#/components/schemas/SearchResponse')
+  })
+
+  test('keeps raw operationId alongside sanitized unique generated ids', () => {
+    const normalized = normalizeOpenApi({
+      openapi: '3.0.3',
+      info: { title: 'Operation ids', version: '1.0.0' },
+      paths: {
+        '/users': { get: operation('user.list') },
+        '/accounts': { get: operation('user.list') },
+      },
+    })
+
+    expect(normalized.operations.map((item) => item.sourceOperationId)).toEqual(['user.list', 'user.list'])
+    expect(normalized.operations.map((item) => item.id)).toEqual(['userList', 'userList2'])
   })
 
   test('classifies search, action, file and unsupported operations', () => {
@@ -152,9 +166,10 @@ describe('Real API operation model', () => {
     const content = plan.files.map((file) => file.content).join('\n')
     const diagnostics = collectDiagnostics(normalized)
 
-    expect(content).toContain('Search operation')
-    expect(content).toContain('File operation')
-    expect(content).toContain('Unsupported operation')
+    expect(content).toContain("resource: 'reportsSearch'")
+    expect(content).toContain("resource: 'filesUpload'")
+    expect(content).toContain("resource: 'legacyPing'")
+    expect(plan.files.some((file) => file.path.endsWith('.vue'))).toBe(false)
     expect(diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'unsupported-operation' })]))
   })
 })

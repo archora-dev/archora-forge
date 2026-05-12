@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: Demo Reviews API
+  version: 1.0.0
+paths:
+  /reviews:
+    get:
+      operationId: listReviews
+      responses:
+        "200":
+          description: Review list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createReview
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewDto"
+      responses:
+        "201":
+          description: Review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+  /reviews/{id}:
+    get:
+      operationId: getReview
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+    patch:
+      operationId: updateReview
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewDto"
+      responses:
+        "200":
+          description: Review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+    delete:
+      operationId: deleteReview
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /reactions:
+    get:
+      operationId: listReactions
+      responses:
+        "200":
+          description: Reaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reaction"
+    post:
+      operationId: createReaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReactionDto"
+      responses:
+        "201":
+          description: Reaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+  /reactions/{id}:
+    get:
+      operationId: getReaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+    patch:
+      operationId: updateReaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReactionDto"
+      responses:
+        "200":
+          description: Reaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+    delete:
+      operationId: deleteReaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    Review:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        rating:
+          type: number
+        comment:
+          type: string
+    CreateReviewDto:
+      type: object
+      required:
+        - rating
+      properties:
+        rating:
+          type: number
+        comment:
+          type: string
+    Reaction:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateReactionDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

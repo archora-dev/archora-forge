@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: Demo Content API
+  version: 1.0.0
+paths:
+  /articles:
+    get:
+      operationId: listArticles
+      responses:
+        "200":
+          description: Article list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+    post:
+      operationId: createArticle
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateArticleDto"
+      responses:
+        "201":
+          description: Article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+  /articles/{id}:
+    get:
+      operationId: getArticle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+    patch:
+      operationId: updateArticle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateArticleDto"
+      responses:
+        "200":
+          description: Article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+    delete:
+      operationId: deleteArticle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /tags:
+    get:
+      operationId: listTags
+      responses:
+        "200":
+          description: Tag list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tag"
+    post:
+      operationId: createTag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTagDto"
+      responses:
+        "201":
+          description: Tag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tag"
+  /tags/{id}:
+    get:
+      operationId: getTag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tag"
+    patch:
+      operationId: updateTag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTagDto"
+      responses:
+        "200":
+          description: Tag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tag"
+    delete:
+      operationId: deleteTag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /comments:
+    get:
+      operationId: listComments
+      responses:
+        "200":
+          description: Comment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+    post:
+      operationId: createComment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentDto"
+      responses:
+        "201":
+          description: Comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+  /comments/{id}:
+    get:
+      operationId: getComment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+    patch:
+      operationId: updateComment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentDto"
+      responses:
+        "200":
+          description: Comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+    delete:
+      operationId: deleteComment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    Article:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+    CreateArticleDto:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+    Tag:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateTagDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    Comment:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateCommentDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string

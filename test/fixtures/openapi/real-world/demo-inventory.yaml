@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: Demo Inventory API
+  version: 1.0.0
+paths:
+  /warehouses:
+    get:
+      operationId: listWarehouses
+      responses:
+        "200":
+          description: Warehouse list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Warehouse"
+    post:
+      operationId: createWarehouse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWarehouseDto"
+      responses:
+        "201":
+          description: Warehouse
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Warehouse"
+  /warehouses/{id}:
+    get:
+      operationId: getWarehouse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Warehouse
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Warehouse"
+    patch:
+      operationId: updateWarehouse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWarehouseDto"
+      responses:
+        "200":
+          description: Warehouse
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Warehouse"
+    delete:
+      operationId: deleteWarehouse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+  /stock-items:
+    get:
+      operationId: listStockItems
+      responses:
+        "200":
+          description: StockItem list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StockItem"
+    post:
+      operationId: createStockItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStockItemDto"
+      responses:
+        "201":
+          description: StockItem
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockItem"
+  /stock-items/{id}:
+    get:
+      operationId: getStockItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: StockItem
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockItem"
+    patch:
+      operationId: updateStockItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStockItemDto"
+      responses:
+        "200":
+          description: StockItem
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockItem"
+    delete:
+      operationId: deleteStockItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+components:
+  schemas:
+    Warehouse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateWarehouseDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    StockItem:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    CreateStockItemDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
