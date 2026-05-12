@@ -1,0 +1,55 @@
+export const usersConfig = {
+  resource: 'users',
+  pagination: {
+    enabled: true,
+    itemsPath: 'items',
+    totalPath: 'total',
+  },
+  fields: [
+    {
+      name: 'email',
+      label: 'Email',
+      input: 'email',
+      component: 'text',
+      required: true,
+      nullable: false,
+      validation: {},
+    },
+    {
+      name: 'status',
+      label: 'Status',
+      input: 'select',
+      component: 'select',
+      required: true,
+      nullable: false,
+      enumValues: ['active', 'invited', 'disabled'],
+      validation: {},
+    },
+  ],
+  filters: [
+    {
+      name: 'email',
+      label: 'Email',
+      input: 'email',
+      component: 'text',
+      required: false,
+      nullable: false,
+      validation: {},
+    },
+    {
+      name: 'status',
+      label: 'Status',
+      input: 'select',
+      component: 'select',
+      required: false,
+      nullable: false,
+      enumValues: ['active', 'invited', 'disabled'],
+      validation: {},
+    },
+  ],
+  columns: [
+    { name: 'email', label: 'Email', cell: 'text', sortable: true, nullable: false },
+    { name: 'status', label: 'Status', cell: 'badge', sortable: true, nullable: false },
+    { name: 'createdAt', label: 'Created At', cell: 'dateTime', sortable: true, nullable: false },
+  ],
+} as const

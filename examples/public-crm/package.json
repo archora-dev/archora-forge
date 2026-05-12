@@ -1,0 +1,18 @@
+{
+  "name": "public-crm-demo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Public neutral Archora Forge CRM demo schema and generated output.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@archora/forge-config": "workspace:*",
+    "@archora/forge-runtime": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
