@@ -4,7 +4,7 @@ Archora Forge is a local-first generator. Do not commit API tokens, schema regis
 
 ## Reporting
 
-For security-sensitive reports, avoid public issue details. Contact the repository owner privately until a dedicated advisory channel is configured.
+For security-sensitive reports, do not open public discussions or PRs. Email **akotov@archora.dev** with the subject prefix `[security]`, or contact **@akotofff** on Telegram. Do not disclose publicly until a fix is released.
 
 ## Current Scope
 
