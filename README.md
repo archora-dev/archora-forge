@@ -1,5 +1,17 @@
 # Archora Forge
 
+> ⚠ **Source-available, NOT open source.**
+> This repository is published for inspection and evaluation only.
+> **Any** use of the code or its generated output — commercial or
+> non-commercial, personal or organizational, including hobby and
+> educational projects — requires a paid commercial license from the
+> author.
+> See [`LICENSE`](./LICENSE) and [`COMMERCIAL-LICENSE.md`](./COMMERCIAL-LICENSE.md).
+>
+> Commercial licensing: **akotov@archora.dev** · Telegram **@akotofff**
+
+---
+
 Archora Forge turns an OpenAPI contract into a typed frontend resource layer.
 
 Archora Forge is in public preview and private beta. It is built for frontend teams that already have a framework and design system, but need a reliable contract layer between OpenAPI and product code. It generates committed TypeScript clients, operation helpers, query keys, form/table metadata, permissions, labels, mocks and CI reports without forcing a UI framework or hosted workflow.
