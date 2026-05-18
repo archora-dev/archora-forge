@@ -142,6 +142,7 @@ describe('v1 public API contract', () => {
       'generatedFiles',
       'protectedFiles',
       'failedChecks',
+      'readiness',
       'drift',
       'diagnostics',
     ])

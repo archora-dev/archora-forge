@@ -44,6 +44,15 @@ export function registerCheckCommand(cli: CAC): void {
         const failedChecks = [...new Set(checks.flatMap((check) => check.failedChecks))]
         const ok = failedChecks.length === 0
         const healthScore = Math.min(...checks.map((check) => check.healthScore))
+        const summary = {
+          healthScore,
+          resources: checks.reduce((total, check) => total + check.resources, 0),
+          generatedFiles: checks.reduce((total, check) => total + check.generatedFiles, 0),
+          protectedFiles: checks.reduce((total, check) => total + check.protectedFiles, 0),
+          diagnostics: diagnostics.length,
+          drift: drift.length,
+          failedChecks: failedChecks.length,
+        }
         const payload = {
           ok,
           schema: primary.schema,
@@ -60,10 +69,11 @@ export function registerCheckCommand(cli: CAC): void {
             failedChecks: check.failedChecks,
           })),
           healthScore,
-          resources: checks.reduce((total, check) => total + check.resources, 0),
-          generatedFiles: checks.reduce((total, check) => total + check.generatedFiles, 0),
-          protectedFiles: checks.reduce((total, check) => total + check.protectedFiles, 0),
+          resources: summary.resources,
+          generatedFiles: summary.generatedFiles,
+          protectedFiles: summary.protectedFiles,
           failedChecks,
+          readiness: createReadinessSummary({ summary, failedChecks, drift, diagnostics }),
           drift,
           diagnostics,
         }
@@ -172,12 +182,37 @@ function createMarkdownReport(payload: {
   drift: Array<{ path: string; kind: string }>
   diagnostics: Array<{ severity: string; code: string; message: string }>
   healthScore?: number
+  readiness?: {
+    status: string
+    decision: string
+    blockers: string[]
+    warnings: string[]
+    nextActions: string[]
+  }
 }): string {
   const drift = payload.drift.length === 0 ? '- No drift detected.' : payload.drift.map((entry) => `- \`${entry.path}\` is ${entry.kind}`).join('\n')
   const diagnostics =
     payload.diagnostics.length === 0
       ? '- No diagnostics.'
       : payload.diagnostics.map((diagnostic) => `- ${diagnostic.severity} \`${diagnostic.code}\`: ${diagnostic.message}`).join('\n')
+  const readiness = payload.readiness
+    ? `## Pilot Readiness
+
+Readiness: ${payload.readiness.status}
+
+Decision: ${payload.readiness.decision}
+
+Blockers:
+${formatMarkdownList(payload.readiness.blockers, 'No blockers.')}
+
+Warnings:
+${formatMarkdownList(payload.readiness.warnings, 'No warnings.')}
+
+Next actions:
+${formatMarkdownList(payload.readiness.nextActions, 'No action required.')}
+
+`
+    : ''
 
   return `# Archora Forge Check
 
@@ -187,6 +222,7 @@ Failed checks: ${payload.failedChecks.length > 0 ? payload.failedChecks.join(', 
 
 Health score: ${payload.healthScore ?? 'n/a'}
 
+${readiness}
 ## Drift
 
 ${drift}
@@ -199,6 +235,68 @@ ${diagnostics}
 
 ${payload.ok ? 'No action required.' : 'Run `archora-forge generate <schema>` and commit generated changes, or fix reported OpenAPI diagnostics.'}
 `
+}
+
+function formatMarkdownList(items: string[], empty: string): string {
+  return items.length > 0 ? items.map((item) => `- ${item}`).join('\n') : `- ${empty}`
+}
+
+function createReadinessSummary(input: {
+  summary: {
+    healthScore: number
+    resources: number
+    generatedFiles: number
+    protectedFiles: number
+    diagnostics: number
+    drift: number
+    failedChecks: number
+  }
+  failedChecks: string[]
+  drift: Array<{ path: string; kind: string }>
+  diagnostics: Array<{ severity: string; code: string; message: string }>
+}): {
+  status: 'ready' | 'needs-attention' | 'blocked'
+  decision: string
+  blockers: string[]
+  warnings: string[]
+  nextActions: string[]
+  summary: typeof input.summary
+} {
+  const blockers = [
+    ...input.failedChecks.map((check) => `Failed check: ${check}.`),
+    ...(input.drift.length > 0 ? ['Generated output drift is present.'] : []),
+    ...input.diagnostics.filter((diagnostic) => diagnostic.severity === 'error').map((diagnostic) => `Error diagnostic: ${diagnostic.code}.`),
+  ]
+  const warningDiagnostics = input.diagnostics.filter((diagnostic) => diagnostic.severity === 'warning')
+  const warnings = [
+    ...(warningDiagnostics.length > 0 ? [`${warningDiagnostics.length} warning diagnostic${warningDiagnostics.length === 1 ? '' : 's'} need review.`] : []),
+    ...(input.summary.healthScore < 90 ? [`Health score is ${input.summary.healthScore}, below the recommended pilot threshold of 90.`] : []),
+  ]
+  const status = blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'needs-attention' : 'ready'
+  const nextActions =
+    status === 'ready'
+      ? ['Use the report as the pilot readiness artifact and keep `archora-forge check` in CI.']
+      : [
+          ...(input.drift.length > 0
+            ? ['Run `archora-forge generate` and commit the generated output, or review intentional drift before the pilot handoff.']
+            : []),
+          ...(input.diagnostics.length > 0 ? ['Review diagnostics and decide which schema fixes are required for the pilot scope.'] : []),
+          ...(input.summary.healthScore < 90 ? ['Improve schema health before using the report as a go/no-go artifact.'] : []),
+        ]
+
+  return {
+    status,
+    decision:
+      status === 'ready'
+        ? 'Schema is ready for a pilot readiness handoff under the current check policy.'
+        : status === 'needs-attention'
+          ? 'Schema can continue through pilot review, but findings should be triaged first.'
+          : 'Schema is not ready for pilot handoff until blockers are resolved or explicitly accepted.',
+    blockers,
+    warnings,
+    nextActions: nextActions.length > 0 ? nextActions : ['Review failed checks and diagnostics before the pilot handoff.'],
+    summary: input.summary,
+  }
 }
 
 function evaluateFailedChecks(input: {

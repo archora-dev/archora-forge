@@ -40,10 +40,20 @@ Not included:
 
 - `archora-forge.config.ts` tuned for the customer repo.
 - Generated output branch or patch.
-- HTML `inspect` and `check` reports.
+- HTML `inspect` report.
+- HTML or Markdown `check` report with pilot readiness status, blockers, warnings and next actions.
+- JSON `check` payload for CI or internal automation.
 - Diagnostics summary with recommended OpenAPI fixes.
 - Short integration guide for the customer's frontend.
 - Go/no-go recommendation for broader rollout.
+
+Recommended readiness commands:
+
+```bash
+archora-forge check ./openapi.yaml --report html --report-file forge-check.html
+archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md
+archora-forge check ./openapi.yaml --json
+```
 
 ## Suggested Pricing
 
@@ -58,6 +68,7 @@ Pricing should reflect schema complexity, access constraints and how much integr
 ## Success Criteria
 
 - `archora-forge check` can run in CI.
+- The `check` readiness section has no unresolved blockers, or accepted blockers are documented in the final adoption report.
 - Generated output is deterministic and reviewable.
 - The customer sees useful frontend metadata, not just client methods.
 - Unsupported OpenAPI features are explicit and documented.

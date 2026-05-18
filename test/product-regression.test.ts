@@ -616,6 +616,9 @@ describe('Product regression coverage', () => {
     const report = await readTextFile(reportPath, 'utf8')
     expect(report).toContain('# Archora Forge Check')
     expect(report).toContain('Status: failed')
+    expect(report).toContain('## Pilot Readiness')
+    expect(report).toContain('Readiness: blocked')
+    expect(report).toContain('Generated output drift is present.')
     expect(report).toContain('components.types.ts')
     expect(lines.join('\n')).toContain(`Report written: ${reportPath}`)
     expect(exitCode).toBe(1)
@@ -650,11 +653,29 @@ describe('Product regression coverage', () => {
       process.exitCode = previousExitCode
     }
 
-    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as { ok: boolean; schema: string; schemas: Array<{ configPath: string | null }>; drift: unknown[] }
+    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
+      ok: boolean
+      schema: string
+      schemas: Array<{ configPath: string | null }>
+      drift: unknown[]
+      readiness: {
+        status: string
+        decision: string
+        blockers: string[]
+        warnings: string[]
+        nextActions: string[]
+        summary: { healthScore: number; resources: number; generatedFiles: number; protectedFiles: number; diagnostics: number; drift: number; failedChecks: number }
+      }
+    }
     expect(payload.ok).toBe(false)
     expect(payload.schema).toBe(schemaPath)
     expect(payload.schemas[0]?.configPath).toBeNull()
     expect(payload.drift.length).toBeGreaterThan(0)
+    expect(payload.readiness.status).toBe('blocked')
+    expect(payload.readiness.decision).toContain('not ready')
+    expect(payload.readiness.blockers).toContain('Generated output drift is present.')
+    expect(payload.readiness.nextActions).toContain('Run `archora-forge generate` and commit the generated output, or review intentional drift before the pilot handoff.')
+    expect(payload.readiness.summary.drift).toBe(payload.drift.length)
     expect(lines.join('\n')).toContain(`Report written: ${reportPath}`)
     expect(exitCode).toBe(1)
   })
@@ -691,6 +712,8 @@ describe('Product regression coverage', () => {
     const report = await readTextFile(reportPath, 'utf8')
     expect(report).toContain('<!doctype html>')
     expect(report).toContain('Archora Forge Check')
+    expect(report).toContain('Pilot Readiness')
+    expect(report).toContain('Generated output drift is present.')
     expect(report).toContain('components.types.ts')
     expect(report).toContain('Failed Checks')
     expect(lines.join('\n')).toContain(`Report written: ${reportPath}`)

@@ -51,9 +51,11 @@ Check whether the generated resource names and operation helpers match your fron
 git switch -c evaluate-archora-forge
 pnpm exec archora-forge generate ./openapi.yaml
 pnpm exec archora-forge check ./openapi.yaml --report html --report-file forge-check.html
+pnpm exec archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md
+pnpm exec archora-forge check ./openapi.yaml --json
 ```
 
-The generated output should be committed and reviewed like application code.
+The generated output should be committed and reviewed like application code. The `check` report includes a pilot readiness section with a status, decision, blockers, warnings and next actions. Treat it as an adoption-review artifact, not as a production-readiness certificate.
 
 ## 5. Decision Criteria
 
@@ -62,7 +64,7 @@ Forge is a good fit when:
 - the schema produces useful typed clients and operation helpers;
 - diagnostics are understandable and actionable;
 - generated metadata maps into your forms/tables/design system;
-- `check` can be used as a CI gate;
+- `check` can be used as a CI gate and produces a clear pilot readiness decision;
 - regeneration does not overwrite custom code.
 - preview limitations are acceptable for a private beta or paid pilot.
 

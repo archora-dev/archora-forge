@@ -63,9 +63,10 @@ Generated clients stay framework-neutral. Use them from React Query, Angular ser
 pnpm exec archora-forge validate --report-file forge-validate.json
 pnpm exec archora-forge lint --report-file forge-lint.json
 pnpm exec archora-forge check --report markdown --report-file forge-check.md
+pnpm exec archora-forge check --report html --report-file forge-check.html
 ```
 
-Upload the reports as CI artifacts. `check` fails when generated files drift or configured quality gates fail.
+Upload the reports as CI artifacts. `check` fails when generated files drift or configured quality gates fail. Its reports include a pilot readiness section for adoption reviews; it is not a guarantee that every production OpenAPI shape is supported.
 
 ## Local Repo Smoke Test
 
