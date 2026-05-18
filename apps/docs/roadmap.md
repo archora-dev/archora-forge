@@ -1,231 +1,168 @@
 # Roadmap
 
-This roadmap describes how Archora Forge will move from public preview and private beta pilots toward broader production adoption.
+This roadmap covers planned work only. It does not list shipped features, and it does not promise release dates.
 
-It is a planning document, not a release promise. Scope and order may change when real pilot schemas expose higher-priority gaps.
+The order may change when private schema pilots expose higher-priority gaps. The product direction should stay stable: Forge remains focused on the frontend resource layer around an OpenAPI contract.
 
-## Current Position
+## Product Boundaries
 
-Archora Forge is a local-first OpenAPI to TypeScript frontend resource-layer generator.
+Forge will continue to focus on:
 
-The current preview is suitable for evaluation and paid private beta pilots where the goal is to test one real schema or schema family in a controlled branch or CI environment.
+- generated TypeScript resource contracts;
+- generated clients and operation helpers;
+- query keys and resource metadata;
+- mocks and test fixtures;
+- diagnostics and readiness checks;
+- drift, upgrade and regeneration safety;
+- reports that help teams make adoption decisions.
 
-Forge does not currently claim:
+Forge should not become a full application generator. Routing, application state, auth policy, business workflows, design-system components and final UI should remain owned by the consuming application.
 
-- production-ready status;
-- full OpenAPI coverage;
-- complete application generation;
-- generated framework pages or routes;
-- first-party support for every frontend framework;
-- ownership of application auth, business workflow or UI behavior.
+This boundary keeps generated output small enough to inspect, review and commit.
 
-## Product Direction
+## 1. CI Adoption Kit
 
-Forge will stay focused on the frontend resource layer around an OpenAPI contract:
+The next priority is making Forge easy to add to an existing repository without a custom onboarding session.
 
-- typed clients;
-- operation helpers;
-- query keys;
-- schema-derived metadata for forms and tables;
-- permissions and i18n scaffolds;
-- mocks;
-- diagnostics;
-- drift and readiness reports;
-- safe regeneration workflows.
+Planned work:
 
-The project will avoid becoming a broad application generator. The consuming application should continue to own routing, state management, auth policy, design-system components and product-specific workflows.
+- add a practical GitHub Actions workflow;
+- document strict and advisory CI modes;
+- document exit-code behavior for `validate`, `lint`, `diff`, `check` and `generate --dry-run`;
+- define which JSON, Markdown and HTML reports should be uploaded as CI artifacts;
+- describe a pull-request workflow for generated files;
+- add a short checklist for introducing Forge into an existing frontend repository;
+- extend external consumer smoke coverage around CI-style usage.
 
-## Development Phases
+The result should be clear enough for a team to wire Forge into CI, open a pull request and understand whether a failure came from drift, schema quality, config, generator metadata or environment setup.
 
-### Phase 1: Pilot Reliability
+## 2. Adoption Report
 
-Status: in progress.
+The current report flow should become a stronger handoff artifact for private schema pilots and internal technical reviews.
 
-Goal: make Forge dependable enough for short, bounded private schema pilots.
+Planned work:
 
-Completed work:
+- create an adoption-oriented Markdown and HTML report layout;
+- summarize detected resources and operation categories;
+- show schema health, diagnostics and failed checks in one place;
+- show generated file counts by output area;
+- include drift status;
+- include generator metadata status;
+- include stale prune candidates;
+- separate blockers, warnings and next actions;
+- include command versions and config paths in an appendix.
 
-- local and remote OpenAPI loading;
-- resource detection for CRUD, search, action, dashboard/read-only and file operations;
-- typed clients and operation helpers;
-- query keys;
-- generated resource metadata;
-- permissions and i18n scaffolds;
-- mock fixtures, handlers and scenarios;
-- schema diagnostics and frontend readiness scoring;
-- `inspect`, `lint`, `diff`, `generate`, `check` and `doctor` commands;
-- JSON, Markdown and HTML reporting;
-- pilot readiness summary in `check`;
-- safe generated-file ownership marker;
-- stale generated-file preview and explicit prune flow;
-- generator metadata alignment checks for Forge version, schema hash and config hash;
-- public CRM, petstore and mini ecommerce examples.
+The report should be readable by a technical stakeholder who did not run the CLI. It should answer whether the schema can move forward, what must be fixed, what risks are accepted and what work remains.
 
-Next work:
+## 3. Schema Coverage Matrix
 
-- tighten CI adoption docs and reusable workflow examples;
-- improve final pilot report format;
-- expand schema coverage reporting;
-- document accepted limitations per pilot.
+Forge needs a clearer way to show which parts of a schema are strongly supported, partially supported or diagnostic-only.
 
-Exit criteria:
+Planned work:
 
-- a new evaluator can run Forge against a private schema without sharing the schema publicly;
-- reports clearly show drift, diagnostics, generator metadata status and next actions;
-- stale generated files can be reviewed and pruned safely;
-- pilot output can be reviewed in a normal pull request.
+- report coverage by operation type;
+- report coverage by request and response shape;
+- count generated, skipped, fallback and diagnostic-only cases;
+- make unsupported OpenAPI constructs visible before adoption;
+- improve reporting for `allOf`, `oneOf`, `anyOf` and discriminator-heavy schemas;
+- expand fixtures from sanitized pilot patterns;
+- connect coverage data to readiness and adoption reports.
 
-### Phase 2: CI Adoption
+The goal is to make support boundaries measurable. A team should not have to infer coverage by reading generated files one by one.
 
-Goal: make Forge easy to install as a repeatable check in customer repositories.
+## 4. Framework Integration Patterns
 
-Planned features:
+The core generator should remain framework-neutral, but teams need documented ways to connect generated output to real frontend stacks.
 
-- GitHub Actions example with strict and advisory modes;
-- CI artifact guidance for JSON, Markdown and HTML reports;
-- documented exit-code policy for `validate`, `lint`, `diff`, `check` and `generate --dry-run`;
-- recommended pull-request workflow for generated files;
-- example branch policy for drift and schema-health gates;
-- command recipes for private schemas, remote schemas and multi-schema workspaces.
+Planned work:
 
-Expected output:
+- document Vue usage patterns;
+- document TanStack Query integration patterns;
+- show how to wrap generated clients in application services;
+- show how resource metadata maps into UI-kit tables and forms;
+- document where Forge stops and application-owned code begins;
+- add framework-specific examples only when they do not change the core generator contract.
 
-- `apps/docs/ci.md` expanded into a complete adoption guide;
-- copy-ready workflow snippets;
-- a short checklist for adding Forge to an existing frontend repo;
-- stronger smoke coverage for external consumer installs.
+Later adapter packages may be added for common query integration or metadata-to-UI-kit mapping, but only when pilot evidence justifies first-party maintenance.
 
-Exit criteria:
+## 5. Runtime Hardening
 
-- a team can add Forge to CI without a custom onboarding call;
-- generated reports are useful as PR artifacts;
-- failed checks explain whether the problem is drift, schema quality, config, generator metadata or environment setup.
+Generated clients should stay predictable in real applications while leaving application policy outside Forge.
 
-### Phase 3: Adoption Reports
+Planned work:
 
-Goal: turn `check` output into a clear technical handoff artifact for pilots.
+- document runtime error behavior more clearly;
+- add examples for auth token injection;
+- add examples for API key, bearer token and custom header policies;
+- strengthen timeout, abort and body-handling tests;
+- document retry behavior as application-owned policy;
+- keep runtime helpers small and inspectable.
 
-Planned features:
+Forge should not store secrets, own OAuth/session flows or become an auth framework.
 
-- adoption-oriented Markdown and HTML report layout;
-- summary of detected resources and operation categories;
-- schema health and diagnostics summary;
-- generated file count by output area;
-- drift summary;
-- generator metadata summary;
-- stale prune candidate summary;
-- explicit blockers, warnings and next actions;
-- appendix with command versions and config paths.
+## 6. Release Discipline
 
-Expected output:
+Before broader adoption, releases need a predictable process and clear upgrade notes.
 
-- a report that can be attached to a pilot handoff or internal architecture review;
-- fewer manual notes after running a private schema evaluation;
-- clearer go/no-go language for private beta adoption.
+Planned work:
 
-Exit criteria:
+- add a release checklist;
+- maintain a changelog for public releases;
+- document generated-file contract changes;
+- add upgrade notes for metadata, output structure and config behavior changes;
+- verify package contents before publishing;
+- document compatibility expectations for the v1 generated layout.
 
-- the report can stand alone for a technical stakeholder who did not run the CLI;
-- known limitations and accepted risks are visible;
-- next actions are concrete enough to assign.
+A user should be able to read release notes and decide whether an upgrade is safe for their branch.
 
-### Phase 4: Schema Coverage Matrix
+## 7. Future Feature Candidates
 
-Goal: make OpenAPI support boundaries measurable and visible.
+These items are useful candidates, but they should be pulled into active work only when pilot evidence supports them:
 
-Planned features:
+- stricter schema lint rules for frontend generation quality;
+- richer grouping for non-CRUD operations;
+- stronger binary upload and download examples;
+- safer discriminator support where schemas are predictable;
+- multiple generated mock scenario variants;
+- report comparison between two schema versions;
+- generated changelog for resource contract changes;
+- config presets for common repository layouts;
+- workspace-level report for multi-schema projects.
 
-- coverage summary by operation type;
-- coverage summary by request and response shape;
-- detection of unsupported or partially supported OpenAPI constructs;
-- counts for generated, skipped, fallback and diagnostic-only cases;
-- stricter reporting for discriminator-heavy polymorphism;
-- clearer `allOf`, `oneOf` and `anyOf` handling notes;
-- fixture expansion based on real pilot patterns after sanitization.
+## Not Planned For Core
 
-Expected output:
+The following work is intentionally outside the core roadmap:
 
-- a coverage section in reports;
-- docs that explain what Forge supports without overclaiming;
-- better prioritization for generator improvements.
+- full application generation;
+- production UI screen generation;
+- design-system replacement;
+- application routing ownership;
+- application state management ownership;
+- OAuth or session-flow ownership;
+- broad language support beyond the TypeScript frontend contract;
+- hosted storage or collection of private OpenAPI schemas.
 
-Exit criteria:
+## Decision Rules
 
-- evaluators can see which parts of a schema are strong fits;
-- unsupported shapes are visible before generated output is adopted;
-- support claims are backed by tests and fixtures.
+Add work to the roadmap when it:
 
-### Phase 5: Framework Integration Patterns
+- reduces adoption risk for private schema pilots;
+- makes generated output safer to commit, review, update or remove;
+- improves reports for technical decision-making;
+- clarifies support boundaries;
+- preserves the framework-neutral resource-layer contract.
 
-Goal: make generated resource contracts easier to connect to real frontend stacks while keeping the core generator framework-neutral.
+Delay or reject work when it:
 
-Planned features:
+- requires Forge to own application-specific behavior;
+- blurs the line between resource contract generation and full app generation;
+- adds broad framework commitments without pilot evidence;
+- makes generated output harder to inspect;
+- weakens local-first handling of private schemas.
 
-- documented Vue usage patterns;
-- documented TanStack Query integration pattern;
-- examples for wrapping generated clients in application services;
-- UI-kit adapter examples for table and form metadata;
-- clearer separation between generated contract, app-owned state and app-owned UI.
+## Near-Term Order
 
-Possible later packages:
-
-- first-party adapter package for common query integration;
-- first-party adapter package for metadata-to-UI-kit mapping;
-- framework-specific examples that do not change the core generator contract.
-
-Exit criteria:
-
-- teams can integrate generated output without treating Forge as a page generator;
-- examples show real usage boundaries;
-- adapter work remains optional and does not expand core scope unnecessarily.
-
-### Phase 6: Runtime Hardening
-
-Goal: keep the generated client layer predictable in real applications.
-
-Planned features:
-
-- clearer runtime error envelope docs;
-- examples for auth token injection and refresh ownership;
-- stronger timeout, abort and body-handling tests;
-- recipes for API key, bearer token and custom header policies;
-- documented guidance for app-owned retry behavior.
-
-Out of scope for this phase:
-
-- becoming a full auth framework;
-- storing secrets;
-- owning OAuth flows;
-- replacing application HTTP policy.
-
-Exit criteria:
-
-- runtime behavior is stable and documented;
-- generated clients remain small and inspectable;
-- application-owned auth and retry policies are easy to attach.
-
-### Phase 7: Release Discipline
-
-Goal: make public releases predictable.
-
-Planned features:
-
-- release checklist;
-- changelog discipline;
-- upgrade notes for generated-file contract changes;
-- package verification before publish;
-- compatibility notes for v1 generated layout;
-- migration notes when metadata, output structure or config behavior changes.
-
-Exit criteria:
-
-- every release has tested packages, documented changes and upgrade notes;
-- generated-file contract changes are explicit;
-- consumers can decide whether an update is safe for their branch.
-
-## Near-Term Backlog
-
-Priority order for the next implementation slices:
+Current priority order:
 
 1. CI Adoption Kit v1.
 2. Adoption Report v1.
@@ -233,59 +170,4 @@ Priority order for the next implementation slices:
 4. Framework Integration Patterns v1.
 5. Runtime Hardening v1.
 6. Release Checklist and Upgrade Notes v1.
-
-## Feature Candidates
-
-These are useful candidates, but they should be pulled only when pilot evidence supports them:
-
-- stricter schema lint rules for frontend generation quality;
-- richer operation grouping for non-CRUD APIs;
-- better binary upload and download examples;
-- partial support for safer discriminator patterns;
-- generated mock scenario variants;
-- report comparison between two schema versions;
-- generated changelog for resource contract changes;
-- config presets for common repository layouts;
-- workspace-level report for multi-schema projects.
-
-## Non-Goals
-
-The following areas are intentionally not on the roadmap for the core generator:
-
-- generating full applications;
-- generating production UI screens;
-- replacing design systems;
-- owning application routing;
-- owning application state management;
-- owning OAuth or session flows;
-- becoming a general-purpose OpenAPI generator for every language;
-- hosting or collecting private OpenAPI schemas.
-
-## Decision Rules
-
-Roadmap items should be accepted when they meet at least one of these conditions:
-
-- they reduce adoption risk for private schema pilots;
-- they make generated output safer to commit, review, update or remove;
-- they improve report quality for technical decision-making;
-- they clarify support boundaries;
-- they preserve the framework-neutral resource-layer contract.
-
-Roadmap items should be rejected or delayed when they:
-
-- require Forge to own application-specific behavior;
-- blur the line between resource contract generation and full app generation;
-- add broad framework commitments without pilot evidence;
-- make generated output harder to inspect;
-- weaken local-first private schema handling.
-
-## Current Success Metric
-
-The main near-term success metric is not download volume. It is the number of private schema evaluations where Forge produces a clear technical answer:
-
-- what can be generated safely;
-- what needs schema cleanup;
-- what should stay application-owned;
-- whether CI drift and readiness checks are useful for that team;
-- what work remains before broader adoption.
 
