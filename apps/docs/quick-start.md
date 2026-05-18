@@ -42,6 +42,20 @@ pnpm exec archora-forge generate
 
 Commit the generated files. They are designed to be reviewed like normal source code.
 
+Generated TypeScript files include Forge ownership and metadata headers. `check` uses them to report whether committed output matches the current CLI version, OpenAPI schema and config.
+
+To preview stale Forge-owned files before cleanup:
+
+```bash
+pnpm exec archora-forge generate --dry-run --prune --json
+```
+
+To remove stale Forge-owned files after reviewing the preview:
+
+```bash
+pnpm exec archora-forge generate --prune
+```
+
 ## 6. Use The Client
 
 ```ts
@@ -63,9 +77,10 @@ Generated clients stay framework-neutral. Use them from React Query, Angular ser
 pnpm exec archora-forge validate --report-file forge-validate.json
 pnpm exec archora-forge lint --report-file forge-lint.json
 pnpm exec archora-forge check --report markdown --report-file forge-check.md
+pnpm exec archora-forge check --report html --report-file forge-check.html
 ```
 
-Upload the reports as CI artifacts. `check` fails when generated files drift or configured quality gates fail.
+Upload the reports as CI artifacts. `check` fails when generated files drift or configured quality gates fail. Its reports include generator metadata and pilot readiness sections for adoption reviews; it is not a guarantee that every production OpenAPI shape is supported.
 
 ## Local Repo Smoke Test
 

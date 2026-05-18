@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Local-first OpenAPI to typed frontend resource contract generator.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/archora-dev/archora-forge.git"

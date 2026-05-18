@@ -616,6 +616,9 @@ describe('Product regression coverage', () => {
     const report = await readTextFile(reportPath, 'utf8')
     expect(report).toContain('# Archora Forge Check')
     expect(report).toContain('Status: failed')
+    expect(report).toContain('## Pilot Readiness')
+    expect(report).toContain('Readiness: blocked')
+    expect(report).toContain('Generated output drift is present.')
     expect(report).toContain('components.types.ts')
     expect(lines.join('\n')).toContain(`Report written: ${reportPath}`)
     expect(exitCode).toBe(1)
@@ -650,12 +653,75 @@ describe('Product regression coverage', () => {
       process.exitCode = previousExitCode
     }
 
-    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as { ok: boolean; schema: string; schemas: Array<{ configPath: string | null }>; drift: unknown[] }
+    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
+      ok: boolean
+      schema: string
+      schemas: Array<{ configPath: string | null }>
+      drift: unknown[]
+      readiness: {
+        status: string
+        decision: string
+        blockers: string[]
+        warnings: string[]
+        nextActions: string[]
+        summary: { healthScore: number; resources: number; generatedFiles: number; protectedFiles: number; diagnostics: number; drift: number; failedChecks: number }
+      }
+    }
     expect(payload.ok).toBe(false)
     expect(payload.schema).toBe(schemaPath)
     expect(payload.schemas[0]?.configPath).toBeNull()
     expect(payload.drift.length).toBeGreaterThan(0)
+    expect(payload.readiness.status).toBe('blocked')
+    expect(payload.readiness.decision).toContain('not ready')
+    expect(payload.readiness.blockers).toContain('Generated output drift is present.')
+    expect(payload.readiness.nextActions).toContain('Run `archora-forge generate` and commit the generated output, or review intentional drift before the pilot handoff.')
+    expect(payload.readiness.summary.drift).toBe(payload.drift.length)
     expect(lines.join('\n')).toContain(`Report written: ${reportPath}`)
+    expect(exitCode).toBe(1)
+  })
+
+  test('check command reports generated file metadata alignment as JSON', async () => {
+    const cwd = await tempDir()
+    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Generator Metadata API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--json'])
+
+    const generatedPath = join(cwd, 'src/shared/api/generated/components.types.ts')
+    await writeFile(
+      generatedPath,
+      '// @archora-forge-generated\n// @archora-forge-meta {"version":"0.9.0","schemaHash":"oldschema000","configHash":"oldconfig000"}\nexport type Components = Record<string, never>\n',
+      'utf8',
+    )
+
+    const { exitCode, output } = await runCliInDirectory(cwd, ['check', './openapi.yaml', '--json'])
+    const payload = JSON.parse(output) as {
+      generator: {
+        status: string
+        version: string
+        files: {
+          total: number
+          missingMetadata: Array<{ path: string }>
+          versionMismatches: Array<{ path: string; expected: string; actual: string }>
+          schemaHashMismatches: Array<{ path: string; expected: string; actual: string }>
+          configHashMismatches: Array<{ path: string; expected: string; actual: string }>
+        }
+      }
+    }
+
+    expect(payload.generator.status).toBe('mismatch')
+    expect(payload.generator.version).toBe('1.0.0')
+    expect(payload.generator.files.total).toBeGreaterThan(0)
+    expect(payload.generator.files.missingMetadata).toEqual([])
+    expect(payload.generator.files.versionMismatches).toEqual([
+      { path: 'src/shared/api/generated/components.types.ts', expected: '1.0.0', actual: '0.9.0' },
+    ])
+    expect(payload.generator.files.schemaHashMismatches[0]).toMatchObject({
+      path: 'src/shared/api/generated/components.types.ts',
+      actual: 'oldschema000',
+    })
+    expect(payload.generator.files.configHashMismatches[0]).toMatchObject({
+      path: 'src/shared/api/generated/components.types.ts',
+      actual: 'oldconfig000',
+    })
     expect(exitCode).toBe(1)
   })
 
@@ -691,6 +757,8 @@ describe('Product regression coverage', () => {
     const report = await readTextFile(reportPath, 'utf8')
     expect(report).toContain('<!doctype html>')
     expect(report).toContain('Archora Forge Check')
+    expect(report).toContain('Pilot Readiness')
+    expect(report).toContain('Generated output drift is present.')
     expect(report).toContain('components.types.ts')
     expect(report).toContain('Failed Checks')
     expect(lines.join('\n')).toContain(`Report written: ${reportPath}`)
@@ -1222,6 +1290,56 @@ describe('Product regression coverage', () => {
     expect(payload.diagnostics).toEqual([])
     expect(payload.files.planned.create).toBeGreaterThan(0)
     expect(payload.files.result.created).toBe(payload.files.planned.create)
+    expect(exitCode).toBeUndefined()
+  })
+
+  test('generate dry-run prune reports stale marker-owned files without deleting them', async () => {
+    const cwd = await tempDir()
+    await mkdir(join(cwd, 'src/shared/api/generated/legacy'), { recursive: true })
+    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Prune Preview API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), '// @archora-forge-generated\nexport const legacy = true\n', 'utf8')
+    await writeFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'export const local = true\n', 'utf8')
+
+    const { exitCode, output } = await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--dry-run', '--prune', '--json'])
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      dryRun: boolean
+      prune: { enabled: boolean; candidates: Array<{ path: string }>; deleted: Array<{ path: string }>; skipped: Array<{ path: string; reason: string }> }
+    }
+
+    expect(payload.ok).toBe(true)
+    expect(payload.dryRun).toBe(true)
+    expect(payload.prune.enabled).toBe(true)
+    expect(payload.prune.candidates).toEqual([{ path: 'src/shared/api/generated/legacy/legacy.client.ts' }])
+    expect(payload.prune.deleted).toEqual([])
+    expect(payload.prune.skipped).toEqual([])
+    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), 'utf8')).resolves.toContain('legacy')
+    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'utf8')).resolves.toContain('local')
+    expect(exitCode).toBeUndefined()
+  })
+
+  test('generate prune deletes only stale marker-owned files', async () => {
+    const cwd = await tempDir()
+    await mkdir(join(cwd, 'src/shared/api/generated/legacy'), { recursive: true })
+    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Prune API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), '// @archora-forge-generated\nexport const legacy = true\n', 'utf8')
+    await writeFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'export const local = true\n', 'utf8')
+
+    const { exitCode, output } = await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--prune', '--json'])
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      dryRun: boolean
+      prune: { enabled: boolean; candidates: Array<{ path: string }>; deleted: Array<{ path: string }>; skipped: Array<{ path: string; reason: string }> }
+    }
+
+    expect(payload.ok).toBe(true)
+    expect(payload.dryRun).toBe(false)
+    expect(payload.prune.enabled).toBe(true)
+    expect(payload.prune.candidates).toEqual([{ path: 'src/shared/api/generated/legacy/legacy.client.ts' }])
+    expect(payload.prune.deleted).toEqual([{ path: 'src/shared/api/generated/legacy/legacy.client.ts' }])
+    expect(payload.prune.skipped).toEqual([])
+    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), 'utf8')).rejects.toThrow()
+    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'utf8')).resolves.toContain('local')
     expect(exitCode).toBeUndefined()
   })
 

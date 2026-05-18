@@ -8,6 +8,13 @@ export type GeneratedFile = {
   kind: GeneratedFileKind
   overwrite: boolean
   exists?: boolean
+  metadata?: GeneratedFileMetadata
+}
+
+export type GeneratedFileMetadata = {
+  version: string
+  schemaHash: string
+  configHash: string
 }
 
 export type GenerationPlan = {

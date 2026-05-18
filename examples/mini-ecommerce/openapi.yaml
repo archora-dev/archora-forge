@@ -1,0 +1,324 @@
+openapi: 3.0.3
+info:
+  title: Mini E-commerce demo API
+  version: 1.0.0
+  description: Compact e-commerce schema (catalog, cart, orders, customers) for Archora Forge previews.
+servers:
+  - url: https://api.shop.test
+tags:
+  - name: Products
+  - name: Cart
+  - name: Orders
+  - name: Customers
+
+paths:
+  /products:
+    get:
+      tags: [Products]
+      operationId: listProducts
+      summary: List products
+      parameters:
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100, default: 24 }
+      responses:
+        "200":
+          description: Page of products
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProductPage" }
+
+  /products/{productId}:
+    parameters:
+      - in: path
+        name: productId
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Products]
+      operationId: getProduct
+      summary: Get product
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+        "404": { description: Not found }
+
+  /cart:
+    get:
+      tags: [Cart]
+      operationId: getCart
+      summary: Get current cart
+      responses:
+        "200":
+          description: Cart
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Cart" }
+
+  /cart/items:
+    post:
+      tags: [Cart]
+      operationId: addCartItem
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AddCartItemDto" }
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Cart" }
+
+  /cart/items/{itemId}:
+    parameters:
+      - in: path
+        name: itemId
+        required: true
+        schema: { type: string }
+    patch:
+      tags: [Cart]
+      operationId: updateCartItem
+      summary: Change quantity of a cart item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateCartItemDto" }
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Cart" }
+    delete:
+      tags: [Cart]
+      operationId: removeCartItem
+      summary: Remove item from cart
+      responses:
+        "204": { description: Removed }
+
+  /orders:
+    get:
+      tags: [Orders]
+      operationId: listOrders
+      summary: List orders
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, paid, shipped, delivered, cancelled]
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Order" }
+    post:
+      tags: [Orders]
+      operationId: checkout
+      summary: Place an order from the current cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CheckoutDto" }
+      responses:
+        "201":
+          description: Order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+
+  /orders/{orderId}:
+    parameters:
+      - in: path
+        name: orderId
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Orders]
+      operationId: getOrder
+      summary: Get order
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+
+  /customers/{customerId}:
+    parameters:
+      - in: path
+        name: customerId
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Customers]
+      operationId: getCustomer
+      summary: Get customer
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Customer" }
+    patch:
+      tags: [Customers]
+      operationId: updateCustomer
+      summary: Update customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateCustomerDto" }
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Customer" }
+
+components:
+  schemas:
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount: { type: integer, description: Amount in minor units (cents) }
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          example: USD
+
+    Product:
+      type: object
+      required: [id, name, price]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        category: { type: string }
+        description: { type: string }
+        price: { $ref: "#/components/schemas/Money" }
+        inStock: { type: boolean }
+        rating: { type: number, minimum: 0, maximum: 5 }
+        images:
+          type: array
+          items: { type: string, format: uri }
+
+    ProductPage:
+      type: object
+      required: [items, total, page, pageSize]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Product" }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+
+    CartItem:
+      type: object
+      required: [id, productId, quantity, lineTotal]
+      properties:
+        id: { type: string, format: uuid }
+        productId: { type: string, format: uuid }
+        quantity: { type: integer, minimum: 1 }
+        lineTotal: { $ref: "#/components/schemas/Money" }
+
+    Cart:
+      type: object
+      required: [items, subtotal, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/CartItem" }
+        subtotal: { $ref: "#/components/schemas/Money" }
+        shipping: { $ref: "#/components/schemas/Money" }
+        tax: { $ref: "#/components/schemas/Money" }
+        total: { $ref: "#/components/schemas/Money" }
+
+    AddCartItemDto:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId: { type: string, format: uuid }
+        quantity: { type: integer, minimum: 1, default: 1 }
+
+    UpdateCartItemDto:
+      type: object
+      required: [quantity]
+      properties:
+        quantity: { type: integer, minimum: 0 }
+
+    Order:
+      type: object
+      required: [id, status, total, placedAt]
+      properties:
+        id: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [draft, paid, shipped, delivered, cancelled]
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/CartItem" }
+        total: { $ref: "#/components/schemas/Money" }
+        placedAt: { type: string, format: date-time }
+        shippingAddress: { $ref: "#/components/schemas/Address" }
+
+    CheckoutDto:
+      type: object
+      required: [shippingAddressId, paymentMethodId]
+      properties:
+        shippingAddressId: { type: string }
+        paymentMethodId: { type: string }
+        couponCode: { type: string }
+
+    Address:
+      type: object
+      required: [line1, city, country]
+      properties:
+        line1: { type: string }
+        line2: { type: string }
+        city: { type: string }
+        region: { type: string }
+        postalCode: { type: string }
+        country: { type: string, minLength: 2, maxLength: 2 }
+
+    Customer:
+      type: object
+      required: [id, email]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        firstName: { type: string }
+        lastName: { type: string }
+        addresses:
+          type: array
+          items: { $ref: "#/components/schemas/Address" }
+
+    UpdateCustomerDto:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }

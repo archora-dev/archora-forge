@@ -3,9 +3,12 @@ import {
   createGenerationPlan,
   collectDiagnostics,
   detectResources,
+  findPrunableGeneratedFiles,
   normalizeOpenApi,
   parseOpenApi,
+  pruneGeneratedFiles,
   type GeneratedFile,
+  type PruneGeneratedFilesResult,
   type WriteGeneratedFilesResult,
   summarizeFilePlan,
   writeGeneratedFiles,
@@ -22,6 +25,7 @@ type GenerateOptions = {
   config?: string
   json?: boolean
   reportFile?: string
+  prune?: boolean
 } & SchemaRequestCliOptions
 
 export function registerGenerateCommand(cli: CAC): void {
@@ -29,6 +33,7 @@ export function registerGenerateCommand(cli: CAC): void {
     .command('generate [schema]', 'Generate frontend modules from an OpenAPI schema')
     .option('--force', 'Overwrite protected custom files')
     .option('--dry-run', 'Print planned changes without writing files')
+    .option('--prune', 'Delete stale Forge-owned generated files after generation')
     .option('--config <path>', 'Use a specific Archora Forge config file')
     .option('--schema-header <header>', 'Add a remote schema request header as "name:value" or "name=value"')
     .option('--json', 'Print machine-readable JSON')
@@ -46,11 +51,20 @@ export function registerGenerateCommand(cli: CAC): void {
           cwd: entry.cwd,
           dryRun: options.dryRun ?? false,
         })
+        const prune = options.prune
+          ? await pruneGeneratedFiles(entry.pruneCandidates, { cwd: entry.cwd, dryRun: options.dryRun ?? false })
+          : { deleted: [], skipped: [] }
         entries.push({
           ...entry.payload,
           files: {
             planned: entry.payload.files.planned,
             result,
+          },
+          prune: {
+            enabled: options.prune ?? false,
+            candidates: entry.pruneCandidates,
+            deleted: prune.deleted,
+            skipped: prune.skipped,
           },
         })
       }
@@ -59,6 +73,7 @@ export function registerGenerateCommand(cli: CAC): void {
       const diagnostics = entries.flatMap((entry) => entry.diagnostics)
       const summary = sumFileSummaries(entries.map((entry) => entry.files.planned))
       const result = sumWriteResults(entries.map((entry) => entry.files.result))
+      const prune = sumPruneResults(entries.map((entry) => entry.prune))
 
       const payload = {
         ok: true,
@@ -72,6 +87,7 @@ export function registerGenerateCommand(cli: CAC): void {
           planned: summary,
           result,
         },
+        prune,
       }
 
       if (options.reportFile) {
@@ -96,12 +112,14 @@ export function registerGenerateCommand(cli: CAC): void {
       logger.line(`Files to create: ${summary.create}`)
       logger.line(`Files to update: ${summary.update}`)
       logger.line(`Protected files: ${summary.protected}`)
+      logger.line(`Prune candidates: ${prune.candidates.length}`)
       logger.line('')
       logger.success(options.dryRun ? 'Dry run complete' : 'Generation complete')
       logger.line(`Created: ${result.created}`)
       logger.line(`Updated: ${result.updated}`)
       logger.line(`Unchanged: ${result.unchanged}`)
       logger.line(`Protected: ${result.protected}`)
+      logger.line(`Pruned: ${prune.deleted.length}`)
     })
 }
 
@@ -117,11 +135,16 @@ async function createGeneratePlanEntry(loaded: CliConfigResult, options: Generat
     cwd: loaded.cwd,
   })
   const planned = summarizeFilePlan(plan.files)
+  const pruneCandidates = await findPrunableGeneratedFiles(plan.files, {
+    cwd: loaded.cwd,
+    roots: [loaded.config.output.generatedDir, loaded.config.output.featuresDir, loaded.config.output.mocksDir],
+  })
 
   return {
     name: loaded.name ?? 'default',
     cwd: loaded.cwd,
     filesToWrite: plan.files,
+    pruneCandidates,
     payload: {
       name: loaded.name ?? 'default',
       schema: loaded.schema,
@@ -133,6 +156,20 @@ async function createGeneratePlanEntry(loaded: CliConfigResult, options: Generat
         planned,
       },
     },
+  }
+}
+
+function sumPruneResults(results: Array<PruneGeneratedFilesResult & { enabled: boolean; candidates: Array<{ path: string }> }>): {
+  enabled: boolean
+  candidates: Array<{ path: string }>
+  deleted: Array<{ path: string }>
+  skipped: Array<{ path: string; reason: string }>
+} {
+  return {
+    enabled: results.some((result) => result.enabled),
+    candidates: results.flatMap((result) => result.candidates),
+    deleted: results.flatMap((result) => result.deleted),
+    skipped: results.flatMap((result) => result.skipped),
   }
 }
 

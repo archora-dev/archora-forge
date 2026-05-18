@@ -2,7 +2,7 @@
   "name": "@archora/forge-cli",
   "version": "1.0.0",
   "description": "CLI for generating typed frontend resource contracts from OpenAPI contracts.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/archora-dev/archora-forge.git"

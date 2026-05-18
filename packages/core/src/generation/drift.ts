@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import type { GeneratedFile } from './generation.types.js'
+import { toWritableGeneratedContent } from '../filesystem/writeGeneratedFiles.js'
 
 export type DriftEntry = {
   path: string
@@ -15,7 +16,7 @@ export async function calculateDrift(files: GeneratedFile[], options: { cwd: str
     const absolutePath = join(options.cwd, file.path)
     try {
       const current = await readFile(absolutePath, 'utf8')
-      if (normalize(current) !== normalize(file.content)) {
+      if (normalize(current) !== normalize(toWritableGeneratedContent(file))) {
         drift.push({ path: file.path, kind: 'outdated' })
       }
     } catch {

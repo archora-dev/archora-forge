@@ -45,6 +45,32 @@ importers:
         specifier: ^1.6.3
         version: 1.6.4(@algolia/client-search@5.52.1)(@types/node@22.19.18)(lightningcss@1.32.0)(postcss@8.5.14)(search-insights@2.17.3)(typescript@5.9.3)
 
+  examples/mini-ecommerce:
+    dependencies:
+      '@archora/forge-config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@archora/forge-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  examples/petstore:
+    dependencies:
+      '@archora/forge-config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@archora/forge-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   examples/public-crm:
     dependencies:
       '@archora/forge-config':

@@ -17,6 +17,7 @@ export default defineConfig({
           { text: 'Introduction', link: '/introduction' },
           { text: 'Installation', link: '/installation' },
           { text: 'Quick Start', link: '/quick-start' },
+          { text: 'Roadmap', link: '/roadmap' },
           { text: 'CLI', link: '/cli' },
           { text: 'Configuration', link: '/configuration' },
           { text: 'API Stability', link: '/api-stability' },

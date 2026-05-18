@@ -36,6 +36,13 @@ type HtmlReportPayload = {
   generatedFiles?: number
   protectedFiles?: number
   failedChecks?: string[]
+  readiness?: {
+    status?: string
+    decision?: string
+    blockers?: string[]
+    warnings?: string[]
+    nextActions?: string[]
+  }
   drift?: DriftLike[]
   diagnostics?: DiagnosticLike[]
   schemas?: SchemaLike[]
@@ -128,6 +135,7 @@ export function createHtmlReport(title: string, payload: HtmlReportPayload): str
   </section>
 
   ${renderExecutiveSummary({ status, healthScore, resources, generatedFiles, diagnostics, drift, failedChecks, topAffectedResources })}
+  ${renderReadiness(payload.readiness)}
   ${renderCiSummary(ciSummary)}
   ${renderGeneratedFileCategories(driftByCategory, payload.files, generatedFiles)}
   ${renderDiagnosticGroups(diagnosticsBySeverity, diagnosticsByCode)}
@@ -144,6 +152,34 @@ export function createHtmlReport(title: string, payload: HtmlReportPayload): str
 </body>
 </html>
 `
+}
+
+function renderReadiness(readiness: HtmlReportPayload['readiness']): string {
+  if (!readiness) return ''
+  return `<section class="summary">
+    <div class="card">
+      <h2>Pilot Readiness</h2>
+      <p>Status: <strong>${escapeHtml(readiness.status ?? 'n/a')}</strong></p>
+      <p>${escapeHtml(readiness.decision ?? '')}</p>
+    </div>
+    <div class="card">
+      <h2>Next Actions</h2>
+      ${renderSimpleList(readiness.nextActions ?? [], 'No action required.')}
+    </div>
+    <div class="card">
+      <h2>Blockers</h2>
+      ${renderSimpleList(readiness.blockers ?? [], 'No blockers.')}
+    </div>
+    <div class="card">
+      <h2>Warnings</h2>
+      ${renderSimpleList(readiness.warnings ?? [], 'No warnings.')}
+    </div>
+  </section>`
+}
+
+function renderSimpleList(items: string[], empty: string): string {
+  const values = items.length > 0 ? items : [empty]
+  return `<ul>${values.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
 }
 
 function renderExecutiveSummary(input: {

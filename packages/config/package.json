@@ -2,7 +2,7 @@
   "name": "@archora/forge-config",
   "version": "1.0.0",
   "description": "Configuration loading and defaults for Archora Forge.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/archora-dev/archora-forge.git"

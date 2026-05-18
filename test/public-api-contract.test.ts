@@ -39,7 +39,10 @@ describe('v1 public API contract', () => {
       'createTypeScriptTypes',
       'detectResources',
       'diffOpenApiContracts',
+      'findPrunableGeneratedFiles',
       'forgeCoreVersion',
+      'forgeGeneratedMarker',
+      'forgeGeneratedMetadataMarker',
       'formatGeneratedContent',
       'getCollectionParams',
       'getHeaderParams',
@@ -54,7 +57,9 @@ describe('v1 public API contract', () => {
       'normalizePlugins',
       'parseOpenApi',
       'pluralizeTypeName',
+      'pruneGeneratedFiles',
       'quoteObjectKeyIfNeeded',
+      'readGeneratedFileMetadata',
       'resolveSchema',
       'resolveSchemaName',
       'runPluginAfterGenerateHooks',
@@ -62,9 +67,11 @@ describe('v1 public API contract', () => {
       'runPluginDiagnostics',
       'schemaToTypeScript',
       'summarizeFilePlan',
+      'summarizeGeneratorMetadata',
       'toSafeFileName',
       'toSafeIdentifier',
       'toSafeTypeName',
+      'toWritableGeneratedContent',
       'writeGeneratedFiles',
     ])
     expect(Object.keys(runtime).sort()).toEqual(['ForgeHttpError', 'createApiClient', 'createApiClientOptions', 'isForgeHttpError', 'queryParam'])
@@ -131,6 +138,7 @@ describe('v1 public API contract', () => {
       'resources',
       'diagnostics',
       'files',
+      'prune',
     ])
     await expectCliJsonKeys(cwd, ['diff', basicCrudSchema, '--json'], ['ok', 'schema', 'configPath', 'schemas', 'resources', 'files'])
     await expectCliJsonKeys(cwd, ['check', basicCrudSchema, '--json'], [
@@ -142,6 +150,8 @@ describe('v1 public API contract', () => {
       'generatedFiles',
       'protectedFiles',
       'failedChecks',
+      'generator',
+      'readiness',
       'drift',
       'diagnostics',
     ])

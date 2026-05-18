@@ -90,7 +90,7 @@ try {
         2,
       ),
     )
-    const install = spawnSync('pnpm', ['install'], {
+    const install = spawnSync('pnpm', ['install', '--store-dir', join(consumerDir, '.pnpm-store')], {
       cwd: consumerDir,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
