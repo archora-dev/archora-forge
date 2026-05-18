@@ -16,9 +16,12 @@ Forge writes a marker at the top of generated TypeScript files:
 
 ```ts
 // @archora-forge-generated
+// @archora-forge-meta {"version":"1.0.0","schemaHash":"...","configHash":"..."}
 ```
 
-The marker is used only for regeneration safety. Files without this marker are never deleted by Forge pruning.
+The ownership marker is used only for regeneration safety. Files without this marker are never deleted by Forge pruning.
+
+The metadata marker is used by `archora-forge check` to report whether generated files match the current Forge version, schema and config. Files without metadata are reported as needing regeneration, but they are not deleted automatically.
 
 ## Stale Files
 

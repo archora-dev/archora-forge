@@ -1,4 +1,5 @@
 import { access } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
 import { join } from 'node:path'
 
 import type { ForgeResourceConfig } from '@archora/forge-config'
@@ -31,6 +32,7 @@ import { pluralizeTypeName } from './identifiers.js'
 import { createResourceUiModel, type ResourceUiModel } from './resourceUiModel.js'
 import { loadTemplateOverride, type TemplateRegistry } from './templates.js'
 import { createSharedSchemaTypes, createTypeScriptTypes } from './typeGeneration.js'
+import { forgeCoreVersion } from '../version.js'
 
 type ForgeGenerationConfig = {
   output: {
@@ -62,6 +64,7 @@ export type CreateGenerationPlanInput = {
 }
 
 export async function createGenerationPlan(input: CreateGenerationPlanInput): Promise<GenerationPlan> {
+  const metadata = createGeneratedFileMetadata(input)
   const files: GeneratedFile[] = [
     await createFile(input.cwd, join(input.config.output.generatedDir, 'components.types.ts'), 'generated', createSharedSchemaTypes(input.normalized), true),
   ]
@@ -80,6 +83,9 @@ export async function createGenerationPlan(input: CreateGenerationPlanInput): Pr
   }
 
   await runPluginAfterGenerateHooks({ plugins: input.config.plugins, files })
+  for (const file of files) {
+    if (file.kind === 'generated') file.metadata = metadata
+  }
 
   return {
     resources: resolvedResources.map((resource) => ({
@@ -94,6 +100,36 @@ export async function createGenerationPlan(input: CreateGenerationPlanInput): Pr
     })),
     files,
   }
+}
+
+function createGeneratedFileMetadata(input: CreateGenerationPlanInput): NonNullable<GeneratedFile['metadata']> {
+  return {
+    version: forgeCoreVersion,
+    schemaHash: stableHash(input.normalized),
+    configHash: stableHash({
+      output: input.config.output,
+      target: input.config.target,
+      validation: input.config.validation,
+      resources: input.config.resources,
+      templates: input.config.templates,
+    }),
+  }
+}
+
+function stableHash(value: unknown): string {
+  return createHash('sha256').update(stableStringify(value)).digest('hex').slice(0, 12)
+}
+
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value)
+      .filter(([, entryValue]) => entryValue !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entryValue]) => `${JSON.stringify(key)}:${stableStringify(entryValue)}`)
+      .join(',')}}`
+  }
+  return JSON.stringify(value)
 }
 
 function applyResourceConfig(resource: DetectedResource, config: ForgeResourceConfig | undefined): DetectedResource {

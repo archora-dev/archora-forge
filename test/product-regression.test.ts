@@ -680,6 +680,51 @@ describe('Product regression coverage', () => {
     expect(exitCode).toBe(1)
   })
 
+  test('check command reports generated file metadata alignment as JSON', async () => {
+    const cwd = await tempDir()
+    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Generator Metadata API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--json'])
+
+    const generatedPath = join(cwd, 'src/shared/api/generated/components.types.ts')
+    await writeFile(
+      generatedPath,
+      '// @archora-forge-generated\n// @archora-forge-meta {"version":"0.9.0","schemaHash":"oldschema000","configHash":"oldconfig000"}\nexport type Components = Record<string, never>\n',
+      'utf8',
+    )
+
+    const { exitCode, output } = await runCliInDirectory(cwd, ['check', './openapi.yaml', '--json'])
+    const payload = JSON.parse(output) as {
+      generator: {
+        status: string
+        version: string
+        files: {
+          total: number
+          missingMetadata: Array<{ path: string }>
+          versionMismatches: Array<{ path: string; expected: string; actual: string }>
+          schemaHashMismatches: Array<{ path: string; expected: string; actual: string }>
+          configHashMismatches: Array<{ path: string; expected: string; actual: string }>
+        }
+      }
+    }
+
+    expect(payload.generator.status).toBe('mismatch')
+    expect(payload.generator.version).toBe('1.0.0')
+    expect(payload.generator.files.total).toBeGreaterThan(0)
+    expect(payload.generator.files.missingMetadata).toEqual([])
+    expect(payload.generator.files.versionMismatches).toEqual([
+      { path: 'src/shared/api/generated/components.types.ts', expected: '1.0.0', actual: '0.9.0' },
+    ])
+    expect(payload.generator.files.schemaHashMismatches[0]).toMatchObject({
+      path: 'src/shared/api/generated/components.types.ts',
+      actual: 'oldschema000',
+    })
+    expect(payload.generator.files.configHashMismatches[0]).toMatchObject({
+      path: 'src/shared/api/generated/components.types.ts',
+      actual: 'oldconfig000',
+    })
+    expect(exitCode).toBe(1)
+  })
+
   test('check command can write an HTML report file for release artifacts', async () => {
     const cwd = await tempDir()
     const schemaPath = join(cwd, 'openapi.yaml')

@@ -7,6 +7,7 @@ import {
   detectResources,
   normalizeOpenApi,
   parseOpenApi,
+  summarizeGeneratorMetadata,
   summarizeFilePlan,
 } from '@archora/forge-core'
 
@@ -42,6 +43,7 @@ export function registerCheckCommand(cli: CAC): void {
         const drift = checks.flatMap((check) => check.drift)
         const diagnostics = checks.flatMap((check) => check.diagnostics)
         const failedChecks = [...new Set(checks.flatMap((check) => check.failedChecks))]
+        const generator = summarizeCheckGeneratorMetadata(checks.map((check) => check.generator))
         const ok = failedChecks.length === 0
         const healthScore = Math.min(...checks.map((check) => check.healthScore))
         const summary = {
@@ -67,12 +69,14 @@ export function registerCheckCommand(cli: CAC): void {
             driftCount: check.drift.length,
             diagnosticsCount: check.diagnostics.length,
             failedChecks: check.failedChecks,
+            generator: check.generator,
           })),
           healthScore,
           resources: summary.resources,
           generatedFiles: summary.generatedFiles,
           protectedFiles: summary.protectedFiles,
           failedChecks,
+          generator,
           readiness: createReadinessSummary({ summary, failedChecks, drift, diagnostics }),
           drift,
           diagnostics,
@@ -153,6 +157,7 @@ async function runCheck(
   const plan = await createGenerationPlan({ config: loaded.config, normalized, resources, cwd: loaded.cwd })
   const summary = summarizeFilePlan(plan.files)
   const drift = await calculateDrift(plan.files, { cwd: loaded.cwd })
+  const generator = await summarizeGeneratorMetadata(plan.files, { cwd: loaded.cwd })
   const diagnostics = collectDiagnostics(normalized)
   const healthScore = calculateSchemaHealth(normalized).score
   const failedChecks = evaluateFailedChecks({
@@ -170,6 +175,7 @@ async function runCheck(
     resources: resources.length,
     generatedFiles: plan.files.filter((file) => file.kind === 'generated').length,
     protectedFiles: summary.protected,
+    generator,
     drift,
     diagnostics,
     failedChecks,
@@ -189,6 +195,7 @@ function createMarkdownReport(payload: {
     warnings: string[]
     nextActions: string[]
   }
+  generator?: GeneratorCheckSummary
 }): string {
   const drift = payload.drift.length === 0 ? '- No drift detected.' : payload.drift.map((entry) => `- \`${entry.path}\` is ${entry.kind}`).join('\n')
   const diagnostics =
@@ -213,6 +220,7 @@ ${formatMarkdownList(payload.readiness.nextActions, 'No action required.')}
 
 `
     : ''
+  const generator = payload.generator ? formatGeneratorMarkdown(payload.generator) : ''
 
   return `# Archora Forge Check
 
@@ -223,6 +231,7 @@ Failed checks: ${payload.failedChecks.length > 0 ? payload.failedChecks.join(', 
 Health score: ${payload.healthScore ?? 'n/a'}
 
 ${readiness}
+${generator}
 ## Drift
 
 ${drift}
@@ -234,6 +243,54 @@ ${diagnostics}
 ## Suggested action
 
 ${payload.ok ? 'No action required.' : 'Run `archora-forge generate <schema>` and commit generated changes, or fix reported OpenAPI diagnostics.'}
+`
+}
+
+type GeneratorCheckSummary = {
+  status: string
+  version: string
+  files: {
+    total: number
+    missingMetadata: Array<{ path: string }>
+    versionMismatches: Array<{ path: string; expected: string; actual: string | null }>
+    schemaHashMismatches: Array<{ path: string; expected: string; actual: string | null }>
+    configHashMismatches: Array<{ path: string; expected: string; actual: string | null }>
+  }
+}
+
+function summarizeCheckGeneratorMetadata(summaries: GeneratorCheckSummary[]): GeneratorCheckSummary {
+  const files = {
+    total: summaries.reduce((total, summary) => total + summary.files.total, 0),
+    missingMetadata: summaries.flatMap((summary) => summary.files.missingMetadata),
+    versionMismatches: summaries.flatMap((summary) => summary.files.versionMismatches),
+    schemaHashMismatches: summaries.flatMap((summary) => summary.files.schemaHashMismatches),
+    configHashMismatches: summaries.flatMap((summary) => summary.files.configHashMismatches),
+  }
+  const mismatchCount = files.versionMismatches.length + files.schemaHashMismatches.length + files.configHashMismatches.length
+  return {
+    status: mismatchCount > 0 ? 'mismatch' : files.missingMetadata.length > 0 ? 'missing-metadata' : 'current',
+    version: summaries[0]?.version ?? 'unknown',
+    files,
+  }
+}
+
+function formatGeneratorMarkdown(summary: GeneratorCheckSummary): string {
+  return `## Generator
+
+Status: ${summary.status}
+
+Version: ${summary.version}
+
+Generated files: ${summary.files.total}
+
+Missing metadata: ${summary.files.missingMetadata.length}
+
+Version mismatches: ${summary.files.versionMismatches.length}
+
+Schema hash mismatches: ${summary.files.schemaHashMismatches.length}
+
+Config hash mismatches: ${summary.files.configHashMismatches.length}
+
 `
 }
 

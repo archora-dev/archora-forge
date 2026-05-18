@@ -1,4 +1,5 @@
 // @archora-forge-generated
+// @archora-forge-meta {"version":"1.0.0","schemaHash":"66e8f461600e","configHash":"f1d971045876"}
 import type { CheckoutDto, Order } from '../components.types'
 
 export type { CheckoutDto, Order } from '../components.types'

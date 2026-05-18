@@ -19,5 +19,4 @@ export * from './plugins/plugins.js'
 export * from './quality/lintOpenApi.js'
 export * from './resources/detectResources.js'
 export * from './resources/resources.types.js'
-
-export const forgeCoreVersion = '1.0.0'
+export * from './version.js'

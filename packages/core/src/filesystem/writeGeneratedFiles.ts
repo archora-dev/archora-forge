@@ -2,8 +2,10 @@ import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 
 import type { GeneratedFile } from '../generation/generation.types.js'
+import { forgeCoreVersion } from '../version.js'
 
 export const forgeGeneratedMarker = '// @archora-forge-generated'
+export const forgeGeneratedMetadataMarker = '// @archora-forge-meta'
 
 export type WriteGeneratedFilesOptions = {
   cwd: string
@@ -24,6 +26,24 @@ export type PrunableGeneratedFile = {
 export type PruneGeneratedFilesResult = {
   deleted: PrunableGeneratedFile[]
   skipped: Array<PrunableGeneratedFile & { reason: string }>
+}
+
+export type GeneratorMetadataMismatch = {
+  path: string
+  expected: string
+  actual: string | null
+}
+
+export type GeneratorMetadataSummary = {
+  status: 'current' | 'missing-metadata' | 'mismatch'
+  version: string
+  files: {
+    total: number
+    missingMetadata: PrunableGeneratedFile[]
+    versionMismatches: GeneratorMetadataMismatch[]
+    schemaHashMismatches: GeneratorMetadataMismatch[]
+    configHashMismatches: GeneratorMetadataMismatch[]
+  }
 }
 
 export async function writeGeneratedFiles(
@@ -68,11 +88,85 @@ export async function writeGeneratedFiles(
 }
 
 export function toWritableGeneratedContent(file: GeneratedFile): string {
-  if (file.kind !== 'generated' || !file.path.endsWith('.ts') || file.content.startsWith(`${forgeGeneratedMarker}\n`)) {
+  if (file.kind !== 'generated' || !file.path.endsWith('.ts')) {
     return file.content
   }
 
-  return `${forgeGeneratedMarker}\n${file.content}`
+  const contentWithoutHeaders = stripGeneratedHeaders(file.content)
+  return `${forgeGeneratedMarker}\n${formatGeneratedMetadata(file)}${contentWithoutHeaders}`
+}
+
+export function readGeneratedFileMetadata(content: string): GeneratedFile['metadata'] | null {
+  const line = content
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .find((entry) => entry.startsWith(`${forgeGeneratedMetadataMarker} `))
+  if (!line) return null
+
+  try {
+    const parsed = JSON.parse(line.slice(forgeGeneratedMetadataMarker.length + 1)) as Partial<NonNullable<GeneratedFile['metadata']>>
+    if (typeof parsed.version !== 'string' || typeof parsed.schemaHash !== 'string' || typeof parsed.configHash !== 'string') return null
+    return {
+      version: parsed.version,
+      schemaHash: parsed.schemaHash,
+      configHash: parsed.configHash,
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function summarizeGeneratorMetadata(files: GeneratedFile[], options: { cwd: string }): Promise<GeneratorMetadataSummary> {
+  const summary: GeneratorMetadataSummary = {
+    status: 'current',
+    version: forgeCoreVersion,
+    files: {
+      total: files.filter((file) => file.kind === 'generated').length,
+      missingMetadata: [],
+      versionMismatches: [],
+      schemaHashMismatches: [],
+      configHashMismatches: [],
+    },
+  }
+
+  for (const file of files) {
+    if (file.kind !== 'generated') continue
+    const expected = file.metadata
+    const content = await readExistingFile(join(options.cwd, file.path))
+    const actual = content ? readGeneratedFileMetadata(content) : null
+    if (!expected || !actual) {
+      summary.files.missingMetadata.push({ path: file.path })
+      continue
+    }
+    if (actual.version !== expected.version) {
+      summary.files.versionMismatches.push({ path: file.path, expected: expected.version, actual: actual.version })
+    }
+    if (actual.schemaHash !== expected.schemaHash) {
+      summary.files.schemaHashMismatches.push({ path: file.path, expected: expected.schemaHash, actual: actual.schemaHash })
+    }
+    if (actual.configHash !== expected.configHash) {
+      summary.files.configHashMismatches.push({ path: file.path, expected: expected.configHash, actual: actual.configHash })
+    }
+  }
+
+  const mismatchCount =
+    summary.files.versionMismatches.length + summary.files.schemaHashMismatches.length + summary.files.configHashMismatches.length
+  summary.status = mismatchCount > 0 ? 'mismatch' : summary.files.missingMetadata.length > 0 ? 'missing-metadata' : 'current'
+
+  return summary
+}
+
+function formatGeneratedMetadata(file: GeneratedFile): string {
+  if (!file.metadata) return ''
+  return `${forgeGeneratedMetadataMarker} ${JSON.stringify(file.metadata)}\n`
+}
+
+function stripGeneratedHeaders(content: string): string {
+  const lines = content.replace(/\r\n/g, '\n').split('\n')
+  while (lines[0] === forgeGeneratedMarker || lines[0]?.startsWith(`${forgeGeneratedMetadataMarker} `)) {
+    lines.shift()
+  }
+  return lines.join('\n')
 }
 
 export async function findPrunableGeneratedFiles(
