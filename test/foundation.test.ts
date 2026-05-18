@@ -65,6 +65,29 @@ describe('cli foundation', () => {
 })
 
 describe('repository automation', () => {
+  test('package manifests point to the repository license terms', async () => {
+    const packageJsonPaths = [
+      'package.json',
+      'apps/docs/package.json',
+      'packages/adapters/package.json',
+      'packages/cli/package.json',
+      'packages/config/package.json',
+      'packages/core/package.json',
+      'packages/runtime/package.json',
+      'packages/templates/package.json',
+      'examples/mini-ecommerce/package.json',
+      'examples/petstore/package.json',
+      'examples/public-crm/package.json',
+      'examples/ui-kit-integration/package.json',
+    ]
+
+    for (const packageJsonPath of packageJsonPaths) {
+      const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8')) as { license?: string }
+
+      expect(packageJson.license, packageJsonPath).toBe('SEE LICENSE IN LICENSE')
+    }
+  })
+
   test('ships a primary CI workflow for release checks', async () => {
     const workflow = await readFile('.github/workflows/ci.yml', 'utf8')
 

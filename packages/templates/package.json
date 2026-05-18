@@ -2,7 +2,7 @@
   "name": "@archora/forge-templates",
   "version": "1.0.0",
   "description": "Template support for Archora Forge generated frontend modules.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/archora-dev/archora-forge.git"

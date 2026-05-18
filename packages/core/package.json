@@ -2,7 +2,7 @@
   "name": "@archora/forge-core",
   "version": "1.0.0",
   "description": "Core OpenAPI analysis and generation engine for Archora Forge.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/archora-dev/archora-forge.git"
