@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { companiesClient } from '../../../shared/api/generated/companies/companies.client'
 import { companiesQueryKeys } from '../../../shared/api/generated/companies/companies.query-keys'
 import type {

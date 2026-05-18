@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const filesDownloadScenarios = [
   'success-list',
   'empty-list',

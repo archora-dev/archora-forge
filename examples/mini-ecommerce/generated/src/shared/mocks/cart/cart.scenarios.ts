@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const cartScenarios = [
   'success-list',
   'empty-list',

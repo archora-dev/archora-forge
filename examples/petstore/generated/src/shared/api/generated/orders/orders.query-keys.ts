@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { OrderId, OrdersListParams } from './orders.types'
 
 export const ordersQueryKeys = {

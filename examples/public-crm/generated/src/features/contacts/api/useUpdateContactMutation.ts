@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { contactsClient } from '../../../shared/api/generated/contacts/contacts.client'
 import { contactsQueryKeys } from '../../../shared/api/generated/contacts/contacts.query-keys'
 import type {

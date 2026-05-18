@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type {
   Company,
   CompanyCreatePayload,

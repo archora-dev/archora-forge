@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { FilesDownloadId, FilesDownloadsListParams } from './filesDownload.types'
 
 export const filesDownloadQueryKeys = {

@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export type PetCategory = 'dog' | 'cat' | 'bird' | 'reptile' | 'other'
 
 export type PetStatus = 'available' | 'pending' | 'sold'

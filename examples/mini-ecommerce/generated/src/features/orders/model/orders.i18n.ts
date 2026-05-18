@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const ordersI18n = {
   title: 'Orders',
   create: 'Create order',

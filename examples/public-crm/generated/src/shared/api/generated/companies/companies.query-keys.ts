@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { CompanyId, CompaniesListParams } from './companies.types'
 
 export const companiesQueryKeys = {

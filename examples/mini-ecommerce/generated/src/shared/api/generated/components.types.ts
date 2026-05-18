@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export type OrderStatus = 'draft' | 'paid' | 'shipped' | 'delivered' | 'cancelled'
 
 export interface Money {

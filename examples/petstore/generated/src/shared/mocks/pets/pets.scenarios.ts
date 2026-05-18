@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const petsScenarios = [
   'success-list',
   'empty-list',

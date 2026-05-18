@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const productsI18n = {
   title: 'Products',
   create: 'Create product',

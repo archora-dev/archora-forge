@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const searchScenarios = [
   'success-list',
   'empty-list',

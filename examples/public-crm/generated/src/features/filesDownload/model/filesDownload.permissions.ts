@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const filesDownloadPermissions = {
   view: 'filesDownload.read',
   create: 'filesDownload.create',

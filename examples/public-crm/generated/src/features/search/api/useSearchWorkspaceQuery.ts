@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { searchClient } from '../../../shared/api/generated/search/search.client'
 import type {
   SearchWorkspaceOperationParams,

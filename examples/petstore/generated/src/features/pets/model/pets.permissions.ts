@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const petsPermissions = {
   view: 'pets.read',
   create: 'pets.create',

@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const filesDownloadI18n = {
   title: 'FilesDownloads',
   create: 'Create filesdownload',

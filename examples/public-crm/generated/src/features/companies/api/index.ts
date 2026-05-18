@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export * from './useCompaniesQuery'
 export * from './useCompanyQuery'
 export * from './useCreateCompanyMutation'

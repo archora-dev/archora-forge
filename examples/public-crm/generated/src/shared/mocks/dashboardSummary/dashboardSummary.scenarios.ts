@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const dashboardSummaryScenarios = [
   'success-list',
   'empty-list',

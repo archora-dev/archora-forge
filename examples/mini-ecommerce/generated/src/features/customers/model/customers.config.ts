@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const customersConfig = {
   resource: 'customers',
   pagination: {

@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const customersScenarios = [
   'success-list',
   'empty-list',

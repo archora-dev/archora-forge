@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const companiesI18n = {
   title: 'Companies',
   create: 'Create company',

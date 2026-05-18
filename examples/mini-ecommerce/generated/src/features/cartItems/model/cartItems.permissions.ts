@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const cartItemsPermissions = {
   view: 'cartItems.read',
   create: 'cartItems.create',

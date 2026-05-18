@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { SearchResult } from '../components.types'
 
 export type { SearchResult } from '../components.types'

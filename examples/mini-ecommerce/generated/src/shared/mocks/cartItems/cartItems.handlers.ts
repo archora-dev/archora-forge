@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const cartItemsHandlers = {
   list: () => ({ status: 200, body: [] }),
   detail: () => ({ status: 200, body: {} }),

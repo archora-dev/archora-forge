@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { cartClient } from '../../../shared/api/generated/cart/cart.client'
 import { cartQueryKeys } from '../../../shared/api/generated/cart/cart.query-keys'
 import type {

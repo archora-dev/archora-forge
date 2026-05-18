@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const contactsArchiveScenarios = [
   'success-list',
   'empty-list',

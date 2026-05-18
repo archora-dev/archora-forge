@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const contactsArchiveI18n = {
   title: 'ContactsArchives',
   create: 'Create contactsarchive',

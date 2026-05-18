@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const customersPermissions = {
   view: 'customers.read',
   create: 'customers.create',

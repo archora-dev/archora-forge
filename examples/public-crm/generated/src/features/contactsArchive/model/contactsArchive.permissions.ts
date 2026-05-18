@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const contactsArchivePermissions = {
   view: 'contactsArchive.read',
   create: 'contactsArchive.create',

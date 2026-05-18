@@ -55,6 +55,16 @@ Generated files are safe to overwrite. Custom files are protected unless `overwr
 
 Use `archora-forge diff` or `archora-forge check --json` in CI before applying generated changes in a repository with local edits.
 
+## Ownership Marker
+
+Generated TypeScript files include:
+
+```ts
+// @archora-forge-generated
+```
+
+Forge uses this marker to identify stale files that may be pruned. `archora-forge generate --prune` deletes only marker-owned stale files under configured output roots. Unmarked files are never deleted by prune.
+
 ## Compatibility Policy
 
 Within v1, Forge may add new generated files for new opt-in capabilities. Existing default file names, barrel locations and stable runtime imports should remain compatible.

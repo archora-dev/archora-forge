@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const cartItemsI18n = {
   title: 'CartItems',
   create: 'Create cartitem',

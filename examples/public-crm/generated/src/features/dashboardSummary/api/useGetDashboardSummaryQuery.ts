@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { dashboardSummaryClient } from '../../../shared/api/generated/dashboardSummary/dashboardSummary.client'
 import type { GetDashboardSummaryOperationResponse } from '../../../shared/api/generated/dashboardSummary/dashboardSummary.types'
 

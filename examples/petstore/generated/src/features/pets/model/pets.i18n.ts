@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const petsI18n = {
   title: 'Pets',
   create: 'Create pet',

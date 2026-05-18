@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const searchI18n = {
   title: 'Searches',
   create: 'Create search',

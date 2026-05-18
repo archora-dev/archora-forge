@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const contactsScenarios = [
   'success-list',
   'empty-list',

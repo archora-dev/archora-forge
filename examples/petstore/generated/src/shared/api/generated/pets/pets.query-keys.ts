@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { PetId, PetsListParams } from './pets.types'
 
 export const petsQueryKeys = {

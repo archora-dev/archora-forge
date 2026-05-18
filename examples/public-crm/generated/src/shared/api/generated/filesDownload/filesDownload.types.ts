@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export interface FilesDownload {
   [key: string]: unknown
 }

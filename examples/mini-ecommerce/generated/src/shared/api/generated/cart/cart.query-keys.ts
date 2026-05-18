@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { CartId, CartsListParams } from './cart.types'
 
 export const cartQueryKeys = {

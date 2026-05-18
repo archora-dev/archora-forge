@@ -1248,6 +1248,56 @@ describe('Product regression coverage', () => {
     expect(exitCode).toBeUndefined()
   })
 
+  test('generate dry-run prune reports stale marker-owned files without deleting them', async () => {
+    const cwd = await tempDir()
+    await mkdir(join(cwd, 'src/shared/api/generated/legacy'), { recursive: true })
+    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Prune Preview API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), '// @archora-forge-generated\nexport const legacy = true\n', 'utf8')
+    await writeFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'export const local = true\n', 'utf8')
+
+    const { exitCode, output } = await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--dry-run', '--prune', '--json'])
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      dryRun: boolean
+      prune: { enabled: boolean; candidates: Array<{ path: string }>; deleted: Array<{ path: string }>; skipped: Array<{ path: string; reason: string }> }
+    }
+
+    expect(payload.ok).toBe(true)
+    expect(payload.dryRun).toBe(true)
+    expect(payload.prune.enabled).toBe(true)
+    expect(payload.prune.candidates).toEqual([{ path: 'src/shared/api/generated/legacy/legacy.client.ts' }])
+    expect(payload.prune.deleted).toEqual([])
+    expect(payload.prune.skipped).toEqual([])
+    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), 'utf8')).resolves.toContain('legacy')
+    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'utf8')).resolves.toContain('local')
+    expect(exitCode).toBeUndefined()
+  })
+
+  test('generate prune deletes only stale marker-owned files', async () => {
+    const cwd = await tempDir()
+    await mkdir(join(cwd, 'src/shared/api/generated/legacy'), { recursive: true })
+    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Prune API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), '// @archora-forge-generated\nexport const legacy = true\n', 'utf8')
+    await writeFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'export const local = true\n', 'utf8')
+
+    const { exitCode, output } = await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--prune', '--json'])
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      dryRun: boolean
+      prune: { enabled: boolean; candidates: Array<{ path: string }>; deleted: Array<{ path: string }>; skipped: Array<{ path: string; reason: string }> }
+    }
+
+    expect(payload.ok).toBe(true)
+    expect(payload.dryRun).toBe(false)
+    expect(payload.prune.enabled).toBe(true)
+    expect(payload.prune.candidates).toEqual([{ path: 'src/shared/api/generated/legacy/legacy.client.ts' }])
+    expect(payload.prune.deleted).toEqual([{ path: 'src/shared/api/generated/legacy/legacy.client.ts' }])
+    expect(payload.prune.skipped).toEqual([])
+    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), 'utf8')).rejects.toThrow()
+    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'utf8')).resolves.toContain('local')
+    expect(exitCode).toBeUndefined()
+  })
+
   test('generate dry-run can aggregate configured multi-schema inputs', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'contracts'), { recursive: true })

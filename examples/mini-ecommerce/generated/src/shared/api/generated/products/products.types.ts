@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { Product, ProductPage } from '../components.types'
 
 export type { Product, ProductPage } from '../components.types'

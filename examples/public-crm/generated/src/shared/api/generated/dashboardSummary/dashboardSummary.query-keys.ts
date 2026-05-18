@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { DashboardSummaryId, DashboardSummariesListParams } from './dashboardSummary.types'
 
 export const dashboardSummaryQueryKeys = {

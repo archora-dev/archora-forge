@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { ItemId, ItemsListParams } from './items.types'
 
 export const itemsQueryKeys = {

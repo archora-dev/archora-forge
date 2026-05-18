@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { DashboardSummary } from '../components.types'
 
 export type { DashboardSummary } from '../components.types'

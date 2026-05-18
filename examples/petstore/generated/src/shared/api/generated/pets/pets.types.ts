@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { CreatePetDto, Pet, UpdatePetDto } from '../components.types'
 
 export type { CreatePetDto, Pet, UpdatePetDto } from '../components.types'

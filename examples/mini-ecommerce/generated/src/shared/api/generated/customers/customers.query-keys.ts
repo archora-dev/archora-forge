@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { CustomerId, CustomersListParams } from './customers.types'
 
 export const customersQueryKeys = {

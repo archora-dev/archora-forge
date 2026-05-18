@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { ContactsArchiveId, ContactsArchivesListParams } from './contactsArchive.types'
 
 export const contactsArchiveQueryKeys = {

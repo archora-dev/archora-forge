@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { filesDownloadClient } from '../../../shared/api/generated/filesDownload/filesDownload.client'
 import type {
   DownloadFileOperationParams,

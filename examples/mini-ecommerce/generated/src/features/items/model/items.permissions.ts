@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const itemsPermissions = {
   view: 'items.read',
   create: 'items.create',

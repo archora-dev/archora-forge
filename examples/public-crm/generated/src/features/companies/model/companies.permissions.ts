@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const companiesPermissions = {
   view: 'companies.read',
   create: 'companies.create',

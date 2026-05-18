@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { petsClient } from '../../../shared/api/generated/pets/pets.client'
 import { petsQueryKeys } from '../../../shared/api/generated/pets/pets.query-keys'
 import type { PetDetailResponse, PetId } from '../../../shared/api/generated/pets/pets.types'

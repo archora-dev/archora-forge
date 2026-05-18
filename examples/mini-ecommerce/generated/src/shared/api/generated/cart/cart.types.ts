@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { Cart } from '../components.types'
 
 export type { Cart } from '../components.types'

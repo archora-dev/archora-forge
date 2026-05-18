@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { productsClient } from '../../../shared/api/generated/products/products.client'
 import { productsQueryKeys } from '../../../shared/api/generated/products/products.query-keys'
 import type {

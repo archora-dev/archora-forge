@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { ContactId, ContactsListParams } from './contacts.types'
 
 export const contactsQueryKeys = {

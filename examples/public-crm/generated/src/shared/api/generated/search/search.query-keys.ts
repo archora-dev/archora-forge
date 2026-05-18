@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { SearchId, SearchesListParams } from './search.types'
 
 export const searchQueryKeys = {

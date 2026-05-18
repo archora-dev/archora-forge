@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { User } from '../components.types'
 
 export type { User } from '../components.types'

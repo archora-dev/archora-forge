@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const dashboardSummaryPermissions = {
   view: 'dashboardSummary.read',
   create: 'dashboardSummary.create',

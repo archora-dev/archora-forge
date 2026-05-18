@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { ArchiveContactRequest, Contact } from '../components.types'
 
 export type { ArchiveContactRequest, Contact } from '../components.types'

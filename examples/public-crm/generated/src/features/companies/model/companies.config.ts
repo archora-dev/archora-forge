@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const companiesConfig = {
   resource: 'companies',
   pagination: {

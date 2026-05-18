@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const dashboardSummaryI18n = {
   title: 'DashboardSummaries',
   create: 'Create dashboardsummary',

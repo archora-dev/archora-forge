@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export type SearchResultTypeValue = 'contact' | 'company'
 
 export interface ContactStatus {}

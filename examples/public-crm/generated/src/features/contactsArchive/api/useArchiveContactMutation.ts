@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { contactsArchiveClient } from '../../../shared/api/generated/contactsArchive/contactsArchive.client'
 import type {
   ArchiveContactOperationRequest,

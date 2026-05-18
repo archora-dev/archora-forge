@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { CreateOrderDto, Order } from '../components.types'
 
 export type { CreateOrderDto, Order } from '../components.types'

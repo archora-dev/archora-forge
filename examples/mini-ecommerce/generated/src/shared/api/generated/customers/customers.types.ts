@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { Customer, UpdateCustomerDto } from '../components.types'
 
 export type { Customer, UpdateCustomerDto } from '../components.types'

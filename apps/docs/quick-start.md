@@ -42,6 +42,18 @@ pnpm exec archora-forge generate
 
 Commit the generated files. They are designed to be reviewed like normal source code.
 
+To preview stale Forge-owned files before cleanup:
+
+```bash
+pnpm exec archora-forge generate --dry-run --prune --json
+```
+
+To remove stale Forge-owned files after reviewing the preview:
+
+```bash
+pnpm exec archora-forge generate --prune
+```
+
 ## 6. Use The Client
 
 ```ts

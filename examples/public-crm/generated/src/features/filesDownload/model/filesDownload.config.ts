@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const filesDownloadConfig = {
   resource: 'filesDownload',
   pagination: {

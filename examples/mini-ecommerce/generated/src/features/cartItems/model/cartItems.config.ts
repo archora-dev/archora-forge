@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const cartItemsConfig = {
   resource: 'cartItems',
   pagination: {

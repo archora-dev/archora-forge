@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const searchPermissions = {
   view: 'search.read',
   create: 'search.create',

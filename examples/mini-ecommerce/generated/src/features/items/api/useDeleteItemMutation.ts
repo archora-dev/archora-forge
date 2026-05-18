@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import { itemsClient } from '../../../shared/api/generated/items/items.client'
 import { itemsQueryKeys } from '../../../shared/api/generated/items/items.query-keys'
 import type { ItemId } from '../../../shared/api/generated/items/items.types'

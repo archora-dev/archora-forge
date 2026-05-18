@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const companiesScenarios = [
   'success-list',
   'empty-list',

@@ -1,3 +1,4 @@
+// @archora-forge-generated
 import type { UserId, UsersListParams } from './users.types'
 
 export const usersQueryKeys = {

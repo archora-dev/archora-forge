@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const ordersConfig = {
   resource: 'orders',
   pagination: {

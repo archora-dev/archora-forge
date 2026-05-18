@@ -1,3 +1,4 @@
+// @archora-forge-generated
 export const usersI18n = {
   title: 'Users',
   create: 'Create user',
