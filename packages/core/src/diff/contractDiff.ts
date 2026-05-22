@@ -25,6 +25,24 @@ export type ContractDiffReport = {
   affectedResources: string[]
   affectedFiles: string[]
   changelog: string[]
+  summary: {
+    breaking: number
+    warnings: number
+    nonBreaking: number
+    total: number
+  }
+  decision: {
+    status: 'approved' | 'review' | 'blocked'
+    mergeRisk: 'low' | 'medium' | 'high'
+    reason: string
+  }
+  impactedSurface: {
+    operationIds: string[]
+    clientMethods: string[]
+    queryHooks: string[]
+  }
+  migrationHints: string[]
+  prSummary: string
 }
 
 export function diffOpenApiContracts(oldSchema: NormalizedOpenApi, newSchema: NormalizedOpenApi): ContractDiffReport {
@@ -69,8 +87,23 @@ export function diffOpenApiContracts(oldSchema: NormalizedOpenApi, newSchema: No
     `src/shared/api/generated/${resource}/${resource}.client.ts`,
     `src/features/${resource}/api/index.ts`,
   ])
+  const summary = summarizeChanges(changes)
+  const decision = createImpactDecision(summary)
+  const impactedSurface = collectImpactedSurface(changes, oldOperations, newOperations)
+  const migrationHints = createMigrationHints(changes)
+  const changelog = formatContractDiffChangelog({ changes, affectedResources, affectedFiles })
 
-  return { changes, affectedResources, affectedFiles, changelog: formatContractDiffChangelog({ changes, affectedResources, affectedFiles }) }
+  return {
+    changes,
+    affectedResources,
+    affectedFiles,
+    changelog,
+    summary,
+    decision,
+    impactedSurface,
+    migrationHints,
+    prSummary: formatPullRequestSummary({ summary, decision, affectedResources, affectedFiles, migrationHints }),
+  }
 }
 
 export function formatContractDiffChangelog(report: Pick<ContractDiffReport, 'changes' | 'affectedResources' | 'affectedFiles'>): string[] {
@@ -94,6 +127,112 @@ export function formatContractDiffChangelog(report: Pick<ContractDiffReport, 'ch
 
 function operationMap(operations: NormalizedOperation[]): Map<string, NormalizedOperation> {
   return new Map(operations.map((operation) => [`${operation.method.toUpperCase()} ${operation.path}`, operation]))
+}
+
+function summarizeChanges(changes: ContractDiffChange[]): ContractDiffReport['summary'] {
+  const breaking = changes.filter((change) => change.severity === 'breaking').length
+  const warnings = changes.filter((change) => change.severity === 'warning').length
+  const nonBreaking = changes.filter((change) => change.severity === 'non-breaking').length
+  return { breaking, warnings, nonBreaking, total: changes.length }
+}
+
+function createImpactDecision(summary: ContractDiffReport['summary']): ContractDiffReport['decision'] {
+  if (summary.breaking > 0) {
+    return {
+      status: 'blocked',
+      mergeRisk: 'high',
+      reason: `${summary.breaking} breaking frontend contract change${summary.breaking === 1 ? '' : 's'} detected.`,
+    }
+  }
+  if (summary.warnings > 0) {
+    return {
+      status: 'review',
+      mergeRisk: 'medium',
+      reason: `${summary.warnings} schema change${summary.warnings === 1 ? '' : 's'} need frontend review.`,
+    }
+  }
+  return {
+    status: 'approved',
+    mergeRisk: 'low',
+    reason: summary.nonBreaking > 0 ? 'Only non-breaking frontend contract changes detected.' : 'No frontend contract changes detected.',
+  }
+}
+
+function collectImpactedSurface(
+  changes: ContractDiffChange[],
+  oldOperations: Map<string, NormalizedOperation>,
+  newOperations: Map<string, NormalizedOperation>,
+): ContractDiffReport['impactedSurface'] {
+  const operationIds = new Set<string>()
+  for (const change of changes) {
+    const operation = oldOperations.get(operationKeyFromLocation(change.location)) ?? newOperations.get(operationKeyFromLocation(change.location))
+    const operationId = operation?.sourceOperationId ?? operation?.id
+    if (operationId) operationIds.add(operationId)
+  }
+  const sortedOperationIds = [...operationIds].sort()
+  return {
+    operationIds: sortedOperationIds,
+    clientMethods: sortedOperationIds.map((id) => `${id}()`),
+    queryHooks: sortedOperationIds.map((id) => `use${pascalCase(id)}${id.toLowerCase().startsWith('get') || id.toLowerCase().startsWith('list') || id.toLowerCase().startsWith('search') ? 'Query' : 'Mutation'}`),
+  }
+}
+
+function operationKeyFromLocation(location: string): string {
+  const match = location.match(/^([A-Z]+)\s+([^\s]+)/)
+  return match ? `${match[1]} ${match[2]}` : location
+}
+
+function createMigrationHints(changes: ContractDiffChange[]): string[] {
+  const hints = changes.map((change) => {
+    switch (change.code) {
+      case 'removed-endpoint':
+        return `${change.resource}: replace usages before regenerating. ${change.message}`
+      case 'required-field-added':
+        return `${change.resource}: update create/update payload builders and forms for the new required field. ${change.message}`
+      case 'field-removed':
+        return `${change.resource}: remove reads, table columns and form bindings for the deleted field. ${change.message}`
+      case 'type-changed':
+        return `${change.resource}: update TypeScript consumers and runtime formatting for the changed field type. ${change.message}`
+      case 'enum-value-removed':
+        return `${change.resource}: remove UI options and branch handling for the removed enum value. ${change.message}`
+      case 'enum-value-added':
+        return `${change.resource}: add UI labels and handling for the new enum value if this field is user-visible. ${change.message}`
+      case 'request-schema-changed':
+        return `${change.resource}: review request mappers, forms and mutation payloads. ${change.message}`
+      case 'response-schema-changed':
+        return `${change.resource}: review response readers, tables and detail views. ${change.message}`
+      case 'added-endpoint':
+        return `${change.resource}: new endpoint is available after regeneration. ${change.message}`
+    }
+  })
+  return [...new Set(hints)].slice(0, 30)
+}
+
+function formatPullRequestSummary(input: {
+  summary: ContractDiffReport['summary']
+  decision: ContractDiffReport['decision']
+  affectedResources: string[]
+  affectedFiles: string[]
+  migrationHints: string[]
+}): string {
+  const lines = [
+    `Frontend API impact: ${input.decision.status} (${input.decision.mergeRisk} risk).`,
+    input.decision.reason,
+    `Changes: ${input.summary.breaking} breaking, ${input.summary.warnings} warnings, ${input.summary.nonBreaking} non-breaking.`,
+    `Affected resources: ${input.affectedResources.length > 0 ? input.affectedResources.join(', ') : 'none'}.`,
+    `Affected generated files: ${input.affectedFiles.length}.`,
+  ]
+  if (input.migrationHints.length > 0) {
+    lines.push('Migration hints:')
+    lines.push(...input.migrationHints.slice(0, 5).map((hint) => `- ${hint}`))
+  }
+  return lines.join('\n')
+}
+
+function pascalCase(value: string): string {
+  return value
+    .replace(/[^A-Za-z0-9]+(.)/g, (_match, char: string) => char.toUpperCase())
+    .replace(/^./, (char) => char.toUpperCase())
 }
 
 function diffObjectSchemas(

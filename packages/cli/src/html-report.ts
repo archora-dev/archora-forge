@@ -92,6 +92,25 @@ type HtmlReportPayload = {
   files?: { create?: number; update?: number; protected?: number }
   changes?: Array<{ severity?: string; code?: string; message?: string; location?: string }>
   affectedResources?: string[]
+  affectedFiles?: string[]
+  summary?: {
+    breaking?: number
+    warnings?: number
+    nonBreaking?: number
+    total?: number
+  }
+  decision?: {
+    status?: string
+    mergeRisk?: string
+    reason?: string
+  }
+  impactedSurface?: {
+    operationIds?: string[]
+    clientMethods?: string[]
+    queryHooks?: string[]
+  }
+  migrationHints?: string[]
+  prSummary?: string
 }
 
 export function createHtmlReport(title: string, payload: HtmlReportPayload): string {
@@ -190,6 +209,7 @@ export function createHtmlReport(title: string, payload: HtmlReportPayload): str
   ${renderDiagnosticGroups(diagnosticsBySeverity, diagnosticsByCode)}
   ${renderUnsupportedOperations(unsupportedDiagnostics)}
   ${renderAffectedResources(topAffectedResources)}
+  ${renderImpactCenter(payload)}
   ${renderContractDiffSummary(payload)}
   ${renderSchemas(payload.schemas)}
   ${renderFailedChecks(failedChecks)}
@@ -393,6 +413,39 @@ function renderContractDiffSummary(payload: HtmlReportPayload): string {
   const breaking = payload.changes?.filter((change) => change.severity === 'breaking').length ?? 0
   const nonBreaking = (payload.changes?.length ?? 0) - breaking
   return `<section><h2>Contract Diff Summary</h2><div class="card"><p>Breaking changes: <strong>${breaking}</strong>; non-breaking changes: <strong>${nonBreaking}</strong>; affected resources: <strong>${payload.affectedResources?.length ?? 0}</strong>.</p></div></section>`
+}
+
+function renderImpactCenter(payload: HtmlReportPayload): string {
+  if (!payload.decision && !payload.summary && !payload.migrationHints?.length && !payload.prSummary) return ''
+  return `<section>
+    <h2>Frontend Impact Center</h2>
+    <div class="summary">
+      <div class="card">
+        <h2>Decision</h2>
+        <p>Status: <strong>${escapeHtml(payload.decision?.status ?? 'n/a')}</strong></p>
+        <p>Merge risk: <strong>${escapeHtml(payload.decision?.mergeRisk ?? 'n/a')}</strong></p>
+        <p>${escapeHtml(payload.decision?.reason ?? '')}</p>
+      </div>
+      <div class="card">
+        <h2>Impact Counts</h2>
+        <ul>
+          <li>Breaking: <strong>${escapeHtml(String(payload.summary?.breaking ?? 0))}</strong></li>
+          <li>Warnings: <strong>${escapeHtml(String(payload.summary?.warnings ?? 0))}</strong></li>
+          <li>Non-breaking: <strong>${escapeHtml(String(payload.summary?.nonBreaking ?? 0))}</strong></li>
+          <li>Affected files: <strong>${escapeHtml(String(payload.affectedFiles?.length ?? 0))}</strong></li>
+        </ul>
+      </div>
+    </div>
+    <details open><summary>PR Summary</summary><pre>${escapeHtml(payload.prSummary ?? '')}</pre></details>
+    <details open><summary>Migration Hints</summary>${renderSimpleList(payload.migrationHints ?? [], 'No migration hints.')}</details>
+    <details><summary>Impacted Surface</summary>
+      <div class="card">
+        <p>Operation IDs: ${escapeHtml(payload.impactedSurface?.operationIds?.join(', ') || 'none')}</p>
+        <p>Client methods: ${escapeHtml(payload.impactedSurface?.clientMethods?.join(', ') || 'none')}</p>
+        <p>Query hooks: ${escapeHtml(payload.impactedSurface?.queryHooks?.join(', ') || 'none')}</p>
+      </div>
+    </details>
+  </section>`
 }
 
 function renderSchemas(schemas: SchemaLike[] | undefined): string {

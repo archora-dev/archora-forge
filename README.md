@@ -126,6 +126,7 @@ archora-forge lint ./openapi.yaml
 archora-forge check ./openapi.yaml
 archora-forge audit ./openapi.yaml
 archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml
+archora-forge impact ./old-openapi.yaml ./new-openapi.yaml
 archora-forge generate ./openapi.yaml
 ```
 
@@ -136,6 +137,7 @@ archora-forge inspect ./openapi.yaml
 archora-forge doctor ./openapi.yaml
 archora-forge diff ./openapi.yaml
 archora-forge audit ./openapi.yaml --out forge-audit
+archora-forge impact ./old-openapi.yaml ./openapi.yaml --report markdown --report-file forge-impact.md
 archora-forge generate ./openapi.yaml
 archora-forge check ./openapi.yaml
 ```

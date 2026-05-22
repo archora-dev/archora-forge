@@ -28,6 +28,7 @@ export default defineConfig({
           { text: 'OpenAPI Linting', link: '/openapi-linting' },
           { text: 'Contract Diff', link: '/contract-diff' },
           { text: 'Contract Comparison', link: '/contract-comparison' },
+          { text: 'Impact Center', link: '/impact-center' },
           { text: 'Remote Schema Loading', link: '/remote-schema-loading' },
           { text: 'Resource Detection', link: '/resource-detection' },
           { text: 'Generated Output', link: '/generated-output' },

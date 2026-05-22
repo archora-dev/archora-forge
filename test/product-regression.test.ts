@@ -1839,6 +1839,19 @@ describe('Product regression coverage', () => {
         expect.stringContaining('resource contract files affected'),
       ]),
     )
+    expect(diff.decision).toMatchObject({
+      status: 'blocked',
+      mergeRisk: 'high',
+    })
+    expect(diff.summary.breaking).toBeGreaterThan(0)
+    expect(diff.impactedSurface.operationIds).toEqual(expect.arrayContaining(['createUser']))
+    expect(diff.migrationHints).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('required'),
+        expect.stringContaining('Enum value'),
+      ]),
+    )
+    expect(diff.prSummary).toContain('Frontend API impact: blocked')
   })
 
   test('lint reports stricter frontend generation quality issues', () => {
@@ -1981,6 +1994,46 @@ describe('Product regression coverage', () => {
     expect(payload.affectedResources).toContain('users')
     expect(output).toContain(`Report written: ${reportPath}`)
     expect(exitCode).toBe(1)
+  })
+
+  test('impact command writes Markdown and HTML frontend impact artifacts', async () => {
+    const cwd = await tempDir()
+    const oldPath = join(cwd, 'old-openapi.json')
+    const newPath = join(cwd, 'new-openapi.json')
+    const markdownPath = join(cwd, 'impact.md')
+    const htmlPath = join(cwd, 'impact.html')
+    const nextSchema = {
+      ...crudSchema,
+      components: {
+        schemas: {
+          ...crudSchema.components.schemas,
+          CreateUserDto: {
+            ...crudSchema.components.schemas.CreateUserDto,
+            required: ['email', 'status', 'role'],
+            properties: {
+              ...crudSchema.components.schemas.CreateUserDto.properties,
+              role: { type: 'string' },
+            },
+          },
+        },
+      },
+    }
+    await writeFile(oldPath, JSON.stringify(crudSchema), 'utf8')
+    await writeFile(newPath, JSON.stringify(nextSchema), 'utf8')
+
+    const markdown = await runCliInDirectory(cwd, ['impact', oldPath, newPath, '--report', 'markdown', '--report-file', markdownPath])
+    const html = await runCliInDirectory(cwd, ['impact', oldPath, newPath, '--report', 'html', '--report-file', htmlPath])
+    const markdownReport = await readTextFile(markdownPath, 'utf8')
+    const htmlReport = await readTextFile(htmlPath, 'utf8')
+
+    expect(markdown.exitCode).toBe(1)
+    expect(markdown.output).toContain(`Report written: ${markdownPath}`)
+    expect(markdownReport).toContain('# Frontend API Impact')
+    expect(markdownReport).toContain('Decision: blocked')
+    expect(markdownReport).toContain('Field "role" became required.')
+    expect(html.exitCode).toBe(1)
+    expect(htmlReport).toContain('Frontend Impact Center')
+    expect(htmlReport).toContain('Merge risk')
   })
 
   test('lint and plugin APIs expose experimental extension points', async () => {
