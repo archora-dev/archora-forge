@@ -90,6 +90,12 @@ type HtmlReportPayload = {
   }
   migrationHints?: string[]
   prSummary?: string
+  resourceExplorer?: Array<{
+    name?: string
+    operations?: Array<{ id?: string; method?: string; path?: string; kind?: string }>
+    generatedFiles?: string[]
+  }>
+  coverage?: CoverageLike
   sourceUsages?: Array<{
     path?: string
     matches?: string[]
@@ -187,6 +193,8 @@ export function createHtmlReport(title: string, payload: HtmlReportPayload): str
   ${renderDiagnosticGroups(diagnosticsBySeverity, diagnosticsByCode)}
   ${renderUnsupportedOperations(unsupportedDiagnostics)}
   ${renderAffectedResources(topAffectedResources)}
+  ${renderResourceExplorer(payload.resourceExplorer)}
+  ${renderCoverageMatrix(payload.coverage)}
   ${renderImpactCenter(payload)}
   ${renderContractDiffSummary(payload)}
   ${renderSchemas(payload.schemas)}
@@ -298,6 +306,47 @@ function renderAffectedResources(resources: Array<{ name: string; count: number 
   return `<section><h2>Top Affected Resources</h2><div class="pill-list">${resources.slice(0, 20).map((item) => `<span class="pill"><strong>${item.count}</strong>${escapeHtml(item.name)}</span>`).join('')}</div></section>`
 }
 
+function renderResourceExplorer(resources: HtmlReportPayload['resourceExplorer']): string {
+  if (!resources) return ''
+  if (resources.length === 0) return '<section><h2>Resource Explorer</h2><div class="empty">No resources detected.</div></section>'
+  const cards = resources
+    .slice(0, 50)
+    .map((resource) => {
+      const operations = (resource.operations ?? [])
+        .slice(0, 20)
+        .map((operation) => `<li><code>${escapeHtml(`${operation.method?.toUpperCase() ?? ''} ${operation.path ?? ''}`.trim())}</code> ${escapeHtml(operation.id ?? '')} <span class="muted">${escapeHtml(operation.kind ?? '')}</span></li>`)
+        .join('')
+      const files = (resource.generatedFiles ?? []).slice(0, 12).map((file) => `<li><code>${escapeHtml(file)}</code></li>`).join('')
+      return `<div class="card">
+        <h3>${escapeHtml(resource.name ?? 'resource')}</h3>
+        <p>${escapeHtml(String(resource.operations?.length ?? 0))} operations; ${escapeHtml(String(resource.generatedFiles?.length ?? 0))} generated files.</p>
+        ${operations ? `<details><summary>Operations</summary><ul>${operations}</ul></details>` : ''}
+        ${files ? `<details><summary>Generated files</summary><ul>${files}</ul></details>` : ''}
+      </div>`
+    })
+    .join('')
+  return `<section><h2>Resource Explorer</h2><div class="summary">${cards}</div></section>`
+}
+
+function renderCoverageMatrix(coverage: CoverageLike | undefined): string {
+  if (!coverage) return ''
+  return `<section>
+    <h2>Schema Coverage Matrix</h2>
+    <div class="grid">
+      ${metric('Operations', coverage.operations?.total ?? 'n/a')}
+      ${metric('Generated operations', coverage.operations?.generated ?? 'n/a')}
+      ${metric('Fallback cases', coverage.cases?.fallback ?? 'n/a')}
+      ${metric('Diagnostic-only cases', coverage.cases?.diagnosticOnly ?? 'n/a')}
+      ${metric('Schemas', coverage.schemas?.total ?? 'n/a')}
+      ${metric('Skipped operations', coverage.cases?.skipped ?? 'n/a')}
+    </div>
+    <details open><summary>Operation types</summary><div class="pill-list">${renderRecordPills(coverage.operations?.byKind)}</div></details>
+    <details><summary>Request shapes</summary><div class="pill-list">${renderRecordPills(coverage.operations?.byRequestShape)}</div></details>
+    <details><summary>Response shapes</summary><div class="pill-list">${renderRecordPills(coverage.operations?.byResponseShape)}</div></details>
+    <details><summary>Unsupported schema constructs</summary><div class="pill-list">${renderRecordPills(coverage.schemas?.unsupportedConstructs)}</div></details>
+  </section>`
+}
+
 function renderContractDiffSummary(payload: HtmlReportPayload): string {
   if (!payload.changes?.length && !payload.affectedResources?.length) {
     return '<section><h2>Contract Diff Summary</h2><div class="empty">No contract diff changes in this report.</div></section>'
@@ -388,10 +437,6 @@ function renderDrift(drift: DriftLike[]): string {
 
 function metric(label: string, value: string | number): string {
   return `<div class="metric"><strong>${escapeHtml(String(value))}</strong><span>${escapeHtml(label)}</span></div>`
-}
-
-function formatScoreLabel(value: string): string {
-  return value.replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase())
 }
 
 function escapeHtml(value: string): string {

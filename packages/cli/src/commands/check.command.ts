@@ -46,6 +46,7 @@ export function registerCheckCommand(cli: CAC): void {
         const diagnostics = checks.flatMap((check) => check.diagnostics)
         const failedChecks = [...new Set(checks.flatMap((check) => check.failedChecks))]
         const generator = summarizeCheckGeneratorMetadata(checks.map((check) => check.generator))
+        const coverage = mergeSchemaCoverageMatrices(checks.map((check) => check.coverage))
         const ok = failedChecks.length === 0
         const healthScore = Math.min(...checks.map((check) => check.healthScore))
         const summary = {
@@ -72,6 +73,7 @@ export function registerCheckCommand(cli: CAC): void {
             diagnosticsCount: check.diagnostics.length,
             failedChecks: check.failedChecks,
             generator: check.generator,
+            coverage: check.coverage,
           })),
           healthScore,
           resources: summary.resources,
@@ -79,6 +81,7 @@ export function registerCheckCommand(cli: CAC): void {
           protectedFiles: summary.protectedFiles,
           failedChecks,
           generator,
+          coverage,
           readiness: createReadinessSummary({ summary, failedChecks, drift, diagnostics }),
           drift,
           diagnostics,
@@ -179,6 +182,7 @@ async function runCheck(
     generatedFiles: plan.files.filter((file) => file.kind === 'generated').length,
     protectedFiles: summary.protected,
     generator,
+    coverage,
     drift,
     diagnostics,
     failedChecks,
