@@ -33,6 +33,22 @@ Supported today:
 
 This is a small generated-client runtime, not a full application transport framework. OAuth refresh, typed error envelope mapping and application-wide retry policy belong in the consuming app.
 
+## Runtime Policy
+
+Forge runtime helpers are intentionally small:
+
+- request configuration is explicit;
+- generated clients do not store secrets;
+- auth headers are injected at runtime;
+- retries are disabled unless configured;
+- abort and timeout behavior is local to each request;
+- non-2xx responses throw `ForgeHttpError`;
+- application-specific error mapping stays outside generated code.
+
+Use application services or query wrappers for product-specific policy.
+
+For concrete upload and download shapes, see [Binary Transfer Examples](/binary-transfer-examples).
+
 ## Query Arrays
 
 Plain arrays use repeated keys, matching OpenAPI `style: form, explode: true`:
@@ -172,6 +188,39 @@ createApiClient({
 
 Generated clients still do not embed secrets; pass auth through runtime configuration.
 
+## Custom Headers
+
+Use static headers for values that do not change:
+
+```ts
+createApiClient({
+  baseUrl: 'https://api.example.com',
+  headers: {
+    'x-client-name': 'admin-web',
+  },
+})
+```
+
+Use `getHeaders` for request-time values:
+
+```ts
+createApiClient({
+  baseUrl: 'https://api.example.com',
+  getHeaders: async () => ({
+    'x-request-id': crypto.randomUUID(),
+    authorization: `Bearer ${await getToken()}`,
+  }),
+})
+```
+
+Per-request headers are merged last:
+
+```ts
+await usersClient.listUsers({}, { headers: { 'x-debug': 'true' } })
+```
+
+Prefer runtime headers over OpenAPI header parameters for auth, tenant and tracing values. Those policies are usually application concerns, not generated method arguments.
+
 ## Error Handling
 
 ```ts
@@ -190,3 +239,5 @@ try {
   }
 }
 ```
+
+Retry policy should be decided by the application. Keep mutating operations out of retry lists unless the backend contract is idempotent.

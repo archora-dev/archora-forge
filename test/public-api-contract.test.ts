@@ -24,7 +24,7 @@ describe('v1 public API contract', () => {
       'toFormFields',
       'toTableColumns',
     ])
-    expect(Object.keys(config).sort()).toEqual(['defineForgeConfig', 'loadForgeConfig', 'resolveForgeConfig'])
+    expect(Object.keys(config).sort()).toEqual(['createForgeConfigPreset', 'defineForgeConfig', 'loadForgeConfig', 'resolveForgeConfig'])
     expect(Object.keys(core).sort()).toEqual([
       'ForgeError',
       'calculateDrift',
@@ -35,6 +35,7 @@ describe('v1 public API contract', () => {
       'createOperationTypeNames',
       'createResourceTypeNames',
       'createResourceUiModel',
+      'createSchemaCoverageMatrix',
       'createSharedSchemaTypes',
       'createTypeScriptTypes',
       'detectResources',
@@ -53,6 +54,7 @@ describe('v1 public API contract', () => {
       'isSafeIdentifier',
       'lintOpenApi',
       'loadTemplateOverride',
+      'mergeSchemaCoverageMatrices',
       'normalizeOpenApi',
       'normalizePlugins',
       'parseOpenApi',
@@ -141,6 +143,21 @@ describe('v1 public API contract', () => {
       'prune',
     ])
     await expectCliJsonKeys(cwd, ['diff', basicCrudSchema, '--json'], ['ok', 'schema', 'configPath', 'schemas', 'resources', 'files'])
+    await expectCliJsonKeys(cwd, ['impact', basicCrudSchema, basicCrudSchema, '--json'], [
+      'ok',
+      'oldSchema',
+      'newSchema',
+      'sourceUsages',
+      'changes',
+      'affectedResources',
+      'affectedFiles',
+      'changelog',
+      'summary',
+      'decision',
+      'impactedSurface',
+      'migrationHints',
+      'prSummary',
+    ])
     await expectCliJsonKeys(cwd, ['check', basicCrudSchema, '--json'], [
       'ok',
       'schema',

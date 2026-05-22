@@ -1,5 +1,7 @@
 # Contract Diff
 
+For the schema comparison workflow and generated changelog field, see [Contract Comparison](/contract-comparison).
+
 `contract-diff` compares two OpenAPI contracts and reports frontend impact.
 
 ```bash

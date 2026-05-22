@@ -2,7 +2,7 @@
 
 Archora Forge is not a replacement for every OpenAPI generator. It targets the frontend layer that generic generators usually leave to teams.
 
-Forge is currently positioned for public preview, private beta and paid pilot evaluation. Use it when the cost of hand-maintaining frontend resource contracts is high enough to justify a focused pilot.
+Forge is positioned for self-serve evaluation and bounded commercial adoption. Use it when the cost of hand-maintaining frontend resource contracts is high enough to justify a local-first generator, reports and generated-output typecheck gate.
 
 ## Compared with openapi-generator
 
@@ -57,13 +57,13 @@ TanStack-style usage is currently an integration pattern. Forge generates query 
 
 The consuming application owns UI, state management and runtime auth policy.
 
-## Pilot Fit
+## Purchase Fit
 
-Forge is a strong paid pilot candidate when a Vue/OpenAPI team wants to answer:
+Forge is a strong purchase candidate when a Vue/OpenAPI team wants to answer:
 
 - what resource layer would be generated from a real schema;
 - which schema issues block better frontend generation;
 - whether CI drift checks catch contract changes early;
 - how generated metadata maps into the team's table, form and permission conventions.
 
-It is not a broad production-license pitch yet.
+The intended purchase path is self-serve: run the demo, evaluate one private schema locally, typecheck generated output, fill the report and buy the bounded license scope when the artifacts justify it.

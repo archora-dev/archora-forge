@@ -10,7 +10,10 @@ For private beta and paid pilots, start with one schema in a short-lived branch.
 pnpm exec archora-forge inspect ./openapi.yaml
 pnpm exec archora-forge generate ./openapi.yaml --dry-run
 pnpm exec archora-forge check ./openapi.yaml --report html --report-file forge-check.html
+pnpm exec archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md
 ```
+
+After generation, run the generated-output typecheck gate before purchase approval. See [Generated Output Typecheck](/generated-output-typecheck).
 
 ## Remote Private Schemas
 
@@ -30,6 +33,8 @@ pnpm exec archora-forge check ./openapi.yaml --report html --report-file forge-c
 ```
 
 Upload the report files as CI artifacts. Keep generated code committed so drift is visible in pull requests.
+
+For self-serve buying, attach the generated reports to [Pilot Report Template](/pilot-report-template) and make the purchase decision from the artifacts.
 
 ## Security Notes
 

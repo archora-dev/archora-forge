@@ -12,6 +12,7 @@ Open these before the call:
 - `examples/public-crm/generated/src/features`
 - `examples/public-crm/generated/src/shared/mocks`
 - an HTML check report produced with `archora-forge check --report html`
+- a generated-output typecheck terminal or report, when available
 
 Use the public CRM demo only. Do not open private schemas, customer screenshots or generated private output on a recorded call unless the customer has explicitly approved it.
 
@@ -125,7 +126,7 @@ Explain:
 
 Keep claims modest: these are scaffolds, not a replacement for the customer's real auth, design system or domain fixtures.
 
-## 7:30-8:30 - HTML Report
+## 7:30-8:30 - HTML Report And Typecheck
 
 Open the HTML check report.
 
@@ -139,6 +140,14 @@ node ../../packages/cli/dist/index.js check ./openapi.yaml \
 ```
 
 Use it to show health, drift and diagnostics in a format that can be attached to an internal readiness review.
+
+Then show the generated-output typecheck gate:
+
+```bash
+tsc --noEmit -p ./generated-output-typecheck/tsconfig.json
+```
+
+Explain that a paid pilot should not stop at "the generator ran". It should prove that the emitted TypeScript compiles in a customer-shaped workspace, or document the exact schema/generator issue that blocks compilation.
 
 ## 8:30-9:30 - Privacy And Paid Pilot Positioning
 
@@ -161,6 +170,6 @@ Explain preview limitations:
 
 Close with a bounded offer:
 
-The paid private beta pilot is a short implementation and risk-reduction package. We run Forge against one real schema or schema family in a temporary local workspace, review diagnostics, produce generated TypeScript output, create a CI drift/readiness report and identify what integration work remains for the customer's Vue frontend.
+The paid private beta pilot is a short implementation and risk-reduction package. We run Forge against 1-3 real schemas or one tightly related schema family in a temporary local workspace, review diagnostics, produce generated TypeScript output, typecheck that output, create CI drift/readiness reports and identify what integration work remains for the customer's Vue frontend.
 
 The outcome is an evidence-based go/no-go decision for broader adoption, not a production-ready rollout promise.

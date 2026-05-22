@@ -12,11 +12,11 @@
 
 ---
 
-Archora Forge turns an OpenAPI contract into a typed frontend resource layer.
+Archora Forge turns an OpenAPI contract into a typed frontend resource layer and PR-ready impact reports.
 
-Archora Forge is in public preview and private beta. It is built for frontend teams that already have a framework and design system, but need a reliable contract layer between OpenAPI and product code. It generates committed TypeScript clients, operation helpers, query keys, form/table metadata, permissions, labels, mocks and CI reports without forcing a UI framework or hosted workflow.
+Archora Forge is a local-first commercial developer tool. It is built for frontend teams that already have a framework and design system, but need a reliable contract layer between OpenAPI and product code. It generates committed TypeScript clients, operation helpers, query keys, form/table metadata, permissions, labels, mocks and CI reports without forcing a UI framework or hosted workflow.
 
-Forge is suitable for paid pilots with Vue/OpenAPI teams that want to evaluate one real schema in a branch. It is not positioned as production-ready and does not claim full OpenAPI coverage.
+Forge is suitable for self-serve evaluation and bounded commercial adoption packages with TypeScript frontend teams that want to evaluate one real schema in a branch. It is not positioned as unlimited production platform coverage for every OpenAPI contract.
 
 It does not try to generate your application UI. Most teams already have a framework, a design system, a table component, a form library and strong opinions about how screens should look. Forge focuses on the part that is repetitive and easy to get wrong: the typed contract between an API schema and frontend code.
 
@@ -41,6 +41,7 @@ openapi.yaml
   -> form/table metadata
   -> permissions and labels
   -> mocks
+  -> PR impact reports
   -> drift checks
 ```
 
@@ -64,9 +65,26 @@ node packages/cli/dist/index.js inspect --config examples/public-crm/archora-for
 node packages/cli/dist/index.js lint --config examples/public-crm/archora-forge.config.ts --strict
 node packages/cli/dist/index.js generate --config examples/public-crm/archora-forge.config.ts --dry-run
 node packages/cli/dist/index.js check --config examples/public-crm/archora-forge.config.ts --report html --report-file examples/public-crm/forge-check.html
+node packages/cli/dist/index.js audit --config examples/public-crm/archora-forge.config.ts --out /tmp/archora-forge-public-audit
 ```
 
 See `apps/docs/public-demo-walkthrough.md` for the generated public CRM walkthrough.
+
+For the self-serve path, start with `apps/docs/start-guide.md`, then read:
+
+- `apps/docs/see-impact-report.md`
+- `apps/docs/see-audit-report.md`
+- `apps/docs/ci-impact-kit.md`
+- `apps/docs/install-trial-buy.md`
+- `apps/docs/run-audit-quickstart.md`
+- `apps/docs/what-you-get.md`
+- `apps/docs/privacy-security.md`
+- `apps/docs/competitive-positioning.md`
+- `apps/docs/self-serve-purchase.md`
+- `apps/docs/product-demo-package.md`
+- `apps/docs/generated-output-typecheck.md`
+- `apps/docs/pilot-report-template.md`
+- `apps/docs/pilot-proof.md`
 
 For local development in this repo:
 
@@ -87,7 +105,7 @@ For a clean “external consumer” check:
 
 That script packs the CLI, installs it into `/tmp/archora-forge-consumer`, runs the installed `archora-forge` binary and verifies the generated files.
 
-For v1 onboarding and compatibility guarantees, see `apps/docs/quick-start.md`, `apps/docs/api-stability.md` and `apps/docs/generated-file-contract.md`.
+For v1 onboarding and compatibility guarantees, see `apps/docs/start-guide.md`, `apps/docs/quick-start.md`, `apps/docs/api-stability.md` and `apps/docs/generated-file-contract.md`.
 
 Once the packages are published, consumer usage should be:
 
@@ -96,8 +114,12 @@ pnpm add -D @archora/forge-cli @archora/forge-adapters
 pnpm exec archora-forge init
 pnpm exec archora-forge doctor ./openapi.yaml
 pnpm exec archora-forge inspect ./openapi.yaml
+pnpm exec archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --pr-comment-file forge-impact-pr.md
+pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
 pnpm exec archora-forge generate ./openapi.yaml
 ```
+
+Before buying or adopting generated output, run `archora-forge check` and typecheck the generated TypeScript in a temporary workspace. The docs include a report template so the purchase decision can be made from artifacts instead of a live demo.
 
 ## CLI
 
@@ -109,7 +131,9 @@ archora-forge validate ./openapi.yaml
 archora-forge diff ./openapi.yaml
 archora-forge lint ./openapi.yaml
 archora-forge check ./openapi.yaml
+archora-forge audit ./openapi.yaml
 archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml
+archora-forge impact ./old-openapi.yaml ./new-openapi.yaml
 archora-forge generate ./openapi.yaml
 ```
 
@@ -119,6 +143,8 @@ The normal workflow is:
 archora-forge inspect ./openapi.yaml
 archora-forge doctor ./openapi.yaml
 archora-forge diff ./openapi.yaml
+archora-forge audit ./openapi.yaml --out forge-audit
+archora-forge impact ./old-openapi.yaml ./openapi.yaml --repo . --report markdown --report-file forge-impact.md --pr-comment-file forge-impact-pr.md
 archora-forge generate ./openapi.yaml
 archora-forge check ./openapi.yaml
 ```

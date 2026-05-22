@@ -3,7 +3,7 @@
 Archora Forge v1 treats the following surfaces as stable within the v1 line:
 
 - `archora-forge.config.ts` fields documented in Configuration
-- CLI command names and JSON report top-level payloads for `inspect`, `validate`, `lint`, `generate --dry-run`, `diff`, `check`, `contract-diff` and `doctor`
+- CLI command names and JSON report top-level payloads for `inspect`, `validate`, `lint`, `generate --dry-run`, `diff`, `check`, `contract-diff`, `impact` and `doctor`
 - package root exports for `@archora/forge-cli`, `@archora/forge-config`, `@archora/forge-core`, `@archora/forge-runtime`, `@archora/forge-adapters` and `@archora/forge-templates`
 - generated file layout documented in Generated File Contract
 - runtime client helpers from `@archora/forge-runtime`

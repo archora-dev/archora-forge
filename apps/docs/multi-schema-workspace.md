@@ -21,3 +21,5 @@ Current status:
 - top-level JSON keeps backward-compatible primary schema fields while `schemas` contains per-input detail.
 
 Set a distinct `output.generatedDir` per input for generated artifacts. `generate` refuses multi-schema plans that would write the same generated path from more than one input.
+
+For adoption review artifacts across all inputs, see [Workspace Report](/workspace-report).

@@ -1,0 +1,81 @@
+openapi: 3.0.3
+info:
+  title: Impact Demo API
+  version: 1.1.0
+paths:
+  /contacts:
+    get:
+      operationId: listContacts
+      tags: [Contacts]
+      responses:
+        '200':
+          description: Contacts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+    post:
+      operationId: createContact
+      tags: [Contacts]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+  /contacts/search:
+    post:
+      operationId: searchContacts
+      tags: [Contacts]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query: { type: string }
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+components:
+  schemas:
+    Contact:
+      type: object
+      required: [id, email, status, ownerId]
+      properties:
+        id: { type: string }
+        email: { type: string }
+        status:
+          type: string
+          enum: [active]
+        ownerId: { type: string }
+    CreateContactRequest:
+      type: object
+      required: [email, status, ownerId]
+      properties:
+        email: { type: string }
+        status:
+          type: string
+          enum: [active]
+        ownerId: { type: string }

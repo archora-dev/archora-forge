@@ -4,7 +4,9 @@ import {
   calculateDrift,
   collectDiagnostics,
   createGenerationPlan,
+  createSchemaCoverageMatrix,
   detectResources,
+  mergeSchemaCoverageMatrices,
   normalizeOpenApi,
   parseOpenApi,
   summarizeGeneratorMetadata,
@@ -159,6 +161,7 @@ async function runCheck(
   const drift = await calculateDrift(plan.files, { cwd: loaded.cwd })
   const generator = await summarizeGeneratorMetadata(plan.files, { cwd: loaded.cwd })
   const diagnostics = collectDiagnostics(normalized)
+  const coverage = createSchemaCoverageMatrix(normalized, diagnostics)
   const healthScore = calculateSchemaHealth(normalized).score
   const failedChecks = evaluateFailedChecks({
     drift,

@@ -23,6 +23,28 @@ type SchemaLike = {
   protectedFiles?: number
   diagnosticsCount?: number
   failedChecks?: string[]
+  coverage?: CoverageLike
+}
+
+type CoverageLike = {
+  operations?: {
+    total?: number
+    generated?: number
+    diagnosticOnly?: number
+    byKind?: Record<string, number>
+    byRequestShape?: Record<string, number>
+    byResponseShape?: Record<string, number>
+  }
+  schemas?: {
+    total?: number
+    unsupportedConstructs?: Record<string, number>
+  }
+  cases?: {
+    generated?: number
+    skipped?: number
+    fallback?: number
+    diagnosticOnly?: number
+  }
 }
 
 type HtmlReportPayload = {
@@ -49,6 +71,30 @@ type HtmlReportPayload = {
   files?: { create?: number; update?: number; protected?: number }
   changes?: Array<{ severity?: string; code?: string; message?: string; location?: string }>
   affectedResources?: string[]
+  affectedFiles?: string[]
+  summary?: {
+    breaking?: number
+    warnings?: number
+    nonBreaking?: number
+    total?: number
+  }
+  decision?: {
+    status?: string
+    mergeRisk?: string
+    reason?: string
+  }
+  impactedSurface?: {
+    operationIds?: string[]
+    clientMethods?: string[]
+    queryHooks?: string[]
+  }
+  migrationHints?: string[]
+  prSummary?: string
+  sourceUsages?: Array<{
+    path?: string
+    matches?: string[]
+    lines?: number[]
+  }>
 }
 
 export function createHtmlReport(title: string, payload: HtmlReportPayload): string {
@@ -141,6 +187,7 @@ export function createHtmlReport(title: string, payload: HtmlReportPayload): str
   ${renderDiagnosticGroups(diagnosticsBySeverity, diagnosticsByCode)}
   ${renderUnsupportedOperations(unsupportedDiagnostics)}
   ${renderAffectedResources(topAffectedResources)}
+  ${renderImpactCenter(payload)}
   ${renderContractDiffSummary(payload)}
   ${renderSchemas(payload.schemas)}
   ${renderFailedChecks(failedChecks)}
@@ -260,6 +307,50 @@ function renderContractDiffSummary(payload: HtmlReportPayload): string {
   return `<section><h2>Contract Diff Summary</h2><div class="card"><p>Breaking changes: <strong>${breaking}</strong>; non-breaking changes: <strong>${nonBreaking}</strong>; affected resources: <strong>${payload.affectedResources?.length ?? 0}</strong>.</p></div></section>`
 }
 
+function renderImpactCenter(payload: HtmlReportPayload): string {
+  if (!payload.decision && !payload.summary && !payload.migrationHints?.length && !payload.prSummary) return ''
+  return `<section>
+    <h2>Frontend Impact Center</h2>
+    <div class="summary">
+      <div class="card">
+        <h2>Decision</h2>
+        <p>Status: <strong>${escapeHtml(payload.decision?.status ?? 'n/a')}</strong></p>
+        <p>Merge risk: <strong>${escapeHtml(payload.decision?.mergeRisk ?? 'n/a')}</strong></p>
+        <p>${escapeHtml(payload.decision?.reason ?? '')}</p>
+      </div>
+      <div class="card">
+        <h2>Impact Counts</h2>
+        <ul>
+          <li>Breaking: <strong>${escapeHtml(String(payload.summary?.breaking ?? 0))}</strong></li>
+          <li>Warnings: <strong>${escapeHtml(String(payload.summary?.warnings ?? 0))}</strong></li>
+          <li>Non-breaking: <strong>${escapeHtml(String(payload.summary?.nonBreaking ?? 0))}</strong></li>
+          <li>Affected files: <strong>${escapeHtml(String(payload.affectedFiles?.length ?? 0))}</strong></li>
+        </ul>
+      </div>
+    </div>
+    <details open><summary>PR Summary</summary><pre>${escapeHtml(payload.prSummary ?? '')}</pre></details>
+    <details open><summary>Migration Hints</summary>${renderSimpleList(payload.migrationHints ?? [], 'No migration hints.')}</details>
+    <details><summary>Impacted Surface</summary>
+      <div class="card">
+        <p>Operation IDs: ${escapeHtml(payload.impactedSurface?.operationIds?.join(', ') || 'none')}</p>
+        <p>Client methods: ${escapeHtml(payload.impactedSurface?.clientMethods?.join(', ') || 'none')}</p>
+        <p>Query hooks: ${escapeHtml(payload.impactedSurface?.queryHooks?.join(', ') || 'none')}</p>
+      </div>
+    </details>
+    ${renderSourceUsages(payload.sourceUsages)}
+  </section>`
+}
+
+function renderSourceUsages(usages: HtmlReportPayload['sourceUsages']): string {
+  if (!usages) return ''
+  if (usages.length === 0) return '<details open><summary>Source Usage</summary><div class="empty">No impacted source usages found.</div></details>'
+  const rows = usages
+    .slice(0, 100)
+    .map((usage) => `<tr><td><code>${escapeHtml(`${usage.path ?? ''}${usage.lines?.length ? `:${usage.lines.join(',')}` : ''}`)}</code></td><td>${escapeHtml((usage.matches ?? []).join(', '))}</td></tr>`)
+    .join('')
+  return `<details open><summary>Source Usage</summary><table><thead><tr><th>File</th><th>Matches</th></tr></thead><tbody>${rows}</tbody></table></details>`
+}
+
 function renderSchemas(schemas: SchemaLike[] | undefined): string {
   if (!schemas?.length) return ''
   const rows = schemas
@@ -299,6 +390,10 @@ function metric(label: string, value: string | number): string {
   return `<div class="metric"><strong>${escapeHtml(String(value))}</strong><span>${escapeHtml(label)}</span></div>`
 }
 
+function formatScoreLabel(value: string): string {
+  return value.replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase())
+}
+
 function escapeHtml(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;')
 }
@@ -326,6 +421,14 @@ function renderGroupPills(groups: Map<string, unknown[]>): string {
   return [...groups.entries()]
     .sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0]))
     .map(([name, items]) => `<span class="pill"><strong>${items.length}</strong>${escapeHtml(name)}</span>`)
+    .join('')
+}
+
+function renderRecordPills(record: Record<string, number> | undefined): string {
+  if (!record || Object.keys(record).length === 0) return '<span class="muted">none</span>'
+  return Object.entries(record)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .map(([name, count]) => `<span class="pill"><strong>${count}</strong>${escapeHtml(name)}</span>`)
     .join('')
 }
 

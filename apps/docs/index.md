@@ -3,31 +3,41 @@ layout: home
 
 hero:
   name: Archora Forge
-  text: OpenAPI to frontend resource layer — not just API clients.
-  tagline: Local-first preview tooling for typed clients, operation helpers, resource metadata, CI drift checks, diagnostics and paid pilot evaluation.
+  text: Review OpenAPI changes before they break frontend code.
+  tagline: Turn OpenAPI into a typed resource layer, adoption audit, PR impact report, repo usage scan and CI-ready frontend contract workflow.
   actions:
     - theme: brand
-      text: Run the public demo
-      link: /public-demo-walkthrough
+      text: See impact report
+      link: /see-impact-report
     - theme: alt
-      text: Evaluate in 30 minutes
-      link: /evaluate-in-30-minutes
+      text: See audit report
+      link: /see-audit-report
+    - theme: alt
+      text: Install, trial, buy
+      link: /install-trial-buy
 
 features:
-  - title: Local-first privacy
-    details: Run Forge in your repo or CI without uploading private OpenAPI contracts to a hosted service.
-  - title: Resource contract
-    details: Generate typed clients, operation helpers, query keys, form/table metadata, permissions, labels and mocks.
-  - title: CI drift and diagnostics
-    details: Use inspect, lint, check and HTML reports to review schema readiness and generated-output drift.
-  - title: Paid pilot ready
-    details: Best suited today for private beta pilots with Vue/OpenAPI teams, with preview limitations stated upfront.
+  - title: Impact Center
+    details: Compare old and new OpenAPI contracts, detect merge risk, find source usages and write PR comments.
+  - title: Audit package
+    details: Generate HTML, Markdown, JSON, CI workflow, adoption plan and generated preview files from one command.
+  - title: Frontend resource layer
+    details: Emit clients, types, query keys, operation helpers, metadata, permissions, labels and mocks.
+  - title: Local-first evaluation
+    details: Run on private schemas inside your repo or CI without uploading contracts.
 ---
 
-## Preview Positioning
+## The Product
 
-Archora Forge is available for public preview and paid private beta pilots. It is not positioned as production-ready, and it does not claim full OpenAPI coverage.
+Archora Forge is a local-first commercial developer tool for TypeScript frontend teams evaluating OpenAPI-driven resource generation. It is not a hosted SaaS and it does not claim full OpenAPI coverage.
 
-Use the public CRM demo to see the generated contract without private data, then evaluate one real schema locally in a branch. The paid pilot package is designed to answer whether Forge fits a team's API style, frontend architecture and CI workflow before broader adoption.
+The core workflow is:
 
-Preview limitations are documented in [Limitations](/limitations).
+```bash
+archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --pr-comment-file forge-impact-pr.md
+archora-forge audit ./openapi.yaml --out forge-audit
+```
+
+Open `forge-impact-pr.md` before accepting the API change. Open `forge-audit/index.html` before adopting generated output.
+
+Start with the [public impact report](/see-impact-report), then run the same workflow on one private schema.

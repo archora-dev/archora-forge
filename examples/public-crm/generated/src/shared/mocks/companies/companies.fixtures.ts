@@ -2,4 +2,4 @@
 // @archora-forge-meta {"version":"1.0.0","schemaHash":"1f70b9ad5985","configHash":"f1d971045876"}
 export const companiesFixtures: Company[] = []
 
-type Company = Record<string, unknown>
+type CompanyFixture = Record<string, unknown>

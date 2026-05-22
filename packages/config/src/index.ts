@@ -94,6 +94,65 @@ export function defineForgeConfig(config: ForgeConfig): ForgeConfig {
   return config
 }
 
+export type ForgeConfigPresetName = 'feature-sliced' | 'simple' | 'monorepo'
+
+export function createForgeConfigPreset(name: ForgeConfigPresetName, config: ForgeConfig): ForgeConfig {
+  if (name === 'simple') {
+    return {
+      ...config,
+      output: {
+        root: './src',
+        generatedDir: './src/api/generated',
+        featuresDir: './src/api/features',
+        pagesDir: './src/pages',
+        mocksDir: './src/api/mocks',
+        ...config.output,
+      },
+      target: {
+        framework: 'neutral',
+        language: 'typescript',
+        query: 'promise',
+        ui: 'metadata',
+        architecture: 'simple',
+        ...config.target,
+      },
+    }
+  }
+
+  if (name === 'monorepo' && config.inputs) {
+    return {
+      ...config,
+      inputs: config.inputs.map((input) => ({
+        ...input,
+        output: {
+          generatedDir: `./src/generated/${input.name}`,
+          ...input.output,
+        },
+      })),
+    }
+  }
+
+  return {
+    ...config,
+    output: {
+      root: './src',
+      generatedDir: './src/shared/api/generated',
+      featuresDir: './src/features',
+      pagesDir: './src/pages',
+      mocksDir: './src/shared/mocks',
+      ...config.output,
+    },
+    target: {
+      framework: 'neutral',
+      language: 'typescript',
+      query: 'promise',
+      ui: 'metadata',
+      architecture: 'feature-sliced',
+      ...config.target,
+    },
+  }
+}
+
 export type ResolvedForgeConfig = {
   input: string
   inputs: NonNullable<ForgeConfig['inputs']>

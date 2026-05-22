@@ -1,8 +1,8 @@
 # Evaluate Forge in 30 Minutes
 
-Use this flow to decide whether Archora Forge fits one real OpenAPI schema.
+Use this flow to decide whether Archora Forge fits one real OpenAPI schema without a sales call.
 
-Forge is in public preview/private beta. Treat this evaluation as a paid-pilot readiness check, not as proof that the tool is production-ready for every OpenAPI contract.
+Forge is a local-first commercial developer tool with preview limitations. Treat this evaluation as a purchase-readiness check, not as proof that the tool is production-ready for every OpenAPI contract.
 
 For a no-private-data walkthrough first, run the public CRM demo:
 
@@ -57,7 +57,21 @@ pnpm exec archora-forge check ./openapi.yaml --json
 
 The generated output should be committed and reviewed like application code. The `check` report includes a pilot readiness section with a status, decision, blockers, warnings and next actions. Treat it as an adoption-review artifact, not as a production-readiness certificate.
 
-## 5. Decision Criteria
+## 5. Typecheck Generated Output
+
+Create a temporary workspace and run TypeScript against the generated files. Use [Generated Output Typecheck](/generated-output-typecheck) as the exact artifact format.
+
+```bash
+tsc --noEmit -p ./generated-output-typecheck/tsconfig.json
+```
+
+This should pass before purchase, or every failure should be triaged as a schema issue, known limitation, generator defect or missing temporary-workspace dependency.
+
+## 6. Fill The Report
+
+Use [Pilot Report Template](/pilot-report-template) to record the outcome. A buyer should be able to approve or reject purchase from the report without a live walkthrough.
+
+## 7. Decision Criteria
 
 Forge is a good fit when:
 
@@ -66,7 +80,7 @@ Forge is a good fit when:
 - generated metadata maps into your forms/tables/design system;
 - `check` can be used as a CI gate and produces a clear pilot readiness decision;
 - regeneration does not overwrite custom code.
-- preview limitations are acceptable for a private beta or paid pilot.
+- preview limitations are acceptable for the purchase scope.
 
 Forge is not a good fit when:
 
@@ -75,3 +89,7 @@ Forge is not a good fit when:
 - discriminator-heavy polymorphism is central to the domain;
 - you need a hosted schema registry rather than local code generation.
 - you need a broad production license before proving the workflow on one schema.
+
+## Purchase Next Step
+
+When the report is a go or conditional go, use [Self-Serve Purchase](/self-serve-purchase) to choose the commercial package and license scope.

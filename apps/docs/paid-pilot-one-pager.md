@@ -17,12 +17,13 @@ Forge helps evaluate whether that resource layer can be generated consistently f
 
 ## What Is Included
 
-- One bounded private OpenAPI schema or schema family.
+- 1-3 bounded private OpenAPI schemas or one tightly related schema family.
 - Local Forge setup in a temporary workspace or customer-controlled repo.
 - Schema inspect, lint and readiness review.
 - Generated TypeScript clients, types, query keys and operation helpers.
 - Generated form/table metadata, permissions, i18n labels and mocks where supported.
 - HTML readiness/drift report suitable for internal review.
+- Generated TypeScript typecheck with a pass/fail summary.
 - Diagnostics triage and schema improvement recommendations.
 - A short integration recommendation for the customer's Vue stack.
 - Final adoption summary with go/no-go risks.
@@ -31,7 +32,7 @@ Forge helps evaluate whether that resource layer can be generated consistently f
 
 - A private generated-output review package or customer-owned branch/patch.
 - A redacted diagnostics summary.
-- A CI check recommendation for schema drift/readiness.
+- A CI check recommendation for schema drift/readiness and generated-output typecheck.
 - A list of schema patterns that work well and patterns that need attention.
 - A practical integration path for their frontend architecture.
 
@@ -59,11 +60,15 @@ Day 1: intake, privacy rules, temporary workspace and first inspect/lint run.
 
 Days 2-3: generation pass, diagnostics triage and schema readiness review.
 
-Days 4-5: frontend integration review for clients, helpers, metadata, permissions, labels and mocks.
+Days 4-5: generated TypeScript typecheck and frontend integration review for clients, helpers, metadata, permissions, labels and mocks.
 
 Days 6-7: CI check/report recommendation, redacted findings and go/no-go summary.
 
 Larger or enterprise schemas may need a longer pilot. The timeline is a planning example, not a production-readiness promise.
+
+## Current Proof Point
+
+A redacted private corpus run covered 37 real frontend API schemas, 437 operations, 347 detected resources and 4,985 generated files. Validation, lint/readiness, drift and generated TypeScript typecheck passed on all 37 schemas after generator fixes were covered by regression tests.
 
 ## Pricing Suggestion
 

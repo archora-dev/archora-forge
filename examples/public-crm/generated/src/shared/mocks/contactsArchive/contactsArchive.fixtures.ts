@@ -2,4 +2,4 @@
 // @archora-forge-meta {"version":"1.0.0","schemaHash":"1f70b9ad5985","configHash":"f1d971045876"}
 export const contactsArchiveFixtures: ContactsArchive[] = []
 
-type ContactsArchive = Record<string, unknown>
+type ContactsArchiveFixture = Record<string, unknown>

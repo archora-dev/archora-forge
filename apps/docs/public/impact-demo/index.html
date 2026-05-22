@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Frontend Impact Center</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17202a; background: #f6f7f9; }
+    body { margin: 0; }
+    main { max-width: 1120px; margin: 0 auto; padding: 32px 20px 48px; }
+    h1, h2, h3 { margin: 0; line-height: 1.2; }
+    h1 { font-size: 30px; }
+    h2 { margin-top: 28px; font-size: 18px; }
+    p { margin: 8px 0 0; color: #526071; }
+    .top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 6px 10px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+    .passed { color: #0b6b3a; background: #dff7ea; }
+    .failed { color: #9d2a1f; background: #ffe2dd; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 18px; }
+    .metric, .card { background: #fff; border: 1px solid #dfe4ea; border-radius: 8px; padding: 14px; box-shadow: 0 1px 2px rgba(23, 32, 42, .04); }
+    .metric strong { display: block; font-size: 24px; color: #17202a; }
+    .metric span, .muted { color: #667386; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; background: #fff; border: 1px solid #dfe4ea; border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #edf0f3; vertical-align: top; font-size: 14px; }
+    th { background: #f0f3f6; color: #3f4b59; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    tr:last-child td { border-bottom: 0; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: #eef2f6; padding: 2px 4px; border-radius: 4px; }
+    .warning { color: #8a5a00; }
+    .error { color: #a32116; }
+    .summary { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr); gap: 12px; margin-top: 18px; }
+    .summary ul { margin: 10px 0 0; padding-left: 18px; }
+    .summary li { margin: 6px 0; }
+    .pill-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .pill { display: inline-flex; gap: 6px; align-items: center; border: 1px solid #dfe4ea; border-radius: 999px; padding: 5px 9px; background: #f8fafc; font-size: 12px; }
+    details { background: #fff; border: 1px solid #dfe4ea; border-radius: 8px; margin-top: 12px; overflow: hidden; }
+    summary { cursor: pointer; padding: 12px 14px; font-weight: 700; background: #f8fafc; }
+    pre { white-space: pre-wrap; word-break: break-word; background: #17202a; color: #f6f7f9; border-radius: 8px; padding: 12px; font-size: 12px; margin: 12px 0 0; }
+    .empty { background: #fff; border: 1px dashed #cad2dc; border-radius: 8px; padding: 16px; color: #667386; margin-top: 12px; }
+    .footer { margin-top: 32px; font-size: 12px; color: #7a8797; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="top">
+    <div>
+      <h1>Frontend Impact Center</h1>
+      <p>Archora Forge CLI report</p>
+    </div>
+    <span class="badge failed">failed</span>
+  </section>
+
+  <section class="grid">
+    <div class="metric"><strong>n/a</strong><span>Health</span></div>
+    <div class="metric"><strong>0</strong><span>Diagnostics</span></div>
+    <div class="metric"><strong>0</strong><span>Failed checks</span></div>
+    <div class="metric"><strong>0</strong><span>Drift</span></div>
+    <div class="metric"><strong>n/a</strong><span>Resources</span></div>
+    <div class="metric"><strong>n/a</strong><span>Generated files</span></div>
+  </section>
+
+  <section class="summary">
+    <div class="card">
+      <h2>Executive Summary</h2>
+      <ul>
+        <li>Generated output needs attention before this schema should pass CI.</li>
+        <li>Health score: <strong>n/a</strong>.</li>
+        <li>Resources: <strong>n/a</strong>; generated files: <strong>n/a</strong>.</li>
+        <li>Diagnostics: <strong>0</strong>; drift entries: <strong>0</strong>.</li>
+        <li>Top affected resources: contacts (1).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Decision Signal</h2>
+      <p>Ready for CI under the current policy.</p>
+    </div>
+  </section>
+
+
+
+
+
+  <section><h2>Schema Fix Suggestions</h2><div class="empty">No schema fix suggestions.</div></section>
+
+  <section><h2>Copyable CI Summary</h2><pre>Status: failed
+Health: n/a
+Resources: n/a
+Generated files: n/a
+Diagnostics: 0
+Drift: 0
+Failed checks: none</pre></section>
+  <section><h2>Generated Files by Category</h2><div class="empty">No generated file summary available.</div></section>
+  <section><h2>Diagnostics Grouped</h2><div class="empty">No diagnostics to group.</div></section>
+  <section><h2>Unsupported Operations</h2><div class="empty">No unsupported operations detected.</div></section>
+  <section><h2>Top Affected Resources</h2><div class="pill-list"><span class="pill"><strong>1</strong>contacts</span></div></section>
+  <section>
+    <h2>Frontend Impact Center</h2>
+    <div class="summary">
+      <div class="card">
+        <h2>Decision</h2>
+        <p>Status: <strong>blocked</strong></p>
+        <p>Merge risk: <strong>high</strong></p>
+        <p>6 breaking frontend contract changes detected.</p>
+      </div>
+      <div class="card">
+        <h2>Impact Counts</h2>
+        <ul>
+          <li>Breaking: <strong>6</strong></li>
+          <li>Warnings: <strong>0</strong></li>
+          <li>Non-breaking: <strong>1</strong></li>
+          <li>Affected files: <strong>3</strong></li>
+        </ul>
+      </div>
+    </div>
+    <details open><summary>PR Summary</summary><pre>Frontend API impact: blocked (high risk).
+6 breaking frontend contract changes detected.
+Changes: 6 breaking, 0 warnings, 1 non-breaking.
+Affected resources: contacts.
+Affected generated files: 3.
+Migration hints:
+- contacts: replace usages before regenerating. GET /contacts/{id} was removed.
+- contacts: remove UI options and branch handling for the removed enum value. Enum value &quot;blocked&quot; was removed.
+- contacts: update create/update payload builders and forms for the new required field. Field &quot;ownerId&quot; became required.
+- contacts: remove reads, table columns and form bindings for the deleted field. Field &quot;displayName&quot; was removed.
+- contacts: new endpoint is available after regeneration. POST /contacts/search was added.</pre></details>
+    <details open><summary>Migration Hints</summary><ul><li>contacts: replace usages before regenerating. GET /contacts/{id} was removed.</li><li>contacts: remove UI options and branch handling for the removed enum value. Enum value &quot;blocked&quot; was removed.</li><li>contacts: update create/update payload builders and forms for the new required field. Field &quot;ownerId&quot; became required.</li><li>contacts: remove reads, table columns and form bindings for the deleted field. Field &quot;displayName&quot; was removed.</li><li>contacts: new endpoint is available after regeneration. POST /contacts/search was added.</li></ul></details>
+    <details><summary>Impacted Surface</summary>
+      <div class="card">
+        <p>Operation IDs: createContact, getContact, searchContacts</p>
+        <p>Client methods: createContact(), getContact(), searchContacts()</p>
+        <p>Query hooks: useCreateContactMutation, useGetContactQuery, useSearchContactsQuery</p>
+      </div>
+    </details>
+    <details open><summary>Source Usage</summary><table><thead><tr><th>File</th><th>Matches</th></tr></thead><tbody><tr><td><code>src/contacts-page.ts:1,4,7,8</code></td><td>contactsClient, createContact, searchContacts</td></tr></tbody></table></details>
+  </section>
+  <section><h2>Contract Diff Summary</h2><div class="card"><p>Breaking changes: <strong>6</strong>; non-breaking changes: <strong>1</strong>; affected resources: <strong>1</strong>.</p></div></section>
+
+  <section><h2>Failed Checks</h2><div class="empty">No failed checks.</div></section>
+  <section><h2>Diagnostics</h2><div class="empty">No diagnostics.</div></section>
+  <section><h2>Drift</h2><div class="empty">No drift detected.</div></section>
+
+  <p class="footer">Generated by Archora Forge CLI. Commit this report as a CI artifact or attach it to release validation notes.</p>
+</main>
+</body>
+</html>

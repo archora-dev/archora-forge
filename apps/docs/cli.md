@@ -9,9 +9,17 @@ archora-forge inspect ./openapi.yaml
 archora-forge validate ./openapi.yaml
 archora-forge diff ./openapi.yaml
 archora-forge lint ./openapi.yaml
+archora-forge audit ./openapi.yaml
 archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml
+archora-forge impact ./old-openapi.yaml ./new-openapi.yaml
 archora-forge generate ./openapi.yaml
 ```
+
+For self-serve purchase evaluation, pair CLI output with:
+
+- [Generated Output Typecheck](/generated-output-typecheck);
+- [Product Demo Package](/product-demo-package);
+- [Pilot Report Template](/pilot-report-template).
 
 ## Commands
 
@@ -21,8 +29,11 @@ archora-forge generate ./openapi.yaml
 - `validate` checks that the schema can be parsed and normalized.
 - `diff` shows create/update/protected file counts without writing files.
 - `lint` reports frontend generation readiness diagnostics.
+- `audit` creates a self-serve adoption package with HTML/JSON/Markdown reports, generated preview files, generated-output typecheck, CI workflow and adoption plan.
 - `contract-diff` compares old/new contracts and reports affected generated files.
+- `impact` creates a PR-ready frontend API impact report with merge risk, migration hints and affected generated surface.
 - `generate` writes the frontend resource contract files.
+- generated-output typecheck is run by `audit` or by the consuming workspace with `tsc --noEmit`; Forge reports TypeScript errors instead of hiding them behind a custom wrapper.
 
 ## Flags
 
@@ -44,9 +55,38 @@ archora-forge generate ./openapi.yaml
 - `init --validation none|zod|valibot` enables generated validation schemas in the starter config.
 - `inspect --json` includes resource names, entities, CRUD operation ids and missing CRUD operations.
 - `check --report markdown|json --report-file <path>` writes a CI artifact report.
+- `audit --out <path>` writes the full self-serve adoption package.
+- `audit --skip-typecheck` skips the generated TypeScript typecheck gate when TypeScript is not available in the current environment.
+- `impact --report markdown|json|html --report-file <path>` writes a contract impact artifact.
+- `impact --repo <path>` scans a frontend repository for impacted generated API usages.
+- `impact --pr-comment-file <path>` writes a compact pull-request comment artifact.
 
 When a command is run with `--json`, command-level failures are reported as `{ "ok": false, "error": "..." }` and exit with code `2`.
 Successful JSON payloads for readiness and generation commands include `ok: true`.
+
+## Common Examples
+
+Audit one schema:
+
+```bash
+archora-forge audit ./openapi.yaml --out forge-audit
+```
+
+Review an API change before regeneration:
+
+```bash
+archora-forge impact ./openapi.old.yaml ./openapi.yaml \
+  --repo . \
+  --report markdown \
+  --report-file forge-impact.md \
+  --pr-comment-file forge-impact-pr.md
+```
+
+Check generated drift in CI:
+
+```bash
+archora-forge check ./openapi.yaml --report html --report-file forge-check.html
+```
 
 For local repository development before publishing:
 

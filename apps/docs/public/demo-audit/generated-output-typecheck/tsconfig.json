@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "paths": {
+      "@archora/forge-runtime": [
+        "../../../../../packages/runtime/src/index.ts",
+        "./node_modules/@archora/forge-runtime/dist/index.d.ts"
+      ]
+    },
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022"
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

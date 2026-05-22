@@ -1,0 +1,24 @@
+name: archora-forge-audit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  forge-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec archora-forge audit examples/public-crm/openapi.yaml --out forge-audit
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: archora-forge-audit
+          path: forge-audit

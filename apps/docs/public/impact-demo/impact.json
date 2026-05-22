@@ -1,0 +1,120 @@
+{
+  "ok": false,
+  "oldSchema": "apps/docs/public/impact-demo/openapi.old.yaml",
+  "newSchema": "apps/docs/public/impact-demo/openapi.new.yaml",
+  "sourceUsages": [
+    {
+      "path": "src/contacts-page.ts",
+      "matches": [
+        "contactsClient",
+        "createContact",
+        "searchContacts"
+      ],
+      "lines": [
+        1,
+        4,
+        7,
+        8
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "code": "removed-endpoint",
+      "severity": "breaking",
+      "resource": "contacts",
+      "location": "GET /contacts/{id}",
+      "message": "GET /contacts/{id} was removed."
+    },
+    {
+      "code": "enum-value-removed",
+      "severity": "breaking",
+      "resource": "contacts",
+      "location": "POST /contacts request.status",
+      "message": "Enum value \"blocked\" was removed."
+    },
+    {
+      "code": "required-field-added",
+      "severity": "breaking",
+      "resource": "contacts",
+      "location": "POST /contacts request.ownerId",
+      "message": "Field \"ownerId\" became required."
+    },
+    {
+      "code": "field-removed",
+      "severity": "breaking",
+      "resource": "contacts",
+      "location": "POST /contacts response.displayName",
+      "message": "Field \"displayName\" was removed."
+    },
+    {
+      "code": "enum-value-removed",
+      "severity": "breaking",
+      "resource": "contacts",
+      "location": "POST /contacts response.status",
+      "message": "Enum value \"blocked\" was removed."
+    },
+    {
+      "code": "required-field-added",
+      "severity": "breaking",
+      "resource": "contacts",
+      "location": "POST /contacts response.ownerId",
+      "message": "Field \"ownerId\" became required."
+    },
+    {
+      "code": "added-endpoint",
+      "severity": "non-breaking",
+      "resource": "contacts",
+      "location": "POST /contacts/search",
+      "message": "POST /contacts/search was added."
+    }
+  ],
+  "affectedResources": [
+    "contacts"
+  ],
+  "affectedFiles": [
+    "src/shared/api/generated/contacts/contacts.types.ts",
+    "src/shared/api/generated/contacts/contacts.client.ts",
+    "src/features/contacts/api/index.ts"
+  ],
+  "changelog": [
+    "BREAKING contacts: 6 breaking, 1 non-breaking, 0 warning changes.",
+    "3 resource contract files affected."
+  ],
+  "summary": {
+    "breaking": 6,
+    "warnings": 0,
+    "nonBreaking": 1,
+    "total": 7
+  },
+  "decision": {
+    "status": "blocked",
+    "mergeRisk": "high",
+    "reason": "6 breaking frontend contract changes detected."
+  },
+  "impactedSurface": {
+    "operationIds": [
+      "createContact",
+      "getContact",
+      "searchContacts"
+    ],
+    "clientMethods": [
+      "createContact()",
+      "getContact()",
+      "searchContacts()"
+    ],
+    "queryHooks": [
+      "useCreateContactMutation",
+      "useGetContactQuery",
+      "useSearchContactsQuery"
+    ]
+  },
+  "migrationHints": [
+    "contacts: replace usages before regenerating. GET /contacts/{id} was removed.",
+    "contacts: remove UI options and branch handling for the removed enum value. Enum value \"blocked\" was removed.",
+    "contacts: update create/update payload builders and forms for the new required field. Field \"ownerId\" became required.",
+    "contacts: remove reads, table columns and form bindings for the deleted field. Field \"displayName\" was removed.",
+    "contacts: new endpoint is available after regeneration. POST /contacts/search was added."
+  ],
+  "prSummary": "Frontend API impact: blocked (high risk).\n6 breaking frontend contract changes detected.\nChanges: 6 breaking, 0 warnings, 1 non-breaking.\nAffected resources: contacts.\nAffected generated files: 3.\nMigration hints:\n- contacts: replace usages before regenerating. GET /contacts/{id} was removed.\n- contacts: remove UI options and branch handling for the removed enum value. Enum value \"blocked\" was removed.\n- contacts: update create/update payload builders and forms for the new required field. Field \"ownerId\" became required.\n- contacts: remove reads, table columns and form bindings for the deleted field. Field \"displayName\" was removed.\n- contacts: new endpoint is available after regeneration. POST /contacts/search was added."
+}

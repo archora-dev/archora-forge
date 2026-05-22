@@ -60,7 +60,7 @@ describe('cli foundation', () => {
     const cli = createCli()
     const commandNames = cli.commands.map((command) => command.name)
 
-    expect(commandNames).toEqual(expect.arrayContaining(['init', 'doctor', 'generate', 'inspect', 'validate', 'diff', 'lint', 'contract-diff']))
+    expect(commandNames).toEqual(expect.arrayContaining(['init', 'audit', 'doctor', 'generate', 'inspect', 'validate', 'diff', 'lint', 'contract-diff', 'impact']))
   })
 })
 
