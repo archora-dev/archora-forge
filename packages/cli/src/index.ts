@@ -1,5 +1,6 @@
 import { cac } from 'cac'
 
+import { registerAuditCommand } from './commands/audit.command.js'
 import { registerCheckCommand } from './commands/check.command.js'
 import { registerContractDiffCommand } from './commands/contract-diff.command.js'
 import { registerDiffCommand } from './commands/diff.command.js'
@@ -20,6 +21,7 @@ export function createCli() {
   cli.help()
 
   registerInitCommand(cli)
+  registerAuditCommand(cli)
   registerGenerateCommand(cli)
   registerInspectCommand(cli)
   registerValidateCommand(cli)

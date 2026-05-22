@@ -2156,6 +2156,33 @@ describe('Product regression coverage', () => {
       diagnosticOnly: 2,
     })
   })
+
+  test('audit command writes a self-serve adoption package', async () => {
+    const cwd = await tempDir()
+    const schemaPath = join(cwd, 'openapi.yaml')
+    const outDir = join(cwd, 'forge-audit')
+    await writeFile(schemaPath, JSON.stringify(crudSchema), 'utf8')
+
+    const { exitCode, output } = await runCliInDirectory(cwd, ['audit', './openapi.yaml', '--json', '--skip-typecheck', '--out', outDir])
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      audit: { artifacts: string[] }
+      scorecard: Record<string, number>
+      typecheck: { status: string }
+      resourceExplorer: Array<{ name: string; generatedFiles: string[] }>
+    }
+
+    expect(exitCode).toBe(1)
+    expect(payload.ok).toBe(false)
+    expect(payload.typecheck.status).toBe('skipped')
+    expect(payload.scorecard.resourceCoverage).toBe(100)
+    expect(payload.resourceExplorer.map((resource) => resource.name)).toContain('users')
+    expect(payload.audit.artifacts).toContain('index.html')
+    expect(await readTextFile(join(outDir, 'index.html'), 'utf8')).toContain('Resource Explorer')
+    expect(await readTextFile(join(outDir, 'report.md'), 'utf8')).toContain('frontendReadiness')
+    expect(await readTextFile(join(outDir, 'typecheck.md'), 'utf8')).toContain('skipped')
+    expect(await readTextFile(join(outDir, 'ci.yml'), 'utf8')).toContain('archora-forge audit')
+  })
 })
 
 function readFile(plan: Awaited<ReturnType<typeof createGenerationPlan>>, suffix: string): string {

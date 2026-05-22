@@ -60,6 +60,7 @@ export default defineConfig({
           { text: 'Evaluate in 30 Minutes', link: '/evaluate-in-30-minutes' },
           { text: 'Public Demo Walkthrough', link: '/public-demo-walkthrough' },
           { text: 'Product Demo Package', link: '/product-demo-package' },
+          { text: 'Audit Command', link: '/audit' },
           { text: 'Private Schema Pilot Proof', link: '/pilot-proof' },
           { text: 'Generated Output Typecheck', link: '/generated-output-typecheck' },
           { text: 'Pilot Report Template', link: '/pilot-report-template' },

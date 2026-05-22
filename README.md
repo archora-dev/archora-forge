@@ -64,6 +64,7 @@ node packages/cli/dist/index.js inspect --config examples/public-crm/archora-for
 node packages/cli/dist/index.js lint --config examples/public-crm/archora-forge.config.ts --strict
 node packages/cli/dist/index.js generate --config examples/public-crm/archora-forge.config.ts --dry-run
 node packages/cli/dist/index.js check --config examples/public-crm/archora-forge.config.ts --report html --report-file examples/public-crm/forge-check.html
+node packages/cli/dist/index.js audit --config examples/public-crm/archora-forge.config.ts --out /tmp/archora-forge-public-audit
 ```
 
 See `apps/docs/public-demo-walkthrough.md` for the generated public CRM walkthrough.
@@ -104,6 +105,7 @@ pnpm add -D @archora/forge-cli @archora/forge-adapters
 pnpm exec archora-forge init
 pnpm exec archora-forge doctor ./openapi.yaml
 pnpm exec archora-forge inspect ./openapi.yaml
+pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
 pnpm exec archora-forge generate ./openapi.yaml
 ```
 
@@ -119,6 +121,7 @@ archora-forge validate ./openapi.yaml
 archora-forge diff ./openapi.yaml
 archora-forge lint ./openapi.yaml
 archora-forge check ./openapi.yaml
+archora-forge audit ./openapi.yaml
 archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml
 archora-forge generate ./openapi.yaml
 ```
@@ -129,6 +132,7 @@ The normal workflow is:
 archora-forge inspect ./openapi.yaml
 archora-forge doctor ./openapi.yaml
 archora-forge diff ./openapi.yaml
+archora-forge audit ./openapi.yaml --out forge-audit
 archora-forge generate ./openapi.yaml
 archora-forge check ./openapi.yaml
 ```

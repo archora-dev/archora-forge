@@ -32,6 +32,7 @@ node packages/cli/dist/index.js lint --config examples/public-crm/archora-forge.
 node packages/cli/dist/index.js generate --config examples/public-crm/archora-forge.config.ts --dry-run
 node packages/cli/dist/index.js check --config examples/public-crm/archora-forge.config.ts --report html --report-file examples/public-crm/forge-check.html
 node packages/cli/dist/index.js check --config examples/public-crm/archora-forge.config.ts --report markdown --report-file examples/public-crm/forge-check.md
+node packages/cli/dist/index.js audit --config examples/public-crm/archora-forge.config.ts --out /tmp/archora-forge-public-audit
 ```
 
 Current demo check result:
@@ -41,6 +42,7 @@ Current demo check result:
 - 0 diagnostics.
 - 0 drift after generation.
 - Health score 100.
+- Generated TypeScript typecheck passed in the audit package.
 
 For a buyer-facing package, pair this walkthrough with [Product Demo Package](/product-demo-package), [Generated Output Typecheck](/generated-output-typecheck) and [Self-Serve Purchase](/self-serve-purchase).
 

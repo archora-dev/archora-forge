@@ -159,6 +159,26 @@ describe('v1 public API contract', () => {
       'drift',
       'diagnostics',
     ])
+    await expectCliJsonKeys(cwd, ['audit', basicCrudSchema, '--json', '--skip-typecheck', '--out', join(cwd, 'forge-audit')], [
+      'ok',
+      'schema',
+      'schemas',
+      'audit',
+      'healthScore',
+      'resources',
+      'generatedFiles',
+      'protectedFiles',
+      'failedChecks',
+      'scorecard',
+      'generator',
+      'coverage',
+      'typecheck',
+      'resourceExplorer',
+      'fixSuggestions',
+      'readiness',
+      'drift',
+      'diagnostics',
+    ])
   })
 })
 

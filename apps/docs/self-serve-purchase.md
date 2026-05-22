@@ -45,6 +45,7 @@ pnpm exec archora-forge inspect ./openapi.yaml --report-file forge-inspect.json
 pnpm exec archora-forge lint ./openapi.yaml --strict --report-file forge-lint.json
 pnpm exec archora-forge check ./openapi.yaml --report html --report-file forge-check.html
 pnpm exec archora-forge generate ./openapi.yaml --dry-run --json --report-file forge-generate.json
+pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
 ```
 
 After a real generation run, typecheck the generated output as described in [Generated Output Typecheck](/generated-output-typecheck).

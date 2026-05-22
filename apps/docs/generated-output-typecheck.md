@@ -2,6 +2,14 @@
 
 Generation alone is not enough for a commercial evaluation. The generated output should compile in a temporary TypeScript workspace before a buyer treats it as usable.
 
+`archora-forge audit` runs this gate automatically when TypeScript is available:
+
+```bash
+archora-forge audit ./openapi.yaml --out forge-audit
+```
+
+Use the manual setup below when you need to reproduce the gate outside the audit package.
+
 ## Why This Gate Exists
 
 The typecheck catches issues that schema validation cannot see:

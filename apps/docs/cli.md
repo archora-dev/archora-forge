@@ -9,6 +9,7 @@ archora-forge inspect ./openapi.yaml
 archora-forge validate ./openapi.yaml
 archora-forge diff ./openapi.yaml
 archora-forge lint ./openapi.yaml
+archora-forge audit ./openapi.yaml
 archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml
 archora-forge generate ./openapi.yaml
 ```
@@ -27,9 +28,10 @@ For self-serve purchase evaluation, pair CLI output with:
 - `validate` checks that the schema can be parsed and normalized.
 - `diff` shows create/update/protected file counts without writing files.
 - `lint` reports frontend generation readiness diagnostics.
+- `audit` creates a self-serve adoption package with HTML/JSON/Markdown reports, generated preview files, generated-output typecheck, CI workflow and adoption plan.
 - `contract-diff` compares old/new contracts and reports affected generated files.
 - `generate` writes the frontend resource contract files.
-- generated-output typecheck is run by the consuming workspace with `tsc --noEmit`; Forge documents the gate but does not hide TypeScript errors behind a custom wrapper.
+- generated-output typecheck is run by `audit` or by the consuming workspace with `tsc --noEmit`; Forge reports TypeScript errors instead of hiding them behind a custom wrapper.
 
 ## Flags
 
@@ -51,6 +53,8 @@ For self-serve purchase evaluation, pair CLI output with:
 - `init --validation none|zod|valibot` enables generated validation schemas in the starter config.
 - `inspect --json` includes resource names, entities, CRUD operation ids and missing CRUD operations.
 - `check --report markdown|json --report-file <path>` writes a CI artifact report.
+- `audit --out <path>` writes the full self-serve adoption package.
+- `audit --skip-typecheck` skips the generated TypeScript typecheck gate when TypeScript is not available in the current environment.
 
 When a command is run with `--json`, command-level failures are reported as `{ "ok": false, "error": "..." }` and exit with code `2`.
 Successful JSON payloads for readiness and generation commands include `ok: true`.
