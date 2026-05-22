@@ -1,4 +1,5 @@
 import type { NormalizedOpenApi } from '../../openapi/openapi.types.js'
+import { hasPathParameters, renderPathTemplate } from '../../openapi/pathTemplate.js'
 import type { DetectedResource } from '../../resources/resources.types.js'
 import { pluralizeTypeName, quoteObjectKeyIfNeeded, toSafeIdentifier, toSafeTypeName } from '../identifiers.js'
 import {
@@ -138,13 +139,13 @@ function createPathParamSignature(params: ReturnType<typeof getPathParams>, sing
 function pathWithParams(path: string, params: ReturnType<typeof getPathParams>): string {
   if (params.length <= 1) {
     const paramName = toSafeIdentifier(params[0]?.name ?? 'id')
-    return `\`${path.replace(/\{[^}]+\}/g, `\${${encodePathParam(paramName)}}`)}\``
+    return `\`${renderPathTemplate(path, () => `\${${encodePathParam(paramName)}}`)}\``
   }
-  return `\`${path.replace(/\{([^}]+)\}/g, (_, name: string) => `\${${encodePathParam(paramValueAccess('params', name))}}`)}\``
+  return `\`${renderPathTemplate(path, (name) => `\${${encodePathParam(paramValueAccess('params', name))}}`)}\``
 }
 
 function pathWithParamsObject(path: string): string {
-  return `\`${path.replace(/\{([^}]+)\}/g, (_, name: string) => `\${${encodePathParam(paramValueAccess('params', name))}}`)}\``
+  return `\`${renderPathTemplate(path, (name) => `\${${encodePathParam(paramValueAccess('params', name))}}`)}\``
 }
 
 function isGeneratedOperation(resource: DetectedResource, operation: DetectedResource['operationsList'][number]): boolean {
@@ -195,8 +196,8 @@ function createListRequestOptions(queryParams: ReturnType<typeof getQueryParams>
 }
 
 function pathWithOperationParams(path: string): string {
-  if (!/\{[^}]+\}/.test(path)) return `'${path}'`
-  return `\`${path.replace(/\{([^}]+)\}/g, (_, name: string) => `\${${encodePathParam(paramValueAccess('params', name))}}`)}\``
+  if (!hasPathParameters(path)) return `'${path}'`
+  return `\`${renderPathTemplate(path, (name) => `\${${encodePathParam(paramValueAccess('params', name))}}`)}\``
 }
 
 function encodePathParam(expression: string): string {

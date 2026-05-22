@@ -2,6 +2,7 @@ import type { ForgeDiagnostic } from '../diagnostics/diagnostics.js'
 import { collectDiagnostics } from '../diagnostics/diagnostics.js'
 import { toSafeIdentifier } from '../generation/identifiers.js'
 import type { NormalizedOpenApi } from '../openapi/openapi.types.js'
+import { extractPathParameters } from '../openapi/pathTemplate.js'
 
 export type OpenApiLintOptions = {
   strict?: boolean
@@ -126,10 +127,6 @@ export function lintOpenApi(normalized: NormalizedOpenApi, options: OpenApiLintO
   const ok = options.strict ? filtered.length === 0 : errors === 0
 
   return { ok, score, diagnostics: filtered, grouped }
-}
-
-function extractPathParameters(path: string): string[] {
-  return [...path.matchAll(/\{([^}]+)\}/g)].map((match) => match[1] ?? '').filter(Boolean)
 }
 
 function dedupeDiagnostics(diagnostics: ForgeDiagnostic[]): ForgeDiagnostic[] {
