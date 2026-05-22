@@ -1888,6 +1888,67 @@ describe('Product regression coverage', () => {
     expect(monorepo.inputs.map((input) => input.output?.generatedDir)).toEqual(['./src/generated/users', './src/generated/billing'])
   })
 
+  test('generated artifacts avoid front-api typecheck traps', async () => {
+    const cwd = await tempDir()
+    const normalized = normalizeOpenApi({
+      openapi: '3.0.3',
+      info: { title: 'Typecheck Trap API', version: '1.0.0' },
+      paths: {
+        '/records': {
+          get: {
+            operationId: 'listRecords',
+            tags: ['Records'],
+            responses: { '200': { description: 'Records', content: { 'application/json': { schema: { type: 'array', items: { type: 'object' } } } } } },
+          },
+        },
+        '/reset-password': {
+          post: {
+            operationId: 'resetPass',
+            tags: ['ResetPassAction'],
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      'new-password': { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+            responses: { '200': { description: 'OK' } },
+          },
+        },
+        '/types': {
+          post: {
+            operationId: 'createType',
+            tags: ['Types'],
+            responses: { '200': { description: 'Type', content: { 'application/json': { schema: { type: 'object' } } } } },
+          },
+        },
+        '/services/{name}/goal/{code}': {
+          delete: {
+            operationId: 'deleteGoal',
+            tags: ['Goal'],
+            parameters: [
+              { name: 'name', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'code', in: 'path', required: true, schema: { type: 'string' } },
+            ],
+            responses: { '204': { description: 'Deleted' } },
+          },
+        },
+      },
+    })
+    const resources = detectResources(normalized.operations)
+    const plan = await createGenerationPlan({ config: resolveForgeConfig({ input: './openapi.yaml' }), normalized, resources, cwd })
+
+    expect(readFile(plan, 'records.fixtures.ts')).toContain('type RecordFixture = Record<string, unknown>')
+    expect(plan.files.map((file) => file.content).join('\n')).toContain("'new-password': 'New-password'")
+    expect(readFile(plan, 'types.types.ts')).toContain('export type CreateTypeValueRequest = Partial<TypeValue>')
+    expect(readFile(plan, 'useDeleteGoalMutation.ts')).toContain('goalQueryKeys.detail(id)')
+  })
+
   test('contract-diff command can write a JSON report file for CI artifacts', async () => {
     const cwd = await tempDir()
     const oldPath = join(cwd, 'old-openapi.json')

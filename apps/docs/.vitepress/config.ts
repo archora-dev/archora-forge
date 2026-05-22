@@ -58,6 +58,7 @@ export default defineConfig({
         items: [
           { text: 'Evaluate in 30 Minutes', link: '/evaluate-in-30-minutes' },
           { text: 'Public Demo Walkthrough', link: '/public-demo-walkthrough' },
+          { text: 'Private Schema Pilot Proof', link: '/pilot-proof' },
           { text: 'Why Forge', link: '/why-forge' },
           { text: 'Private Schema Workflow', link: '/private-schema-workflow' },
           { text: 'Paid Pilot Package', link: '/paid-pilot-package' },

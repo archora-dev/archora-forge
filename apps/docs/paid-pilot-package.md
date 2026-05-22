@@ -20,10 +20,12 @@ Recommended pilot length: 1-2 weeks.
 
 Included:
 
-- one private OpenAPI schema or one bounded schema family;
+- 1-3 private OpenAPI schemas or one tightly bounded schema family;
 - local or CI-based Forge setup;
 - generated clients, operation helpers, metadata and mocks;
-- HTML schema/report review;
+- schema validation, lint/readiness and drift review;
+- HTML and Markdown `check` reports;
+- generated TypeScript typecheck with `tsc --noEmit`;
 - diagnostics triage;
 - resource naming/config recommendations;
 - one integration example with the customer's UI/table/form conventions;
@@ -43,7 +45,9 @@ Not included:
 - HTML `inspect` report.
 - HTML or Markdown `check` report with pilot readiness status, blockers, warnings and next actions.
 - JSON `check` payload for CI or internal automation.
+- Generated TypeScript typecheck result and failure summary if any generated code does not compile.
 - Diagnostics summary with recommended OpenAPI fixes.
+- Resource coverage summary: CRUD, read-only, search, dashboard, action and file operations.
 - Short integration guide for the customer's frontend.
 - Go/no-go recommendation for broader rollout.
 
@@ -53,6 +57,7 @@ Recommended readiness commands:
 archora-forge check ./openapi.yaml --report html --report-file forge-check.html
 archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md
 archora-forge check ./openapi.yaml --json
+tsc --noEmit -p ./generated-output-typecheck/tsconfig.json
 ```
 
 ## Suggested Pricing
@@ -70,6 +75,7 @@ Pricing should reflect schema complexity, access constraints and how much integr
 - `archora-forge check` can run in CI.
 - The `check` readiness section has no unresolved blockers, or accepted blockers are documented in the final adoption report.
 - Generated output is deterministic and reviewable.
+- Generated TypeScript passes typecheck, or every compile failure is tied to a named generator or schema issue.
 - The customer sees useful frontend metadata, not just client methods.
 - Unsupported OpenAPI features are explicit and documented.
 - The team has a clear path to adopt or reject Forge based on evidence.

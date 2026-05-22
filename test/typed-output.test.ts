@@ -465,8 +465,8 @@ describe('Type-safe generated output', () => {
     expect(queryKeys).toContain('detail: (id: UserId)')
     expect(detailComposable).toContain('useUserQuery(id: UserId)')
     expect(updateComposable).toContain('mutate: (input: { id: UserId; payload: UpdateUserRequest })')
-    expect(deleteComposable).toContain('invalidate: (id: UserId) => ReturnType<typeof usersQueryKeys.list>')
-    expect(deleteComposable).toContain('invalidate: (id) => usersQueryKeys.list({ teamId: id.teamId })')
+    expect(deleteComposable).toContain('invalidate: (id: UserId) => ReturnType<typeof usersQueryKeys.detail>')
+    expect(deleteComposable).toContain('invalidate: (id) => usersQueryKeys.detail(id)')
   })
 
   test('generates typed promise operation helpers and query keys', async () => {

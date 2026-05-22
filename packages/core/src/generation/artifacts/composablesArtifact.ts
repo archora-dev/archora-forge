@@ -1,5 +1,5 @@
 import type { DetectedResource } from '../../resources/resources.types.js'
-import { pluralizeTypeName, quoteObjectKeyIfNeeded, toSafeIdentifier } from '../identifiers.js'
+import { pluralizeTypeName } from '../identifiers.js'
 import { createOperationTypeNames, getOperationParams, getPathParams } from '../typeGeneration.js'
 import { createResourceTypeNames } from '../typeGeneration.js'
 
@@ -38,8 +38,7 @@ export function createDeleteMutation(resourceName: string, resource: DetectedRes
   if (!resource.operations.delete?.id) return createMissingComposable(`useDelete${resource.entity}Mutation`)
   const requiresListParams = getPathParams(resource.operations.delete).length > 1
   if (requiresListParams) {
-    const collectionParams = createCollectionParamsFromIdentity(getPathParams(resource.operations.delete))
-    return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.idType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useDelete${resource.entity}Mutation(): {\n  mutate: (id: ${names.idType}) => Promise<void>\n  invalidate: (id: ${names.idType}) => ReturnType<typeof ${resourceName}QueryKeys.list>\n} {\n  return {\n    mutate: (id) => ${resourceName}Client.${resource.operations.delete.id}(id),\n    invalidate: (id) => ${resourceName}QueryKeys.list(${collectionParams}),\n  }\n}\n`
+    return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.idType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useDelete${resource.entity}Mutation(): {\n  mutate: (id: ${names.idType}) => Promise<void>\n  invalidate: (id: ${names.idType}) => ReturnType<typeof ${resourceName}QueryKeys.detail>\n} {\n  return {\n    mutate: (id) => ${resourceName}Client.${resource.operations.delete.id}(id),\n    invalidate: (id) => ${resourceName}QueryKeys.detail(id),\n  }\n}\n`
   }
   return `import { ${resourceName}Client } from '../../../shared/api/generated/${resourceName}/${resourceName}.client'\nimport { ${resourceName}QueryKeys } from '../../../shared/api/generated/${resourceName}/${resourceName}.query-keys'\nimport type { ${names.idType} } from '../../../shared/api/generated/${resourceName}/${resourceName}.types'\n\nexport function useDelete${resource.entity}Mutation(): {\n  mutate: (id: ${names.idType}) => Promise<void>\n  invalidate: () => ReturnType<typeof ${resourceName}QueryKeys.list>\n} {\n  return {\n    mutate: (id) => ${resourceName}Client.${resource.operations.delete.id}(id),\n    invalidate: () => ${resourceName}QueryKeys.list(),\n  }\n}\n`
 }
@@ -68,11 +67,6 @@ export function operationComposableName(operation: DetectedResource['operationsL
 
 function createMissingComposable(name: string): string {
   return `export function ${name}(): never {\n  throw new Error('${name} is not available: missing OpenAPI operation for this resource.')\n}\n`
-}
-
-function createCollectionParamsFromIdentity(pathParams: ReturnType<typeof getPathParams>): string {
-  const parentParams = pathParams.slice(0, -1)
-  return `{ ${parentParams.map((param) => `${quoteObjectKeyIfNeeded(param.name)}: id.${toSafeIdentifier(param.name)}`).join(', ')} }`
 }
 
 function toInputTypeName(operation: DetectedResource['operationsList'][number]): string {

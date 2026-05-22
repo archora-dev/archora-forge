@@ -1,5 +1,5 @@
 export function createFixturesArtifact(resourceName: string, entity: string): string {
-  return `export const ${resourceName}Fixtures: ${entity}[] = []\n\ntype ${entity} = Record<string, unknown>\n`
+  return `export const ${resourceName}Fixtures: ${entity}Fixture[] = []\n\ntype ${entity}Fixture = Record<string, unknown>\n`
 }
 
 export function createHandlersArtifact(resourceName: string): string {

@@ -278,9 +278,9 @@ function createOperationAliases(normalized: NormalizedOpenApi, resource: Detecte
   const listResponse = createResponseDeclaration(normalized, names.listResponseType, resource.operations.list)
   const detailResponse = createResponseType(normalized, resource.operations.detail, names.entityType)
   const createRequest =
-    createRequestBodyType(normalized, resource.operations.create) ?? `Partial<${resource.entity}>`
+    createRequestBodyType(normalized, resource.operations.create) ?? `Partial<${names.entityType}>`
   const updateRequest =
-    createRequestBodyType(normalized, resource.operations.update) ?? `Partial<${resource.entity}>`
+    createRequestBodyType(normalized, resource.operations.update) ?? `Partial<${names.entityType}>`
   const createResponse = createResponseType(normalized, resource.operations.create, names.entityType)
   const updateResponse = createResponseType(normalized, resource.operations.update, names.entityType)
   const operationAliases = resource.operationsList

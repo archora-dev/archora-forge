@@ -1,6 +1,6 @@
 import type { ForgeResourceConfig } from '@archora/forge-config'
 
-import { pluralizeTypeName } from '../identifiers.js'
+import { pluralizeTypeName, quoteObjectKeyIfNeeded } from '../identifiers.js'
 import type { ResourceUiModel } from '../resourceUiModel.js'
 import { toCode } from './serialization.js'
 
@@ -20,7 +20,7 @@ export function createI18nArtifact(resourceName: string, entity: string, model: 
     ...model.tableColumns.map((column) => column.name),
   ]
   const uniqueFields = [...new Set(fields)]
-    .map((field) => `    ${field}: '${field.replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase())}',`)
+    .map((field) => `    ${quoteObjectKeyIfNeeded(field)}: '${field.replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase())}',`)
     .join('\n')
 
   return `export const ${resourceName}I18n = {\n  title: '${collection}',\n  create: 'Create ${entity.toLowerCase()}',\n  edit: 'Edit ${entity.toLowerCase()}',\n  delete: 'Delete ${entity.toLowerCase()}',\n  fields: {\n${uniqueFields}\n  },\n} as const\n`
