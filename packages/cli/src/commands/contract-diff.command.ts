@@ -99,6 +99,7 @@ function assertImpactReportFormat(report: string | undefined): asserts report is
 type SourceUsage = {
   path: string
   matches: string[]
+  lines: number[]
 }
 
 type ImpactPayload = ContractDiffReport & {
@@ -173,7 +174,7 @@ function formatPullRequestComment(payload: ImpactPayload): string {
 
 function formatSourceUsageLines(usages: SourceUsage[]): string[] {
   if (usages.length === 0) return ['No impacted source usages found.']
-  return usages.slice(0, 50).map((usage) => `- \`${usage.path}\`: ${usage.matches.join(', ')}`)
+  return usages.slice(0, 50).map((usage) => `- \`${usage.path}:${usage.lines.join(',')}\`: ${usage.matches.join(', ')}`)
 }
 
 async function scanSourceUsages(repo: string, report: ContractDiffReport): Promise<SourceUsage[]> {
@@ -188,10 +189,20 @@ async function scanSourceUsages(repo: string, report: ContractDiffReport): Promi
       usages.push({
         path: normalizePath(relative(repo, file)),
         matches: [...new Set(matches)].sort(),
+        lines: collectMatchedLines(content, matches),
       })
     }
   }
   return usages.sort((left, right) => left.path.localeCompare(right.path)).slice(0, 200)
+}
+
+function collectMatchedLines(content: string, matches: string[]): number[] {
+  const lines = content.split(/\r?\n/)
+  const matchedLines = new Set<number>()
+  lines.forEach((line, index) => {
+    if (matches.some((match) => line.includes(match))) matchedLines.add(index + 1)
+  })
+  return [...matchedLines].sort((left, right) => left - right).slice(0, 20)
 }
 
 function createUsageTokens(report: ContractDiffReport): string[] {

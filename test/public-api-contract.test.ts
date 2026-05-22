@@ -144,6 +144,21 @@ describe('v1 public API contract', () => {
       'prune',
     ])
     await expectCliJsonKeys(cwd, ['diff', basicCrudSchema, '--json'], ['ok', 'schema', 'configPath', 'schemas', 'resources', 'files'])
+    await expectCliJsonKeys(cwd, ['impact', basicCrudSchema, basicCrudSchema, '--json'], [
+      'ok',
+      'oldSchema',
+      'newSchema',
+      'sourceUsages',
+      'changes',
+      'affectedResources',
+      'affectedFiles',
+      'changelog',
+      'summary',
+      'decision',
+      'impactedSurface',
+      'migrationHints',
+      'prSummary',
+    ])
     await expectCliJsonKeys(cwd, ['check', basicCrudSchema, '--json'], [
       'ok',
       'schema',

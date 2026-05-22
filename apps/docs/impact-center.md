@@ -2,6 +2,8 @@
 
 `archora-forge impact` turns an OpenAPI contract change into a frontend review artifact.
 
+Public demo: [View the generated impact report](/impact-demo/).
+
 ```bash
 archora-forge impact ./openapi.old.yaml ./openapi.yaml --report markdown --report-file forge-impact.md
 archora-forge impact ./openapi.old.yaml ./openapi.yaml --report html --report-file forge-impact.html
@@ -62,7 +64,8 @@ The JSON report includes `sourceUsages`:
 [
   {
     "path": "src/users-page.ts",
-    "matches": ["createUser", "usersClient"]
+    "matches": ["createUser", "usersClient"],
+    "lines": [1, 3]
   }
 ]
 ```

@@ -9,7 +9,7 @@ Buy when your team has:
 - Vue or TypeScript frontend code backed by OpenAPI 3.x contracts;
 - repeated work around clients, query keys, resource modules, form/table metadata, labels, permissions or mocks;
 - private schemas that should not be uploaded to a hosted generator;
-- a need for CI checks around schema readiness and generated-output drift.
+- a need for CI checks around schema readiness, contract impact and generated-output drift.
 
 Do not buy yet when you need generated pages, routes, design-system components, full OpenAPI coverage or a hosted schema registry.
 
@@ -20,7 +20,7 @@ The first commercial package is a bounded adoption package:
 - commercial use rights for the agreed scope;
 - local CLI usage in your repository or CI;
 - generated frontend resource contract output;
-- readiness, drift and diagnostics reports;
+- readiness, impact, drift and diagnostics reports;
 - generated-output TypeScript typecheck gate;
 - adoption report template for internal approval.
 
@@ -28,12 +28,13 @@ Recommended scope: 1-3 schemas or one tightly related schema family.
 
 ## Self-Serve Flow
 
-1. Open the [public audit report](/see-audit-report).
-2. Run [Run Audit Quickstart](/run-audit-quickstart) against one private schema.
-3. Review [What You Get](/what-you-get) and [Private Schema Pilot Proof](/pilot-proof).
-4. Generate a local [Product Demo Package](/product-demo-package) for internal review.
-5. Fill out the [Pilot Report Template](/pilot-report-template).
-6. Request a commercial license using the contact listed in the repository license files.
+1. Open the [public impact report](/see-impact-report).
+2. Open the [public audit report](/see-audit-report).
+3. Run [Run Audit Quickstart](/run-audit-quickstart) against one private schema.
+4. Review [Install, Trial, Buy](/install-trial-buy), [What You Get](/what-you-get) and [Private Schema Pilot Proof](/pilot-proof).
+5. Generate a local [Product Demo Package](/product-demo-package) for internal review.
+6. Fill out the [Pilot Report Template](/pilot-report-template).
+7. Request a commercial license using the contact listed in the repository license files.
 
 The purchase decision should be based on artifacts: generated code, HTML reports, drift status, diagnostics, typecheck result and a go/no-go adoption report.
 
@@ -43,6 +44,7 @@ The purchase decision should be based on artifacts: generated code, HTML reports
 pnpm exec archora-forge init --input ./openapi.yaml
 pnpm exec archora-forge inspect ./openapi.yaml --report-file forge-inspect.json
 pnpm exec archora-forge lint ./openapi.yaml --strict --report-file forge-lint.json
+pnpm exec archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --report markdown --report-file forge-impact.md --pr-comment-file forge-impact-pr.md
 pnpm exec archora-forge check ./openapi.yaml --report html --report-file forge-check.html
 pnpm exec archora-forge generate ./openapi.yaml --dry-run --json --report-file forge-generate.json
 pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
@@ -65,7 +67,7 @@ The license should state scope, number of schemas, allowed repositories, support
 - A local-first CLI workflow.
 - Public demo assets.
 - Private schema workflow.
-- HTML and Markdown reports.
+- HTML and Markdown audit and impact reports.
 - CI-ready commands.
 - A report template for internal approval.
 - Clear limitations before purchase.
@@ -79,6 +81,7 @@ Before paying, the buyer should be able to answer:
 - Does generated TypeScript compile in a temporary consumer workspace?
 - Are blockers acceptable or fixable?
 - Can drift checks run in CI?
+- Can impact reports identify real source usage before regeneration?
 - Does the generated resource layer remove enough frontend work to justify the license?
 
 If the answer is no, the right outcome is not a sale. It is a documented no-go.

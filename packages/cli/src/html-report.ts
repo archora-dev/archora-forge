@@ -114,6 +114,7 @@ type HtmlReportPayload = {
   sourceUsages?: Array<{
     path?: string
     matches?: string[]
+    lines?: number[]
   }>
 }
 
@@ -458,7 +459,7 @@ function renderSourceUsages(usages: HtmlReportPayload['sourceUsages']): string {
   if (usages.length === 0) return '<details open><summary>Source Usage</summary><div class="empty">No impacted source usages found.</div></details>'
   const rows = usages
     .slice(0, 100)
-    .map((usage) => `<tr><td><code>${escapeHtml(usage.path ?? '')}</code></td><td>${escapeHtml((usage.matches ?? []).join(', '))}</td></tr>`)
+    .map((usage) => `<tr><td><code>${escapeHtml(`${usage.path ?? ''}${usage.lines?.length ? `:${usage.lines.join(',')}` : ''}`)}</code></td><td>${escapeHtml((usage.matches ?? []).join(', '))}</td></tr>`)
     .join('')
   return `<details open><summary>Source Usage</summary><table><thead><tr><th>File</th><th>Matches</th></tr></thead><tbody>${rows}</tbody></table></details>`
 }

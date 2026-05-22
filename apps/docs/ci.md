@@ -10,6 +10,7 @@ For a first pull-request gate, run the commands in this order:
 archora-forge validate ./openapi.yaml --json --report-file forge-validate.json
 archora-forge inspect ./openapi.yaml --json --report-file forge-inspect.json
 archora-forge lint ./openapi.yaml --json --report-file forge-lint.json
+archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --json --report-file forge-impact.json --pr-comment-file forge-impact-pr.md
 archora-forge diff ./openapi.yaml --json --report-file forge-diff.json
 archora-forge generate ./openapi.yaml --dry-run --json --report-file forge-generate.json
 archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md
@@ -17,6 +18,8 @@ archora-forge check ./openapi.yaml --report html --report-file forge-check.html
 ```
 
 Use the installed binary in consumer repositories. During local Forge development, replace `archora-forge` with `node packages/cli/dist/index.js`.
+
+For contract-change pull requests, start with [CI Impact Kit](/ci-impact-kit).
 
 ## Strict And Advisory Modes
 
@@ -68,6 +71,7 @@ archora-forge check ./openapi.yaml --min-health-score 85
 | `validate` | Schema/config loads and, unless `--strict` is used, parseable diagnostics are report-only. | `--strict` is set and diagnostics are present. | Schema/config/runtime failure. |
 | `lint` | Frontend-readiness diagnostics pass under the selected lint policy. | Frontend-readiness diagnostics fail under the selected lint policy. | Schema/config/runtime failure. |
 | `diff` | Generation plan was created successfully. | Not used for planned create/update/protected file counts. | Schema/config/runtime failure. |
+| `impact` | Impact decision is `approved` or `review`. | Impact decision is `blocked`. | Schema/config/runtime failure. |
 | `check` | No failed checks under the configured CI policy. | Drift or configured quality gates failed. | Schema/config/runtime failure. |
 | `generate --dry-run` | Generation plan and write summary were produced without writing files. | Not used for planned generated-file changes. | Schema/config/runtime failure. |
 

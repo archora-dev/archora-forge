@@ -64,6 +64,30 @@ For self-serve purchase evaluation, pair CLI output with:
 When a command is run with `--json`, command-level failures are reported as `{ "ok": false, "error": "..." }` and exit with code `2`.
 Successful JSON payloads for readiness and generation commands include `ok: true`.
 
+## Common Examples
+
+Audit one schema:
+
+```bash
+archora-forge audit ./openapi.yaml --out forge-audit
+```
+
+Review an API change before regeneration:
+
+```bash
+archora-forge impact ./openapi.old.yaml ./openapi.yaml \
+  --repo . \
+  --report markdown \
+  --report-file forge-impact.md \
+  --pr-comment-file forge-impact-pr.md
+```
+
+Check generated drift in CI:
+
+```bash
+archora-forge check ./openapi.yaml --report html --report-file forge-check.html
+```
+
 For local repository development before publishing:
 
 ```bash

@@ -3,26 +3,26 @@ layout: home
 
 hero:
   name: Archora Forge
-  text: Run one command. Get a frontend API adoption report.
-  tagline: Turn OpenAPI into a typed resource layer, scorecard, resource explorer, generated-output typecheck, CI workflow and go/no-go adoption plan.
+  text: Review OpenAPI changes before they break frontend code.
+  tagline: Turn OpenAPI into a typed resource layer, adoption audit, PR impact report, repo usage scan and CI-ready frontend contract workflow.
   actions:
     - theme: brand
-      text: See the audit report
+      text: See impact report
+      link: /see-impact-report
+    - theme: alt
+      text: See audit report
       link: /see-audit-report
     - theme: alt
-      text: Run audit
-      link: /run-audit-quickstart
-    - theme: alt
-      text: What you get
-      link: /what-you-get
+      text: Install, trial, buy
+      link: /install-trial-buy
 
 features:
+  - title: Impact Center
+    details: Compare old and new OpenAPI contracts, detect merge risk, find source usages and write PR comments.
   - title: Audit package
     details: Generate HTML, Markdown, JSON, CI workflow, adoption plan and generated preview files from one command.
   - title: Frontend resource layer
     details: Emit clients, types, query keys, operation helpers, metadata, permissions, labels and mocks.
-  - title: Typecheck proof
-    details: Compile generated TypeScript in an isolated workspace before adoption.
   - title: Local-first evaluation
     details: Run on private schemas inside your repo or CI without uploading contracts.
 ---
@@ -34,9 +34,10 @@ Archora Forge is a local-first commercial developer tool for TypeScript frontend
 The core workflow is:
 
 ```bash
+archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --pr-comment-file forge-impact-pr.md
 archora-forge audit ./openapi.yaml --out forge-audit
 ```
 
-Open `forge-audit/index.html` and review the scorecard, resource explorer, generated files, typecheck result, drift, diagnostics and adoption plan.
+Open `forge-impact-pr.md` before accepting the API change. Open `forge-audit/index.html` before adopting generated output.
 
-Start with the [public audit report](/see-audit-report), then run the same workflow on one private schema.
+Start with the [public impact report](/see-impact-report), then run the same workflow on one private schema.

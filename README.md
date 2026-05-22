@@ -12,11 +12,11 @@
 
 ---
 
-Archora Forge turns an OpenAPI contract into a typed frontend resource layer.
+Archora Forge turns an OpenAPI contract into a typed frontend resource layer and PR-ready impact reports.
 
 Archora Forge is a local-first commercial developer tool. It is built for frontend teams that already have a framework and design system, but need a reliable contract layer between OpenAPI and product code. It generates committed TypeScript clients, operation helpers, query keys, form/table metadata, permissions, labels, mocks and CI reports without forcing a UI framework or hosted workflow.
 
-Forge is suitable for self-serve evaluation and bounded commercial adoption packages with Vue/OpenAPI teams that want to evaluate one real schema in a branch. It is not positioned as unlimited production platform coverage for every OpenAPI contract.
+Forge is suitable for self-serve evaluation and bounded commercial adoption packages with TypeScript frontend teams that want to evaluate one real schema in a branch. It is not positioned as unlimited production platform coverage for every OpenAPI contract.
 
 It does not try to generate your application UI. Most teams already have a framework, a design system, a table component, a form library and strong opinions about how screens should look. Forge focuses on the part that is repetitive and easy to get wrong: the typed contract between an API schema and frontend code.
 
@@ -41,6 +41,7 @@ openapi.yaml
   -> form/table metadata
   -> permissions and labels
   -> mocks
+  -> PR impact reports
   -> drift checks
 ```
 
@@ -71,9 +72,14 @@ See `apps/docs/public-demo-walkthrough.md` for the generated public CRM walkthro
 
 For the self-serve purchase path, read:
 
+- `apps/docs/see-impact-report.md`
 - `apps/docs/see-audit-report.md`
+- `apps/docs/ci-impact-kit.md`
+- `apps/docs/install-trial-buy.md`
 - `apps/docs/run-audit-quickstart.md`
 - `apps/docs/what-you-get.md`
+- `apps/docs/privacy-security.md`
+- `apps/docs/competitive-positioning.md`
 - `apps/docs/self-serve-purchase.md`
 - `apps/docs/product-demo-package.md`
 - `apps/docs/generated-output-typecheck.md`
@@ -108,6 +114,7 @@ pnpm add -D @archora/forge-cli @archora/forge-adapters
 pnpm exec archora-forge init
 pnpm exec archora-forge doctor ./openapi.yaml
 pnpm exec archora-forge inspect ./openapi.yaml
+pnpm exec archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --pr-comment-file forge-impact-pr.md
 pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
 pnpm exec archora-forge generate ./openapi.yaml
 ```

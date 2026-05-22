@@ -2086,7 +2086,7 @@ describe('Product regression coverage', () => {
       commentPath,
     ])
     const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
-      sourceUsages: Array<{ path: string; matches: string[] }>
+      sourceUsages: Array<{ path: string; matches: string[]; lines: number[] }>
     }
     const comment = await readTextFile(commentPath, 'utf8')
 
@@ -2097,10 +2097,11 @@ describe('Product regression coverage', () => {
       expect.objectContaining({
         path: 'src/users-page.ts',
         matches: expect.arrayContaining(['createUser', 'usersClient']),
+        lines: expect.arrayContaining([1, 3]),
       }),
     ])
     expect(comment).toContain('## Source Usage')
-    expect(comment).toContain('src/users-page.ts')
+    expect(comment).toContain('src/users-page.ts:1,3')
   })
 
   test('lint and plugin APIs expose experimental extension points', async () => {
