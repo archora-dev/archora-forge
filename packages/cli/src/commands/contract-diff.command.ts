@@ -1,4 +1,6 @@
 import type { CAC } from 'cac'
+import { readdir, readFile } from 'node:fs/promises'
+import { join, relative } from 'node:path'
 import { diffOpenApiContracts, normalizeOpenApi, parseOpenApi, type ContractDiffReport } from '@archora/forge-core'
 
 import { createHtmlReport } from '../html-report.js'
@@ -50,14 +52,17 @@ export function registerContractDiffCommand(cli: CAC): void {
     .option('--json', 'Print machine-readable JSON')
     .option('--report <format>', 'Print a report format: json, markdown or html')
     .option('--report-file <path>', 'Write the selected impact report to a file')
-    .action(async (oldSchema: string, newSchema: string, options: { json?: boolean; report?: 'json' | 'markdown' | 'html'; reportFile?: string } & SchemaRequestCliOptions) => {
+    .option('--repo <path>', 'Scan a frontend repository for impacted generated API usages')
+    .option('--pr-comment-file <path>', 'Write a pull-request comment Markdown artifact')
+    .action(async (oldSchema: string, newSchema: string, options: { json?: boolean; report?: 'json' | 'markdown' | 'html'; reportFile?: string; repo?: string; prCommentFile?: string } & SchemaRequestCliOptions) => {
       assertImpactReportFormat(options.report)
       const schemaRequest = { headers: parseSchemaRequestHeaders(options.schemaHeader) }
       const oldDocument = await parseOpenApi(oldSchema, schemaRequest)
       const newDocument = await parseOpenApi(newSchema, schemaRequest)
       const report = diffOpenApiContracts(normalizeOpenApi(oldDocument), normalizeOpenApi(newDocument))
       const ok = report.decision.status !== 'blocked'
-      const payload = { ok, oldSchema, newSchema, ...report }
+      const sourceUsages = options.repo ? await scanSourceUsages(options.repo, report) : []
+      const payload = { ok, oldSchema, newSchema, sourceUsages, ...report }
       const reportFormat = options.json ? 'json' : (options.report ?? 'markdown')
 
       if (options.reportFile) {
@@ -69,6 +74,10 @@ export function registerContractDiffCommand(cli: CAC): void {
         console.log(createHtmlReport('Frontend Impact Center', payload))
       } else {
         console.log(formatImpactMarkdown(payload))
+      }
+      if (options.prCommentFile) {
+        const commentPath = await writeReportFile(options.prCommentFile, formatPullRequestComment(payload))
+        console.log(`PR comment written: ${commentPath}`)
       }
 
       process.exitCode = ok ? 0 : 1
@@ -87,13 +96,25 @@ function assertImpactReportFormat(report: string | undefined): asserts report is
   }
 }
 
-function formatImpactReport(format: 'json' | 'markdown' | 'html', payload: ContractDiffReport & { ok: boolean; oldSchema: string; newSchema: string }): string {
+type SourceUsage = {
+  path: string
+  matches: string[]
+}
+
+type ImpactPayload = ContractDiffReport & {
+  ok: boolean
+  oldSchema: string
+  newSchema: string
+  sourceUsages?: SourceUsage[]
+}
+
+function formatImpactReport(format: 'json' | 'markdown' | 'html', payload: ImpactPayload): string {
   if (format === 'json') return JSON.stringify(payload, null, 2)
   if (format === 'html') return createHtmlReport('Frontend Impact Center', payload)
   return formatImpactMarkdown(payload)
 }
 
-function formatImpactMarkdown(payload: ContractDiffReport & { ok: boolean; oldSchema: string; newSchema: string }): string {
+function formatImpactMarkdown(payload: ImpactPayload): string {
   const lines = [
     '# Frontend API Impact',
     '',
@@ -129,6 +150,79 @@ function formatImpactMarkdown(payload: ContractDiffReport & { ok: boolean; oldSc
     `- Client methods: ${payload.impactedSurface.clientMethods.length > 0 ? payload.impactedSurface.clientMethods.join(', ') : 'none'}`,
     `- Query hooks: ${payload.impactedSurface.queryHooks.length > 0 ? payload.impactedSurface.queryHooks.join(', ') : 'none'}`,
     '',
+    '## Source Usage',
+    '',
+    ...formatSourceUsageLines(payload.sourceUsages ?? []),
+    '',
   ]
   return lines.join('\n')
+}
+
+function formatPullRequestComment(payload: ImpactPayload): string {
+  return [
+    '## Frontend API Impact',
+    '',
+    payload.prSummary,
+    '',
+    '## Source Usage',
+    '',
+    ...formatSourceUsageLines(payload.sourceUsages ?? []),
+    '',
+  ].join('\n')
+}
+
+function formatSourceUsageLines(usages: SourceUsage[]): string[] {
+  if (usages.length === 0) return ['No impacted source usages found.']
+  return usages.slice(0, 50).map((usage) => `- \`${usage.path}\`: ${usage.matches.join(', ')}`)
+}
+
+async function scanSourceUsages(repo: string, report: ContractDiffReport): Promise<SourceUsage[]> {
+  const tokens = createUsageTokens(report)
+  if (tokens.length === 0) return []
+  const files = await collectSourceFiles(repo)
+  const usages: SourceUsage[] = []
+  for (const file of files) {
+    const content = await readFile(file, 'utf8')
+    const matches = tokens.filter((token) => content.includes(token))
+    if (matches.length > 0) {
+      usages.push({
+        path: normalizePath(relative(repo, file)),
+        matches: [...new Set(matches)].sort(),
+      })
+    }
+  }
+  return usages.sort((left, right) => left.path.localeCompare(right.path)).slice(0, 200)
+}
+
+function createUsageTokens(report: ContractDiffReport): string[] {
+  const clientMethods = report.impactedSurface.clientMethods.map((method) => method.replace(/\(\)$/, ''))
+  const resourceTokens = report.affectedResources.flatMap((resource) => [`${resource}Client`, `${resource}QueryKeys`, `${resource}Config`, `${resource}Permissions`])
+  return [...new Set([...report.impactedSurface.operationIds, ...clientMethods, ...report.impactedSurface.queryHooks, ...resourceTokens].filter(Boolean))].sort()
+}
+
+async function collectSourceFiles(root: string): Promise<string[]> {
+  const entries = await readdir(root, { withFileTypes: true })
+  const files: string[] = []
+  for (const entry of entries) {
+    if (shouldSkipEntry(entry.name)) continue
+    const path = join(root, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...(await collectSourceFiles(path)))
+    } else if (entry.isFile() && isSourceFile(entry.name)) {
+      files.push(path)
+    }
+  }
+  return files
+}
+
+function shouldSkipEntry(name: string): boolean {
+  return name === 'node_modules' || name === '.git' || name === 'dist' || name === 'build' || name === 'coverage' || name === '.vitepress' || name === '.turbo'
+}
+
+function isSourceFile(name: string): boolean {
+  return /\.(cjs|cts|js|jsx|mjs|mts|svelte|ts|tsx|vue)$/.test(name)
+}
+
+function normalizePath(path: string): string {
+  return path.replaceAll('\\', '/')
 }

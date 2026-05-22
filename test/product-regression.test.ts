@@ -2036,6 +2036,73 @@ describe('Product regression coverage', () => {
     expect(htmlReport).toContain('Merge risk')
   })
 
+  test('impact command can scan a consumer repo and write a PR comment artifact', async () => {
+    const cwd = await tempDir()
+    const oldPath = join(cwd, 'old-openapi.json')
+    const newPath = join(cwd, 'new-openapi.json')
+    const srcDir = join(cwd, 'src')
+    const reportPath = join(cwd, 'impact.json')
+    const commentPath = join(cwd, 'pr-comment.md')
+    const nextSchema = {
+      ...crudSchema,
+      components: {
+        schemas: {
+          ...crudSchema.components.schemas,
+          CreateUserDto: {
+            ...crudSchema.components.schemas.CreateUserDto,
+            required: ['email', 'status', 'role'],
+            properties: {
+              ...crudSchema.components.schemas.CreateUserDto.properties,
+              role: { type: 'string' },
+            },
+          },
+        },
+      },
+    }
+    await mkdir(srcDir, { recursive: true })
+    await writeFile(oldPath, JSON.stringify(crudSchema), 'utf8')
+    await writeFile(newPath, JSON.stringify(nextSchema), 'utf8')
+    await writeFile(
+      join(srcDir, 'users-page.ts'),
+      [
+        "import { usersClient } from './generated/users'",
+        'export async function saveUser(payload: unknown) {',
+        '  return usersClient.createUser(payload)',
+        '}',
+      ].join('\n'),
+      'utf8',
+    )
+
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'impact',
+      oldPath,
+      newPath,
+      '--repo',
+      cwd,
+      '--json',
+      '--report-file',
+      reportPath,
+      '--pr-comment-file',
+      commentPath,
+    ])
+    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
+      sourceUsages: Array<{ path: string; matches: string[] }>
+    }
+    const comment = await readTextFile(commentPath, 'utf8')
+
+    expect(exitCode).toBe(1)
+    expect(output).toContain(`Report written: ${reportPath}`)
+    expect(output).toContain(`PR comment written: ${commentPath}`)
+    expect(payload.sourceUsages).toEqual([
+      expect.objectContaining({
+        path: 'src/users-page.ts',
+        matches: expect.arrayContaining(['createUser', 'usersClient']),
+      }),
+    ])
+    expect(comment).toContain('## Source Usage')
+    expect(comment).toContain('src/users-page.ts')
+  })
+
   test('lint and plugin APIs expose experimental extension points', async () => {
     const normalized = normalizeOpenApi({
       openapi: '3.0.3',

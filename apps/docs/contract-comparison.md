@@ -23,7 +23,7 @@ The JSON report includes:
 
 `ok` is `false` when breaking changes are present.
 
-Use `impact` when the output is meant for pull-request review. It includes merge risk, operation IDs, client methods, query hooks and migration hints in Markdown, JSON or HTML.
+Use `impact` when the output is meant for pull-request review. It includes merge risk, operation IDs, client methods, query hooks and migration hints in Markdown, JSON or HTML. Add `--repo .` to include source files that already use the impacted generated API surface.
 
 ## Generated Changelog
 

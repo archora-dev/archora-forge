@@ -58,6 +58,8 @@ For self-serve purchase evaluation, pair CLI output with:
 - `audit --out <path>` writes the full self-serve adoption package.
 - `audit --skip-typecheck` skips the generated TypeScript typecheck gate when TypeScript is not available in the current environment.
 - `impact --report markdown|json|html --report-file <path>` writes a contract impact artifact.
+- `impact --repo <path>` scans a frontend repository for impacted generated API usages.
+- `impact --pr-comment-file <path>` writes a compact pull-request comment artifact.
 
 When a command is run with `--json`, command-level failures are reported as `{ "ok": false, "error": "..." }` and exit with code `2`.
 Successful JSON payloads for readiness and generation commands include `ok: true`.
