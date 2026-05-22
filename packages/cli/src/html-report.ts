@@ -58,27 +58,6 @@ type HtmlReportPayload = {
   generatedFiles?: number
   protectedFiles?: number
   failedChecks?: string[]
-  audit?: {
-    outDir?: string
-    generatedPreview?: string
-    artifacts?: string[]
-  }
-  scorecard?: Record<string, number>
-  typecheck?: {
-    status?: string
-    command?: string
-    workspace?: string
-    errors?: string[]
-  }
-  resourceExplorer?: Array<{
-    name?: string
-    entity?: string
-    kind?: string
-    operations?: Array<{ method?: string; path?: string; operationId?: string | null; kind?: string }>
-    generatedFiles?: string[]
-  }>
-  fixSuggestions?: Array<{ code?: string; count?: number; suggestion?: string }>
-  coverage?: CoverageLike
   readiness?: {
     status?: string
     decision?: string
@@ -202,13 +181,7 @@ export function createHtmlReport(title: string, payload: HtmlReportPayload): str
   </section>
 
   ${renderExecutiveSummary({ status, healthScore, resources, generatedFiles, diagnostics, drift, failedChecks, topAffectedResources })}
-  ${renderAuditArtifacts(payload.audit)}
-  ${renderScorecard(payload.scorecard)}
-  ${renderTypecheck(payload.typecheck)}
   ${renderReadiness(payload.readiness)}
-  ${renderResourceExplorer(payload.resourceExplorer)}
-  ${renderFixSuggestions(payload.fixSuggestions)}
-  ${renderCoverageMatrix(payload.coverage)}
   ${renderCiSummary(ciSummary)}
   ${renderGeneratedFileCategories(driftByCategory, payload.files, generatedFiles)}
   ${renderDiagnosticGroups(diagnosticsBySeverity, diagnosticsByCode)}
@@ -248,92 +221,6 @@ function renderReadiness(readiness: HtmlReportPayload['readiness']): string {
       <h2>Warnings</h2>
       ${renderSimpleList(readiness.warnings ?? [], 'No warnings.')}
     </div>
-  </section>`
-}
-
-function renderAuditArtifacts(audit: HtmlReportPayload['audit']): string {
-  if (!audit) return ''
-  return `<section>
-    <h2>Audit Package</h2>
-    <div class="card">
-      <p>Output: <code>${escapeHtml(audit.outDir ?? '')}</code></p>
-      <p>Generated preview: <code>${escapeHtml(audit.generatedPreview ?? '')}</code></p>
-      <div class="pill-list">${(audit.artifacts ?? []).map((artifact) => `<span class="pill">${escapeHtml(artifact)}</span>`).join('')}</div>
-    </div>
-  </section>`
-}
-
-function renderScorecard(scorecard: HtmlReportPayload['scorecard']): string {
-  if (!scorecard) return ''
-  return `<section>
-    <h2>Frontend API Scorecard</h2>
-    <div class="grid">
-      ${Object.entries(scorecard)
-        .map(([label, value]) => metric(formatScoreLabel(label), value))
-        .join('')}
-    </div>
-  </section>`
-}
-
-function renderTypecheck(typecheck: HtmlReportPayload['typecheck']): string {
-  if (!typecheck) return ''
-  const errors = typecheck.errors ?? []
-  return `<section>
-    <h2>Generated TypeScript Typecheck</h2>
-    <div class="card">
-      <p>Status: <strong>${escapeHtml(typecheck.status ?? 'n/a')}</strong></p>
-      <p>Command: <code>${escapeHtml(typecheck.command ?? '')}</code></p>
-      <p>Workspace: <code>${escapeHtml(typecheck.workspace ?? '')}</code></p>
-      ${errors.length > 0 ? `<details open><summary>Errors</summary><pre>${escapeHtml(errors.join('\n'))}</pre></details>` : '<div class="empty">No typecheck errors.</div>'}
-    </div>
-  </section>`
-}
-
-function renderResourceExplorer(resources: HtmlReportPayload['resourceExplorer']): string {
-  if (!resources?.length) return ''
-  const cards = resources
-    .slice(0, 80)
-    .map((resource) => {
-      const operations = resource.operations ?? []
-      const files = resource.generatedFiles ?? []
-      return `<details>
-        <summary>${escapeHtml(resource.name ?? 'resource')} · ${escapeHtml(resource.kind ?? 'resource')} · ${operations.length} operations · ${files.length} files</summary>
-        <table><thead><tr><th>Method</th><th>Path</th><th>Operation</th><th>Kind</th></tr></thead><tbody>
-          ${operations
-            .map((operation) => `<tr><td>${escapeHtml(operation.method ?? '')}</td><td><code>${escapeHtml(operation.path ?? '')}</code></td><td>${escapeHtml(operation.operationId ?? '')}</td><td>${escapeHtml(operation.kind ?? '')}</td></tr>`)
-            .join('')}
-        </tbody></table>
-        <div class="pill-list">${files.slice(0, 40).map((file) => `<span class="pill">${escapeHtml(file)}</span>`).join('')}</div>
-      </details>`
-    })
-    .join('')
-  return `<section><h2>Resource Explorer</h2>${cards}</section>`
-}
-
-function renderFixSuggestions(suggestions: HtmlReportPayload['fixSuggestions']): string {
-  if (!suggestions?.length) return '<section><h2>Schema Fix Suggestions</h2><div class="empty">No schema fix suggestions.</div></section>'
-  const rows = suggestions
-    .map((suggestion) => `<tr><td><code>${escapeHtml(suggestion.code ?? '')}</code></td><td>${escapeHtml(String(suggestion.count ?? 0))}</td><td>${escapeHtml(suggestion.suggestion ?? '')}</td></tr>`)
-    .join('')
-  return `<section><h2>Schema Fix Suggestions</h2><table><thead><tr><th>Diagnostic</th><th>Count</th><th>Suggested fix</th></tr></thead><tbody>${rows}</tbody></table></section>`
-}
-
-function renderCoverageMatrix(coverage: CoverageLike | undefined): string {
-  if (!coverage) return ''
-  return `<section>
-    <h2>Schema Coverage Matrix</h2>
-    <div class="grid">
-      ${metric('Operations', coverage.operations?.total ?? 'n/a')}
-      ${metric('Generated operations', coverage.operations?.generated ?? 'n/a')}
-      ${metric('Fallback cases', coverage.cases?.fallback ?? 'n/a')}
-      ${metric('Diagnostic-only cases', coverage.cases?.diagnosticOnly ?? 'n/a')}
-      ${metric('Schemas', coverage.schemas?.total ?? 'n/a')}
-      ${metric('Skipped operations', coverage.cases?.skipped ?? 'n/a')}
-    </div>
-    <details open><summary>Operation types</summary><div class="pill-list">${renderRecordPills(coverage.operations?.byKind)}</div></details>
-    <details><summary>Request shapes</summary><div class="pill-list">${renderRecordPills(coverage.operations?.byRequestShape)}</div></details>
-    <details><summary>Response shapes</summary><div class="pill-list">${renderRecordPills(coverage.operations?.byResponseShape)}</div></details>
-    <details><summary>Unsupported schema constructs</summary><div class="pill-list">${renderRecordPills(coverage.schemas?.unsupportedConstructs)}</div></details>
   </section>`
 }
 

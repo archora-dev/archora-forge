@@ -1,6 +1,6 @@
 # Roadmap
 
-This roadmap covers planned and active follow-up work. It does not promise release dates.
+This roadmap covers planned work only. It does not list shipped features, and it does not promise release dates.
 
 The order may change when private schema pilots expose higher-priority gaps. The product direction should stay stable: Forge remains focused on the frontend resource layer around an OpenAPI contract.
 
@@ -115,9 +115,9 @@ Planned work:
 
 A user should be able to read release notes and decide whether an upgrade is safe for their branch.
 
-## 7. Completed Feature Candidates
+## 7. Future Feature Candidates
 
-These candidates have v1 surfaces:
+These items are useful candidates, but they should be pulled into active work only when pilot evidence supports them:
 
 - stricter schema lint rules for frontend generation quality;
 - richer grouping for non-CRUD operations;
@@ -128,8 +128,6 @@ These candidates have v1 surfaces:
 - generated changelog for resource contract changes;
 - config presets for common repository layouts;
 - workspace-level report for multi-schema projects.
-
-Remaining work in this area is fixture expansion and behavior hardening from real pilot schemas, not roadmap discovery.
 
 ## Not Planned For Core
 
@@ -164,11 +162,12 @@ Delay or reject work when it:
 
 ## Near-Term Order
 
-The v1 adoption package now covers CI adoption, adoption reports, schema coverage, framework integration patterns, runtime hardening notes, release discipline and the feature candidates above. Current follow-up priority order:
+Current priority order:
 
-1. Validate the CI adoption kit against private schema pilots.
-2. Expand schema coverage matrix fixtures from sanitized pilot patterns.
-3. Add framework-specific examples only where pilots show repeated integration work.
-4. Tighten runtime tests when real application transport edge cases appear.
-5. Keep release notes current for generated-file contract changes.
+1. CI Adoption Kit v1.
+2. Adoption Report v1.
+3. Schema Coverage Matrix v1.
+4. Framework Integration Patterns v1.
+5. Runtime Hardening v1.
+6. Release Checklist and Upgrade Notes v1.
 

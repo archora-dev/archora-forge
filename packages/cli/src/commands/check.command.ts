@@ -46,7 +46,6 @@ export function registerCheckCommand(cli: CAC): void {
         const diagnostics = checks.flatMap((check) => check.diagnostics)
         const failedChecks = [...new Set(checks.flatMap((check) => check.failedChecks))]
         const generator = summarizeCheckGeneratorMetadata(checks.map((check) => check.generator))
-        const coverage = mergeSchemaCoverageMatrices(checks.map((check) => check.coverage))
         const ok = failedChecks.length === 0
         const healthScore = Math.min(...checks.map((check) => check.healthScore))
         const summary = {
@@ -73,7 +72,6 @@ export function registerCheckCommand(cli: CAC): void {
             diagnosticsCount: check.diagnostics.length,
             failedChecks: check.failedChecks,
             generator: check.generator,
-            coverage: check.coverage,
           })),
           healthScore,
           resources: summary.resources,
@@ -81,7 +79,6 @@ export function registerCheckCommand(cli: CAC): void {
           protectedFiles: summary.protectedFiles,
           failedChecks,
           generator,
-          coverage,
           readiness: createReadinessSummary({ summary, failedChecks, drift, diagnostics }),
           drift,
           diagnostics,
@@ -182,7 +179,6 @@ async function runCheck(
     generatedFiles: plan.files.filter((file) => file.kind === 'generated').length,
     protectedFiles: summary.protected,
     generator,
-    coverage,
     drift,
     diagnostics,
     failedChecks,
@@ -203,26 +199,6 @@ function createMarkdownReport(payload: {
     nextActions: string[]
   }
   generator?: GeneratorCheckSummary
-  coverage?: {
-    operations: {
-      total: number
-      generated: number
-      diagnosticOnly: number
-      byKind: Record<string, number>
-      byRequestShape: Record<string, number>
-      byResponseShape: Record<string, number>
-    }
-    schemas: {
-      total: number
-      unsupportedConstructs: Record<string, number>
-    }
-    cases: {
-      generated: number
-      skipped: number
-      fallback: number
-      diagnosticOnly: number
-    }
-  }
 }): string {
   const drift = payload.drift.length === 0 ? '- No drift detected.' : payload.drift.map((entry) => `- \`${entry.path}\` is ${entry.kind}`).join('\n')
   const diagnostics =
@@ -248,7 +224,6 @@ ${formatMarkdownList(payload.readiness.nextActions, 'No action required.')}
 `
     : ''
   const generator = payload.generator ? formatGeneratorMarkdown(payload.generator) : ''
-  const coverage = payload.coverage ? formatCoverageMarkdown(payload.coverage) : ''
 
   return `# Archora Forge Check
 
@@ -260,7 +235,6 @@ Health score: ${payload.healthScore ?? 'n/a'}
 
 ${readiness}
 ${generator}
-${coverage}
 ## Drift
 
 ${drift}
@@ -321,35 +295,6 @@ Schema hash mismatches: ${summary.files.schemaHashMismatches.length}
 Config hash mismatches: ${summary.files.configHashMismatches.length}
 
 `
-}
-
-function formatCoverageMarkdown(coverage: NonNullable<Parameters<typeof createMarkdownReport>[0]['coverage']>): string {
-  return `## Schema Coverage Matrix
-
-Operations: ${coverage.operations.total}
-
-Generated operations: ${coverage.operations.generated}
-
-Skipped operations: ${coverage.cases.skipped}
-
-Fallback cases: ${coverage.cases.fallback}
-
-Diagnostic-only cases: ${coverage.cases.diagnosticOnly}
-
-Operation types: ${formatRecord(coverage.operations.byKind)}
-
-Request shapes: ${formatRecord(coverage.operations.byRequestShape)}
-
-Response shapes: ${formatRecord(coverage.operations.byResponseShape)}
-
-Unsupported schema constructs: ${formatRecord(coverage.schemas.unsupportedConstructs)}
-
-`
-}
-
-function formatRecord(record: Record<string, number>): string {
-  const entries = Object.entries(record)
-  return entries.length > 0 ? entries.map(([key, value]) => `${key}=${value}`).join(', ') : 'none'
 }
 
 function formatMarkdownList(items: string[], empty: string): string {
