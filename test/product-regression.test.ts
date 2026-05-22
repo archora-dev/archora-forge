@@ -1888,7 +1888,7 @@ describe('Product regression coverage', () => {
     expect(monorepo.inputs.map((input) => input.output?.generatedDir)).toEqual(['./src/generated/users', './src/generated/billing'])
   })
 
-  test('generated artifacts avoid front-api typecheck traps', async () => {
+  test('generated artifacts avoid private-corpus typecheck traps', async () => {
     const cwd = await tempDir()
     const normalized = normalizeOpenApi({
       openapi: '3.0.3',
