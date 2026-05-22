@@ -1,6 +1,7 @@
 export * from './errors/ForgeError.js'
 export * from './filesystem/writeGeneratedFiles.js'
 export * from './diagnostics/diagnostics.js'
+export * from './schemaCoverage/schemaCoverage.js'
 export * from './generation/createGenerationPlan.js'
 export * from './generation/drift.js'
 export * from './generation/formatGeneratedContent.js'

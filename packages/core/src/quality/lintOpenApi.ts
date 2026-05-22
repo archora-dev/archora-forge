@@ -18,9 +18,13 @@ export type OpenApiLintReport = {
 export function lintOpenApi(normalized: NormalizedOpenApi, options: OpenApiLintOptions = {}): OpenApiLintReport {
   const disabled = new Set(options.disabledRules ?? [])
   const diagnostics: ForgeDiagnostic[] = []
+  const operationIds = new Map<string, string[]>()
 
   for (const operation of normalized.operations) {
     const location = `${operation.method.toUpperCase()} ${operation.path}`
+    if (operation.operation.operationId) {
+      operationIds.set(operation.operation.operationId, [...(operationIds.get(operation.operation.operationId) ?? []), location])
+    }
     if (!operation.operation.operationId) {
       diagnostics.push({
         severity: 'warning',
@@ -38,6 +42,26 @@ export function lintOpenApi(normalized: NormalizedOpenApi, options: OpenApiLintO
         location,
         suggestion: 'Add a resource tag such as Users, Orders or Reports.',
       })
+    }
+    if (operation.tags.length > 1) {
+      diagnostics.push({
+        severity: 'warning',
+        code: 'multiple-resource-tags',
+        message: `${location} has multiple tags, so resource ownership is ambiguous.`,
+        location,
+        suggestion: 'Use one primary resource tag and move secondary grouping into summary or operationId naming.',
+      })
+    }
+    for (const name of extractPathParameters(operation.path)) {
+      if (!operation.parameters.some((parameter) => parameter.in === 'path' && parameter.name === name)) {
+        diagnostics.push({
+          severity: 'warning',
+          code: 'path-template-parameter-missing',
+          message: `${location} uses path parameter "${name}" without a matching OpenAPI path parameter.`,
+          location,
+          suggestion: 'Define every path template parameter with in: path and required: true.',
+        })
+      }
     }
     if ((operation.method === 'post' || operation.method === 'put' || operation.method === 'patch') && !operation.requestBodySchema) {
       diagnostics.push({
@@ -77,6 +101,17 @@ export function lintOpenApi(normalized: NormalizedOpenApi, options: OpenApiLintO
     }
   }
 
+  for (const [operationId, locations] of operationIds) {
+    if (locations.length < 2) continue
+    diagnostics.push({
+      severity: 'warning',
+      code: 'duplicate-operation-id',
+      message: `operationId "${operationId}" is used by ${locations.length} operations.`,
+      location: locations.slice(0, 3).join(', ') + (locations.length > 3 ? ', ...' : ''),
+      suggestion: 'Use stable unique operationId values so generated method names do not require collision suffixes.',
+    })
+  }
+
   diagnostics.push(...collectDiagnostics(normalized))
 
   const filtered = dedupeDiagnostics(diagnostics.filter((diagnostic) => !disabled.has(diagnostic.code)))
@@ -91,6 +126,10 @@ export function lintOpenApi(normalized: NormalizedOpenApi, options: OpenApiLintO
   const ok = options.strict ? filtered.length === 0 : errors === 0
 
   return { ok, score, diagnostics: filtered, grouped }
+}
+
+function extractPathParameters(path: string): string[] {
+  return [...path.matchAll(/\{([^}]+)\}/g)].map((match) => match[1] ?? '').filter(Boolean)
 }
 
 function dedupeDiagnostics(diagnostics: ForgeDiagnostic[]): ForgeDiagnostic[] {

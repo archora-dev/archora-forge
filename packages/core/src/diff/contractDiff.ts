@@ -24,6 +24,7 @@ export type ContractDiffReport = {
   changes: ContractDiffChange[]
   affectedResources: string[]
   affectedFiles: string[]
+  changelog: string[]
 }
 
 export function diffOpenApiContracts(oldSchema: NormalizedOpenApi, newSchema: NormalizedOpenApi): ContractDiffReport {
@@ -69,7 +70,26 @@ export function diffOpenApiContracts(oldSchema: NormalizedOpenApi, newSchema: No
     `src/features/${resource}/api/index.ts`,
   ])
 
-  return { changes, affectedResources, affectedFiles }
+  return { changes, affectedResources, affectedFiles, changelog: formatContractDiffChangelog({ changes, affectedResources, affectedFiles }) }
+}
+
+export function formatContractDiffChangelog(report: Pick<ContractDiffReport, 'changes' | 'affectedResources' | 'affectedFiles'>): string[] {
+  const lines: string[] = []
+  const byResource = new Map<string, ContractDiffChange[]>()
+  for (const change of report.changes) {
+    byResource.set(change.resource, [...(byResource.get(change.resource) ?? []), change])
+  }
+  for (const [resource, changes] of [...byResource.entries()].sort(([left], [right]) => left.localeCompare(right))) {
+    const breaking = changes.filter((change) => change.severity === 'breaking').length
+    const nonBreaking = changes.filter((change) => change.severity === 'non-breaking').length
+    const warnings = changes.filter((change) => change.severity === 'warning').length
+    const prefix = breaking > 0 ? 'BREAKING' : warnings > 0 ? 'WARNING' : 'CHANGED'
+    lines.push(`${prefix} ${resource}: ${breaking} breaking, ${nonBreaking} non-breaking, ${warnings} warning changes.`)
+  }
+  if (report.affectedFiles.length > 0) {
+    lines.push(`${report.affectedFiles.length} resource contract files affected.`)
+  }
+  return lines
 }
 
 function operationMap(operations: NormalizedOperation[]): Map<string, NormalizedOperation> {

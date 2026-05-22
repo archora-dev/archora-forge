@@ -24,7 +24,7 @@ describe('v1 public API contract', () => {
       'toFormFields',
       'toTableColumns',
     ])
-    expect(Object.keys(config).sort()).toEqual(['defineForgeConfig', 'loadForgeConfig', 'resolveForgeConfig'])
+    expect(Object.keys(config).sort()).toEqual(['createForgeConfigPreset', 'defineForgeConfig', 'loadForgeConfig', 'resolveForgeConfig'])
     expect(Object.keys(core).sort()).toEqual([
       'ForgeError',
       'calculateDrift',
@@ -35,6 +35,7 @@ describe('v1 public API contract', () => {
       'createOperationTypeNames',
       'createResourceTypeNames',
       'createResourceUiModel',
+      'createSchemaCoverageMatrix',
       'createSharedSchemaTypes',
       'createTypeScriptTypes',
       'detectResources',
@@ -43,6 +44,7 @@ describe('v1 public API contract', () => {
       'forgeCoreVersion',
       'forgeGeneratedMarker',
       'forgeGeneratedMetadataMarker',
+      'formatContractDiffChangelog',
       'formatGeneratedContent',
       'getCollectionParams',
       'getHeaderParams',
@@ -53,6 +55,7 @@ describe('v1 public API contract', () => {
       'isSafeIdentifier',
       'lintOpenApi',
       'loadTemplateOverride',
+      'mergeSchemaCoverageMatrices',
       'normalizeOpenApi',
       'normalizePlugins',
       'parseOpenApi',
@@ -151,6 +154,7 @@ describe('v1 public API contract', () => {
       'protectedFiles',
       'failedChecks',
       'generator',
+      'coverage',
       'readiness',
       'drift',
       'diagnostics',

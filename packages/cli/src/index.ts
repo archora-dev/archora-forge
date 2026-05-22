@@ -11,7 +11,7 @@ import { registerLintCommand } from './commands/lint.command.js'
 import { registerValidateCommand } from './commands/validate.command.js'
 import { cliVersion } from './package-metadata.js'
 
-export { defineForgeConfig } from '@archora/forge-config'
+export { createForgeConfigPreset, defineForgeConfig } from '@archora/forge-config'
 
 export function createCli() {
   const cli = cac('archora-forge')

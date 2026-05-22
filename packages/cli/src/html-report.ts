@@ -23,6 +23,28 @@ type SchemaLike = {
   protectedFiles?: number
   diagnosticsCount?: number
   failedChecks?: string[]
+  coverage?: CoverageLike
+}
+
+type CoverageLike = {
+  operations?: {
+    total?: number
+    generated?: number
+    diagnosticOnly?: number
+    byKind?: Record<string, number>
+    byRequestShape?: Record<string, number>
+    byResponseShape?: Record<string, number>
+  }
+  schemas?: {
+    total?: number
+    unsupportedConstructs?: Record<string, number>
+  }
+  cases?: {
+    generated?: number
+    skipped?: number
+    fallback?: number
+    diagnosticOnly?: number
+  }
 }
 
 type HtmlReportPayload = {
@@ -36,6 +58,7 @@ type HtmlReportPayload = {
   generatedFiles?: number
   protectedFiles?: number
   failedChecks?: string[]
+  coverage?: CoverageLike
   readiness?: {
     status?: string
     decision?: string
@@ -136,6 +159,7 @@ export function createHtmlReport(title: string, payload: HtmlReportPayload): str
 
   ${renderExecutiveSummary({ status, healthScore, resources, generatedFiles, diagnostics, drift, failedChecks, topAffectedResources })}
   ${renderReadiness(payload.readiness)}
+  ${renderCoverageMatrix(payload.coverage)}
   ${renderCiSummary(ciSummary)}
   ${renderGeneratedFileCategories(driftByCategory, payload.files, generatedFiles)}
   ${renderDiagnosticGroups(diagnosticsBySeverity, diagnosticsByCode)}
@@ -174,6 +198,25 @@ function renderReadiness(readiness: HtmlReportPayload['readiness']): string {
       <h2>Warnings</h2>
       ${renderSimpleList(readiness.warnings ?? [], 'No warnings.')}
     </div>
+  </section>`
+}
+
+function renderCoverageMatrix(coverage: CoverageLike | undefined): string {
+  if (!coverage) return ''
+  return `<section>
+    <h2>Schema Coverage Matrix</h2>
+    <div class="grid">
+      ${metric('Operations', coverage.operations?.total ?? 'n/a')}
+      ${metric('Generated operations', coverage.operations?.generated ?? 'n/a')}
+      ${metric('Fallback cases', coverage.cases?.fallback ?? 'n/a')}
+      ${metric('Diagnostic-only cases', coverage.cases?.diagnosticOnly ?? 'n/a')}
+      ${metric('Schemas', coverage.schemas?.total ?? 'n/a')}
+      ${metric('Skipped operations', coverage.cases?.skipped ?? 'n/a')}
+    </div>
+    <details open><summary>Operation types</summary><div class="pill-list">${renderRecordPills(coverage.operations?.byKind)}</div></details>
+    <details><summary>Request shapes</summary><div class="pill-list">${renderRecordPills(coverage.operations?.byRequestShape)}</div></details>
+    <details><summary>Response shapes</summary><div class="pill-list">${renderRecordPills(coverage.operations?.byResponseShape)}</div></details>
+    <details><summary>Unsupported schema constructs</summary><div class="pill-list">${renderRecordPills(coverage.schemas?.unsupportedConstructs)}</div></details>
   </section>`
 }
 
@@ -326,6 +369,14 @@ function renderGroupPills(groups: Map<string, unknown[]>): string {
   return [...groups.entries()]
     .sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0]))
     .map(([name, items]) => `<span class="pill"><strong>${items.length}</strong>${escapeHtml(name)}</span>`)
+    .join('')
+}
+
+function renderRecordPills(record: Record<string, number> | undefined): string {
+  if (!record || Object.keys(record).length === 0) return '<span class="muted">none</span>'
+  return Object.entries(record)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .map(([name, count]) => `<span class="pill"><strong>${count}</strong>${escapeHtml(name)}</span>`)
     .join('')
 }
 

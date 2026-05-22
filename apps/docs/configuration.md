@@ -26,6 +26,8 @@ export default defineForgeConfig({
 
 Defaults are applied when output or target options are omitted.
 
+For common layouts, use [Config Presets](/config-presets).
+
 Use `inputs` instead of `input` for multi-schema monorepos. `doctor`, `inspect`, `validate`, `lint`, `check`, `diff` and `generate` aggregate configured inputs when no schema argument is passed. Set a distinct `output.generatedDir` per input; `generate` refuses duplicate generated paths.
 
 ## CI Policy

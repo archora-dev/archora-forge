@@ -133,9 +133,25 @@ grep -q '"create": 18' forge-diff.json
 pnpm exec archora-forge generate --dry-run --json --report-file forge-generate.json
 grep -q '"ok": true' forge-generate.json
 grep -q '"dryRun": true' forge-generate.json
+if pnpm exec archora-forge lint --strict --json --report-file forge-lint-strict.json; then
+  echo "Expected strict lint to fail for advisory CI coverage" >&2
+  exit 1
+fi
+grep -q '"ok": false' forge-lint-strict.json
+grep -q '"missing-error-response"' forge-lint-strict.json
 pnpm exec archora-forge generate
 pnpm exec archora-forge check --report markdown --report-file forge-check.md
+pnpm exec archora-forge check --report html --report-file forge-check.html
+pnpm exec archora-forge check --report json --report-file forge-check.json
+grep -q '"ok": true' forge-check.json
+if pnpm exec archora-forge check ./openapi.yaml --min-health-score 100 --report json --report-file forge-check-strict.json; then
+  echo "Expected strict health-score check to fail for CI coverage" >&2
+  exit 1
+fi
+grep -q '"ok": false' forge-check-strict.json
+grep -q '"health-score"' forge-check-strict.json
 test -f forge-check.md
+test -f forge-check.html
 
 test -f src/shared/api/generated/users/users.client.ts
 test -f src/features/users/model/users.config.ts

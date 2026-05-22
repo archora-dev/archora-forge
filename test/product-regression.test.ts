@@ -7,7 +7,7 @@ import { promisify } from 'node:util'
 import { describe, expect, test } from 'vitest'
 
 import { createCli, runCli } from '../packages/cli/src/index.js'
-import { resolveForgeConfig } from '../packages/config/src/index.js'
+import { createForgeConfigPreset, resolveForgeConfig } from '../packages/config/src/index.js'
 import {
   collectDiagnostics,
   createGenerationPlan,
@@ -617,6 +617,7 @@ describe('Product regression coverage', () => {
     expect(report).toContain('# Archora Forge Check')
     expect(report).toContain('Status: failed')
     expect(report).toContain('## Pilot Readiness')
+    expect(report).toContain('## Schema Coverage Matrix')
     expect(report).toContain('Readiness: blocked')
     expect(report).toContain('Generated output drift is present.')
     expect(report).toContain('components.types.ts')
@@ -758,6 +759,7 @@ describe('Product regression coverage', () => {
     expect(report).toContain('<!doctype html>')
     expect(report).toContain('Archora Forge Check')
     expect(report).toContain('Pilot Readiness')
+    expect(report).toContain('Schema Coverage Matrix')
     expect(report).toContain('Generated output drift is present.')
     expect(report).toContain('components.types.ts')
     expect(report).toContain('Failed Checks')
@@ -1831,6 +1833,59 @@ describe('Product regression coverage', () => {
     )
     expect(diff.affectedResources).toContain('users')
     expect(diff.affectedFiles).toContain('src/shared/api/generated/users/users.types.ts')
+    expect(diff.changelog).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('BREAKING users'),
+        expect.stringContaining('resource contract files affected'),
+      ]),
+    )
+  })
+
+  test('lint reports stricter frontend generation quality issues', () => {
+    const normalized = normalizeOpenApi({
+      openapi: '3.0.3',
+      info: { title: 'Strict Lint API', version: '1.0.0' },
+      paths: {
+        '/users/{id}': {
+          get: {
+            operationId: 'getUser',
+            tags: ['Users'],
+            responses: { '200': { description: 'User', content: { 'application/json': { schema: { type: 'object' } } } } },
+          },
+        },
+        '/reports/export': {
+          get: {
+            operationId: 'getUser',
+            tags: ['Reports', 'Exports'],
+            responses: { '200': { description: 'Export', content: { 'application/json': { schema: { type: 'object' } } } } },
+          },
+        },
+      },
+    })
+
+    const report = lintOpenApi(normalized, { strict: true })
+    const codes = report.diagnostics.map((diagnostic) => diagnostic.code)
+
+    expect(codes).toEqual(expect.arrayContaining(['duplicate-operation-id', 'path-template-parameter-missing', 'multiple-resource-tags']))
+    expect(report.ok).toBe(false)
+  })
+
+  test('config presets provide common repository layouts', () => {
+    const featureSliced = resolveForgeConfig(createForgeConfigPreset('feature-sliced', { input: './openapi.yaml' }))
+    const simple = resolveForgeConfig(createForgeConfigPreset('simple', { input: './openapi.yaml' }))
+    const monorepo = resolveForgeConfig(
+      createForgeConfigPreset('monorepo', {
+        inputs: [
+          { name: 'users', path: './contracts/users.yaml' },
+          { name: 'billing', path: './contracts/billing.yaml' },
+        ],
+      }),
+    )
+
+    expect(featureSliced.output.featuresDir).toBe('./src/features')
+    expect(simple.output.featuresDir).toBe('./src/api/features')
+    expect(simple.target.architecture).toBe('simple')
+    expect(monorepo.inputs.map((input) => input.output?.generatedDir)).toEqual(['./src/generated/users', './src/generated/billing'])
   })
 
   test('contract-diff command can write a JSON report file for CI artifacts', async () => {
@@ -1918,6 +1973,127 @@ describe('Product regression coverage', () => {
     expect(report.score).toBeGreaterThanOrEqual(70)
     expect(new Set(diagnosticKeys).size).toBe(diagnosticKeys.length)
     expect(report.diagnostics.filter((diagnostic) => diagnostic.code === 'missing-response-schema')).toHaveLength(0)
+  })
+
+  test('check report includes schema coverage matrix for adoption review', async () => {
+    const cwd = await tempDir()
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      JSON.stringify({
+        openapi: '3.0.3',
+        info: { title: 'Coverage API', version: '1.0.0' },
+        paths: {
+          '/users': {
+            get: {
+              operationId: 'listUsers',
+              tags: ['Users'],
+              responses: {
+                '200': {
+                  description: 'Users',
+                  content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/User' } } } },
+                },
+              },
+            },
+            post: {
+              operationId: 'createUser',
+              tags: ['Users'],
+              requestBody: {
+                content: { 'text/plain': { schema: { type: 'string' } } },
+              },
+              responses: {
+                '201': {
+                  description: 'Created',
+                  content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } },
+                },
+              },
+            },
+          },
+          '/users/export': {
+            get: {
+              operationId: 'exportUsers',
+              tags: ['Users'],
+              responses: {
+                '200': {
+                  description: 'Export',
+                  content: { 'application/octet-stream': { schema: { type: 'string', format: 'binary' } } },
+                },
+              },
+            },
+          },
+          '/legacy/ping': {
+            head: {
+              operationId: 'headPing',
+              tags: ['Legacy'],
+              responses: { '204': { description: 'No content' } },
+            },
+          },
+        },
+        components: {
+          schemas: {
+            User: {
+              type: 'object',
+              required: ['id', 'status'],
+              properties: {
+                id: { type: 'string' },
+                status: { oneOf: [{ type: 'string' }, { type: 'integer' }] },
+              },
+            },
+          },
+        },
+      }),
+      'utf8',
+    )
+
+    const { output } = await runCliInDirectory(cwd, ['check', './openapi.yaml', '--json'])
+    const payload = JSON.parse(output) as {
+      coverage: {
+        operations: {
+          total: number
+          generated: number
+          diagnosticOnly: number
+          byKind: Record<string, number>
+          byRequestShape: Record<string, number>
+          byResponseShape: Record<string, number>
+        }
+        schemas: {
+          total: number
+          unsupportedConstructs: Record<string, number>
+        }
+        cases: {
+          generated: number
+          skipped: number
+          fallback: number
+          diagnosticOnly: number
+        }
+      }
+    }
+
+    expect(payload.coverage.operations.total).toBe(4)
+    expect(payload.coverage.operations.generated).toBe(3)
+    expect(payload.coverage.operations.diagnosticOnly).toBe(1)
+    expect(payload.coverage.operations.byKind).toMatchObject({
+      'crud-resource': 2,
+      'file-operation': 1,
+      'unsupported-operation': 1,
+    })
+    expect(payload.coverage.operations.byRequestShape).toMatchObject({
+      none: 3,
+      text: 1,
+    })
+    expect(payload.coverage.operations.byResponseShape).toMatchObject({
+      json: 2,
+      binary: 1,
+      empty: 1,
+    })
+    expect(payload.coverage.schemas.unsupportedConstructs).toMatchObject({
+      oneOf: 1,
+    })
+    expect(payload.coverage.cases).toMatchObject({
+      generated: 3,
+      skipped: 1,
+      fallback: 1,
+      diagnosticOnly: 2,
+    })
   })
 })
 
