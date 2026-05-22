@@ -285,8 +285,8 @@ function createTypecheckTsconfig(workspace: string): Record<string, unknown> {
   return {
     compilerOptions: {
       baseUrl: '.',
-      module: 'NodeNext',
-      moduleResolution: 'NodeNext',
+      module: 'ESNext',
+      moduleResolution: 'Bundler',
       noEmit: true,
       paths: {
         '@archora/forge-runtime': [runtimeSource, './node_modules/@archora/forge-runtime/dist/index.d.ts'],
