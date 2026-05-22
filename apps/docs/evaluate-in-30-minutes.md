@@ -53,6 +53,7 @@ pnpm exec archora-forge generate ./openapi.yaml
 pnpm exec archora-forge check ./openapi.yaml --report html --report-file forge-check.html
 pnpm exec archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md
 pnpm exec archora-forge check ./openapi.yaml --json
+pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
 ```
 
 The generated output should be committed and reviewed like application code. The `check` report includes a pilot readiness section with a status, decision, blockers, warnings and next actions. Treat it as an adoption-review artifact, not as a production-readiness certificate.
@@ -79,6 +80,7 @@ Forge is a good fit when:
 - diagnostics are understandable and actionable;
 - generated metadata maps into your forms/tables/design system;
 - `check` can be used as a CI gate and produces a clear pilot readiness decision;
+- generated TypeScript passes typecheck or failures are fully triaged;
 - regeneration does not overwrite custom code.
 - preview limitations are acceptable for the purchase scope.
 

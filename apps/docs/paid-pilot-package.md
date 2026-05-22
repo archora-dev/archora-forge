@@ -45,6 +45,7 @@ Not included:
 - HTML `inspect` report.
 - HTML or Markdown `check` report with pilot readiness status, blockers, warnings and next actions.
 - JSON `check` payload for CI or internal automation.
+- Generated TypeScript typecheck result and failure summary if any generated code does not compile.
 - Diagnostics summary with recommended OpenAPI fixes.
 - Resource coverage summary: CRUD, read-only, search, dashboard, action and file operations.
 - Short integration guide for the customer's frontend.
@@ -58,14 +59,6 @@ archora-forge check ./openapi.yaml --report html --report-file forge-check.html
 archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md
 archora-forge check ./openapi.yaml --json
 tsc --noEmit -p ./generated-output-typecheck/tsconfig.json
-```
-
-Recommended readiness commands:
-
-```bash
-archora-forge check ./openapi.yaml --report html --report-file forge-check.html
-archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md
-archora-forge check ./openapi.yaml --json
 ```
 
 ## Suggested Pricing
