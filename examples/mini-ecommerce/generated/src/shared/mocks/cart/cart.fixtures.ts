@@ -1,5 +1,5 @@
 // @archora-forge-generated
-// @archora-forge-meta {"version":"1.0.0","schemaHash":"66e8f461600e","configHash":"f1d971045876"}
-export const cartFixtures: Cart[] = []
+// @archora-forge-meta {"version":"1.1.0","schemaHash":"66e8f461600e","configHash":"f1d971045876"}
+export const cartFixtures: CartFixture[] = []
 
-type Cart = Record<string, unknown>
+type CartFixture = Record<string, unknown>

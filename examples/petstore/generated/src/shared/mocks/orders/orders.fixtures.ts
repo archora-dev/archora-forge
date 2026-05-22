@@ -1,5 +1,5 @@
 // @archora-forge-generated
-// @archora-forge-meta {"version":"1.0.0","schemaHash":"5462738c2a15","configHash":"f1d971045876"}
-export const ordersFixtures: Order[] = []
+// @archora-forge-meta {"version":"1.1.0","schemaHash":"5462738c2a15","configHash":"f1d971045876"}
+export const ordersFixtures: OrderFixture[] = []
 
-type Order = Record<string, unknown>
+type OrderFixture = Record<string, unknown>

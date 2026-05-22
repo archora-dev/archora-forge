@@ -52,4 +52,4 @@ Migration hints:
 
 ## Source Usage
 
-- `src/contacts-page.ts:1,4,7,8`: contactsClient, createContact, searchContacts
+- `contacts-page.ts:1,4,7,8`: contactsClient, createContact, searchContacts

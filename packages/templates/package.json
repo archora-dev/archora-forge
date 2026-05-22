@@ -1,6 +1,6 @@
 {
   "name": "@archora/forge-templates",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Template support for Archora Forge generated frontend modules.",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
