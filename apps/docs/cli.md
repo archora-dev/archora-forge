@@ -13,6 +13,12 @@ archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml
 archora-forge generate ./openapi.yaml
 ```
 
+For self-serve purchase evaluation, pair CLI output with:
+
+- [Generated Output Typecheck](/generated-output-typecheck);
+- [Product Demo Package](/product-demo-package);
+- [Pilot Report Template](/pilot-report-template).
+
 ## Commands
 
 - `init` creates `archora-forge.config.ts` with default or supplied output folders.
@@ -23,6 +29,7 @@ archora-forge generate ./openapi.yaml
 - `lint` reports frontend generation readiness diagnostics.
 - `contract-diff` compares old/new contracts and reports affected generated files.
 - `generate` writes the frontend resource contract files.
+- generated-output typecheck is run by the consuming workspace with `tsc --noEmit`; Forge documents the gate but does not hide TypeScript errors behind a custom wrapper.
 
 ## Flags
 

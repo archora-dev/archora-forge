@@ -2,7 +2,7 @@
 
 This package is a practical first commercial offer for teams evaluating Archora Forge on a real schema.
 
-Position the offer as a paid private beta/pilot. Do not sell it as a production-ready platform license.
+Position the offer as a bounded self-serve adoption package. Do not sell it as a production-ready platform license or as unlimited OpenAPI coverage.
 
 ## Outcome
 
@@ -50,6 +50,7 @@ Not included:
 - Resource coverage summary: CRUD, read-only, search, dashboard, action and file operations.
 - Short integration guide for the customer's frontend.
 - Go/no-go recommendation for broader rollout.
+- Completed pilot report using [Pilot Report Template](/pilot-report-template).
 
 Recommended readiness commands:
 

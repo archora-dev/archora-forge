@@ -29,7 +29,7 @@ If in doubt — you need a license. Ask first.
 
 ## How to get one
 
-Send a short message with:
+For self-serve evaluation, first run the public demo and one private-schema evaluation using the docs in `apps/docs/self-serve-purchase.md`. Then send a short message with:
 
 1. Your name / company name and country of registration.
 2. A one-paragraph description of how you intend to use `archora-forge`.
@@ -39,6 +39,8 @@ Send a short message with:
    one-time perpetual, or annual subscription.
 
 You will receive a written quote and a license agreement to sign.
+
+The buying decision should be based on generated artifacts: `check` reports, generated output, generated-output TypeScript typecheck and the pilot report template. A live sales call is optional, not required for the evaluation workflow.
 
 ## Contact
 

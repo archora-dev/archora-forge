@@ -56,9 +56,13 @@ export default defineConfig({
       {
         text: 'Evaluate',
         items: [
+          { text: 'Self-Serve Purchase', link: '/self-serve-purchase' },
           { text: 'Evaluate in 30 Minutes', link: '/evaluate-in-30-minutes' },
           { text: 'Public Demo Walkthrough', link: '/public-demo-walkthrough' },
+          { text: 'Product Demo Package', link: '/product-demo-package' },
           { text: 'Private Schema Pilot Proof', link: '/pilot-proof' },
+          { text: 'Generated Output Typecheck', link: '/generated-output-typecheck' },
+          { text: 'Pilot Report Template', link: '/pilot-report-template' },
           { text: 'Why Forge', link: '/why-forge' },
           { text: 'Private Schema Workflow', link: '/private-schema-workflow' },
           { text: 'Paid Pilot Package', link: '/paid-pilot-package' },

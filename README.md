@@ -14,9 +14,9 @@
 
 Archora Forge turns an OpenAPI contract into a typed frontend resource layer.
 
-Archora Forge is in public preview and private beta. It is built for frontend teams that already have a framework and design system, but need a reliable contract layer between OpenAPI and product code. It generates committed TypeScript clients, operation helpers, query keys, form/table metadata, permissions, labels, mocks and CI reports without forcing a UI framework or hosted workflow.
+Archora Forge is a local-first commercial developer tool. It is built for frontend teams that already have a framework and design system, but need a reliable contract layer between OpenAPI and product code. It generates committed TypeScript clients, operation helpers, query keys, form/table metadata, permissions, labels, mocks and CI reports without forcing a UI framework or hosted workflow.
 
-Forge is suitable for paid pilots with Vue/OpenAPI teams that want to evaluate one real schema in a branch. It is not positioned as production-ready and does not claim full OpenAPI coverage.
+Forge is suitable for self-serve evaluation and bounded commercial adoption packages with Vue/OpenAPI teams that want to evaluate one real schema in a branch. It is not positioned as unlimited production platform coverage for every OpenAPI contract.
 
 It does not try to generate your application UI. Most teams already have a framework, a design system, a table component, a form library and strong opinions about how screens should look. Forge focuses on the part that is repetitive and easy to get wrong: the typed contract between an API schema and frontend code.
 
@@ -68,6 +68,14 @@ node packages/cli/dist/index.js check --config examples/public-crm/archora-forge
 
 See `apps/docs/public-demo-walkthrough.md` for the generated public CRM walkthrough.
 
+For the self-serve purchase path, read:
+
+- `apps/docs/self-serve-purchase.md`
+- `apps/docs/product-demo-package.md`
+- `apps/docs/generated-output-typecheck.md`
+- `apps/docs/pilot-report-template.md`
+- `apps/docs/pilot-proof.md`
+
 For local development in this repo:
 
 ```bash
@@ -98,6 +106,8 @@ pnpm exec archora-forge doctor ./openapi.yaml
 pnpm exec archora-forge inspect ./openapi.yaml
 pnpm exec archora-forge generate ./openapi.yaml
 ```
+
+Before buying or adopting generated output, run `archora-forge check` and typecheck the generated TypeScript in a temporary workspace. The docs include a report template so the purchase decision can be made from artifacts instead of a live demo.
 
 ## CLI
 
