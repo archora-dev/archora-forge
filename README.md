@@ -70,7 +70,7 @@ node packages/cli/dist/index.js audit --config examples/public-crm/archora-forge
 
 See `apps/docs/public-demo-walkthrough.md` for the generated public CRM walkthrough.
 
-For the self-serve purchase path, read:
+For the self-serve path, start with `apps/docs/start-guide.md`, then read:
 
 - `apps/docs/see-impact-report.md`
 - `apps/docs/see-audit-report.md`
@@ -105,7 +105,7 @@ For a clean “external consumer” check:
 
 That script packs the CLI, installs it into `/tmp/archora-forge-consumer`, runs the installed `archora-forge` binary and verifies the generated files.
 
-For v1 onboarding and compatibility guarantees, see `apps/docs/quick-start.md`, `apps/docs/api-stability.md` and `apps/docs/generated-file-contract.md`.
+For v1 onboarding and compatibility guarantees, see `apps/docs/start-guide.md`, `apps/docs/quick-start.md`, `apps/docs/api-stability.md` and `apps/docs/generated-file-contract.md`.
 
 Once the packages are published, consumer usage should be:
 
