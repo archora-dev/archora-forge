@@ -173,11 +173,11 @@ function createAuditPayload(
 
   return {
     ok,
-    schema: entries[0]?.schema ?? '',
+    schema: displayPath(entries[0]?.schema ?? ''),
     schemas: entries.map((entry) => ({
       name: entry.name,
-      schema: entry.schema,
-      configPath: entry.configPath,
+      schema: displayPath(entry.schema),
+      configPath: entry.configPath ? displayPath(entry.configPath) : null,
       healthScore: entry.healthScore,
       resources: entry.resources,
       generatedFiles: entry.generatedFiles,
@@ -187,8 +187,8 @@ function createAuditPayload(
       coverage: entry.coverage,
     })),
     audit: {
-      outDir: options.outDir,
-      generatedPreview: join(options.outDir, 'generated-preview'),
+      outDir: displayPath(options.outDir),
+      generatedPreview: displayPath(join(options.outDir, 'generated-preview')),
       artifacts: ['index.html', 'report.md', 'report.json', 'typecheck.md', 'ci.yml', 'adoption-plan.md', 'generated-preview/'],
     },
     healthScore,
@@ -251,6 +251,7 @@ async function writeGeneratedPreview(outDir: string, entries: AuditEntry[]): Pro
 
 async function runGeneratedOutputTypecheck(outDir: string, entries: AuditEntry[]): Promise<TypecheckResult> {
   const workspace = join(outDir, 'generated-output-typecheck')
+  const tsconfigPath = join(workspace, 'tsconfig.json')
   const srcDir = join(workspace, 'src')
   await Promise.all(
     entries.flatMap((entry) =>
@@ -263,18 +264,18 @@ async function runGeneratedOutputTypecheck(outDir: string, entries: AuditEntry[]
         }),
     ),
   )
-  await writeFile(join(workspace, 'tsconfig.json'), JSON.stringify(createTypecheckTsconfig(workspace), null, 2), 'utf8')
-  const command = `pnpm exec tsc -p ${join(workspace, 'tsconfig.json')}`
+  await writeFile(tsconfigPath, JSON.stringify(createTypecheckTsconfig(workspace), null, 2), 'utf8')
+  const command = `pnpm exec tsc -p ${displayPath(tsconfigPath)}`
   try {
-    await execFileAsync('pnpm', ['exec', 'tsc', '-p', join(workspace, 'tsconfig.json')], { cwd: process.cwd(), timeout: 120_000 })
-    return { status: 'passed', command, workspace, errors: [] }
+    await execFileAsync('pnpm', ['exec', 'tsc', '-p', tsconfigPath], { cwd: process.cwd(), timeout: 120_000 })
+    return { status: 'passed', command, workspace: displayPath(workspace), errors: [] }
   } catch (error) {
     const details = error as { stdout?: string; stderr?: string; message?: string; code?: unknown }
     const output = [details.stdout, details.stderr, details.message].filter(Boolean).join('\n').trim()
     return {
       status: 'failed',
       command,
-      workspace,
+      workspace: displayPath(workspace),
       errors: output ? output.split('\n').slice(0, 80) : [`tsc failed with code ${String(details.code ?? 'unknown')}`],
     }
   }
@@ -303,7 +304,7 @@ function createSkippedTypecheck(outDir: string): TypecheckResult {
   return {
     status: 'skipped',
     command: 'skipped by --skip-typecheck',
-    workspace: join(outDir, 'generated-output-typecheck'),
+    workspace: displayPath(join(outDir, 'generated-output-typecheck')),
     errors: [],
   }
 }
@@ -515,4 +516,10 @@ function parseMinHealthScore(value: string | number | undefined): number | undef
 
 function clamp(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)))
+}
+
+function displayPath(path: string): string {
+  if (!path) return path
+  const relativePath = relative(process.cwd(), path).replace(/\\/g, '/')
+  return relativePath && !relativePath.startsWith('..') ? relativePath : path.replace(/\\/g, '/')
 }

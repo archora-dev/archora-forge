@@ -71,6 +71,9 @@ See `apps/docs/public-demo-walkthrough.md` for the generated public CRM walkthro
 
 For the self-serve purchase path, read:
 
+- `apps/docs/see-audit-report.md`
+- `apps/docs/run-audit-quickstart.md`
+- `apps/docs/what-you-get.md`
 - `apps/docs/self-serve-purchase.md`
 - `apps/docs/product-demo-package.md`
 - `apps/docs/generated-output-typecheck.md`

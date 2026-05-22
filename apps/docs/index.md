@@ -3,34 +3,40 @@ layout: home
 
 hero:
   name: Archora Forge
-  text: OpenAPI to frontend resource layer — not just API clients.
-  tagline: Local-first commercial tooling for typed clients, operation helpers, resource metadata, CI drift checks, diagnostics and self-serve private schema evaluation.
+  text: Run one command. Get a frontend API adoption report.
+  tagline: Turn OpenAPI into a typed resource layer, scorecard, resource explorer, generated-output typecheck, CI workflow and go/no-go adoption plan.
   actions:
     - theme: brand
-      text: Buy or evaluate
-      link: /self-serve-purchase
+      text: See the audit report
+      link: /see-audit-report
     - theme: alt
-      text: Evaluate in 30 minutes
-      link: /evaluate-in-30-minutes
+      text: Run audit
+      link: /run-audit-quickstart
     - theme: alt
-      text: See proof
-      link: /pilot-proof
+      text: What you get
+      link: /what-you-get
 
 features:
-  - title: Local-first privacy
-    details: Run Forge in your repo or CI without uploading private OpenAPI contracts to a hosted service.
-  - title: Resource contract
-    details: Generate typed clients, operation helpers, query keys, form/table metadata, permissions, labels and mocks.
-  - title: CI drift and diagnostics
-    details: Use inspect, lint, check and HTML reports to review schema readiness and generated-output drift.
-  - title: Self-serve purchase path
-    details: Start with the public demo, evaluate one private schema locally, typecheck generated output and buy a bounded commercial package.
+  - title: Audit package
+    details: Generate HTML, Markdown, JSON, CI workflow, adoption plan and generated preview files from one command.
+  - title: Frontend resource layer
+    details: Emit clients, types, query keys, operation helpers, metadata, permissions, labels and mocks.
+  - title: Typecheck proof
+    details: Compile generated TypeScript in an isolated workspace before adoption.
+  - title: Local-first evaluation
+    details: Run on private schemas inside your repo or CI without uploading contracts.
 ---
 
-## Product Positioning
+## The Product
 
-Archora Forge is available as a local-first commercial developer tool for Vue and TypeScript teams evaluating OpenAPI-driven frontend resource generation. It is not positioned as a hosted SaaS and it does not claim full OpenAPI coverage.
+Archora Forge is a local-first commercial developer tool for TypeScript frontend teams evaluating OpenAPI-driven resource generation. It is not a hosted SaaS and it does not claim full OpenAPI coverage.
 
-Use the public CRM demo to inspect generated output without private data, then evaluate one real schema locally in a branch. The self-serve purchase path is designed to let a buyer decide from artifacts: generated code, HTML reports, drift status, diagnostics, generated TypeScript typecheck and a go/no-go report.
+The core workflow is:
 
-Preview limitations are documented in [Limitations](/limitations).
+```bash
+archora-forge audit ./openapi.yaml --out forge-audit
+```
+
+Open `forge-audit/index.html` and review the scorecard, resource explorer, generated files, typecheck result, drift, diagnostics and adoption plan.
+
+Start with the [public audit report](/see-audit-report), then run the same workflow on one private schema.

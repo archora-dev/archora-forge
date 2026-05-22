@@ -1,0 +1,354 @@
+{
+  "ok": true,
+  "schema": "examples/public-crm/openapi.yaml",
+  "schemas": [
+    {
+      "name": "default",
+      "schema": "examples/public-crm/openapi.yaml",
+      "configPath": "examples/public-crm/archora-forge.config.ts",
+      "healthScore": 100,
+      "resources": 6,
+      "generatedFiles": 93,
+      "protectedFiles": 0,
+      "driftCount": 0,
+      "diagnosticsCount": 0,
+      "coverage": {
+        "operations": {
+          "total": 14,
+          "generated": 14,
+          "diagnosticOnly": 0,
+          "byKind": {
+            "crud-resource": 10,
+            "action-operation": 1,
+            "search-resource": 1,
+            "dashboard-resource": 1,
+            "file-operation": 1
+          },
+          "byRequestShape": {
+            "none": 9,
+            "json": 5
+          },
+          "byResponseShape": {
+            "json": 11,
+            "empty": 2,
+            "binary": 1
+          }
+        },
+        "schemas": {
+          "total": 13,
+          "unsupportedConstructs": {}
+        },
+        "cases": {
+          "generated": 14,
+          "skipped": 0,
+          "fallback": 0,
+          "diagnosticOnly": 0
+        }
+      }
+    }
+  ],
+  "audit": {
+    "outDir": "apps/docs/public/demo-audit",
+    "generatedPreview": "apps/docs/public/demo-audit/generated-preview",
+    "artifacts": [
+      "index.html",
+      "report.md",
+      "report.json",
+      "typecheck.md",
+      "ci.yml",
+      "adoption-plan.md",
+      "generated-preview/"
+    ]
+  },
+  "healthScore": 100,
+  "resources": 6,
+  "generatedFiles": 93,
+  "protectedFiles": 0,
+  "failedChecks": [],
+  "scorecard": {
+    "frontendReadiness": 100,
+    "typeSafety": 100,
+    "resourceCoverage": 100,
+    "driftSafety": 100,
+    "ciAdoption": 100
+  },
+  "generator": {
+    "status": "previewed",
+    "version": "1.0.0",
+    "files": {
+      "total": 93,
+      "missingMetadata": [],
+      "versionMismatches": [],
+      "schemaHashMismatches": [],
+      "configHashMismatches": []
+    }
+  },
+  "coverage": {
+    "operations": {
+      "total": 14,
+      "generated": 14,
+      "diagnosticOnly": 0,
+      "byKind": {
+        "crud-resource": 10,
+        "action-operation": 1,
+        "search-resource": 1,
+        "dashboard-resource": 1,
+        "file-operation": 1
+      },
+      "byRequestShape": {
+        "none": 9,
+        "json": 5
+      },
+      "byResponseShape": {
+        "json": 11,
+        "empty": 2,
+        "binary": 1
+      }
+    },
+    "schemas": {
+      "total": 13,
+      "unsupportedConstructs": {}
+    },
+    "cases": {
+      "generated": 14,
+      "skipped": 0,
+      "fallback": 0,
+      "diagnosticOnly": 0
+    }
+  },
+  "typecheck": {
+    "status": "passed",
+    "command": "pnpm exec tsc -p apps/docs/public/demo-audit/generated-output-typecheck/tsconfig.json",
+    "workspace": "apps/docs/public/demo-audit/generated-output-typecheck",
+    "errors": []
+  },
+  "resourceExplorer": [
+    {
+      "name": "contacts",
+      "entity": "Contact",
+      "kind": "crud-resource",
+      "operations": [
+        {
+          "method": "GET",
+          "path": "/contacts",
+          "operationId": "listContacts",
+          "kind": "crud-resource"
+        },
+        {
+          "method": "POST",
+          "path": "/contacts",
+          "operationId": "createContact",
+          "kind": "crud-resource"
+        },
+        {
+          "method": "GET",
+          "path": "/contacts/{contactId}",
+          "operationId": "getContact",
+          "kind": "crud-resource"
+        },
+        {
+          "method": "PATCH",
+          "path": "/contacts/{contactId}",
+          "operationId": "updateContact",
+          "kind": "crud-resource"
+        },
+        {
+          "method": "DELETE",
+          "path": "/contacts/{contactId}",
+          "operationId": "deleteContact",
+          "kind": "crud-resource"
+        }
+      ],
+      "generatedFiles": [
+        "generated/src/features/contacts/api/index.ts",
+        "generated/src/features/contacts/api/useContactQuery.ts",
+        "generated/src/features/contacts/api/useContactsQuery.ts",
+        "generated/src/features/contacts/api/useCreateContactMutation.ts",
+        "generated/src/features/contacts/api/useDeleteContactMutation.ts",
+        "generated/src/features/contacts/api/useUpdateContactMutation.ts",
+        "generated/src/features/contacts/model/contacts.config.ts",
+        "generated/src/features/contacts/model/contacts.i18n.ts",
+        "generated/src/features/contacts/model/contacts.permissions.ts",
+        "generated/src/features/contacts/model/index.ts",
+        "generated/src/shared/api/generated/contacts/contacts.client.ts",
+        "generated/src/shared/api/generated/contacts/contacts.query-keys.ts",
+        "generated/src/shared/api/generated/contacts/contacts.types.ts",
+        "generated/src/shared/api/generated/contacts/index.ts"
+      ]
+    },
+    {
+      "name": "contactsArchive",
+      "entity": "ContactsArchive",
+      "kind": "action-operation",
+      "operations": [
+        {
+          "method": "POST",
+          "path": "/contacts/{contactId}/archive",
+          "operationId": "archiveContact",
+          "kind": "action-operation"
+        }
+      ],
+      "generatedFiles": [
+        "generated/src/features/contactsArchive/api/index.ts",
+        "generated/src/features/contactsArchive/api/useArchiveContactMutation.ts",
+        "generated/src/features/contactsArchive/model/contactsArchive.config.ts",
+        "generated/src/features/contactsArchive/model/contactsArchive.i18n.ts",
+        "generated/src/features/contactsArchive/model/contactsArchive.permissions.ts",
+        "generated/src/features/contactsArchive/model/index.ts",
+        "generated/src/shared/api/generated/contactsArchive/contactsArchive.client.ts",
+        "generated/src/shared/api/generated/contactsArchive/contactsArchive.query-keys.ts",
+        "generated/src/shared/api/generated/contactsArchive/contactsArchive.types.ts",
+        "generated/src/shared/api/generated/contactsArchive/index.ts"
+      ]
+    },
+    {
+      "name": "companies",
+      "entity": "Company",
+      "kind": "crud-resource",
+      "operations": [
+        {
+          "method": "GET",
+          "path": "/companies",
+          "operationId": "listCompanies",
+          "kind": "crud-resource"
+        },
+        {
+          "method": "POST",
+          "path": "/companies",
+          "operationId": "createCompany",
+          "kind": "crud-resource"
+        },
+        {
+          "method": "GET",
+          "path": "/companies/{companyId}",
+          "operationId": "getCompany",
+          "kind": "crud-resource"
+        },
+        {
+          "method": "PATCH",
+          "path": "/companies/{companyId}",
+          "operationId": "updateCompany",
+          "kind": "crud-resource"
+        },
+        {
+          "method": "DELETE",
+          "path": "/companies/{companyId}",
+          "operationId": "deleteCompany",
+          "kind": "crud-resource"
+        }
+      ],
+      "generatedFiles": [
+        "generated/src/features/companies/api/index.ts",
+        "generated/src/features/companies/api/useCompaniesQuery.ts",
+        "generated/src/features/companies/api/useCompanyQuery.ts",
+        "generated/src/features/companies/api/useCreateCompanyMutation.ts",
+        "generated/src/features/companies/api/useDeleteCompanyMutation.ts",
+        "generated/src/features/companies/api/useUpdateCompanyMutation.ts",
+        "generated/src/features/companies/model/companies.config.ts",
+        "generated/src/features/companies/model/companies.i18n.ts",
+        "generated/src/features/companies/model/companies.permissions.ts",
+        "generated/src/features/companies/model/index.ts",
+        "generated/src/shared/api/generated/companies/companies.client.ts",
+        "generated/src/shared/api/generated/companies/companies.query-keys.ts",
+        "generated/src/shared/api/generated/companies/companies.types.ts",
+        "generated/src/shared/api/generated/companies/index.ts"
+      ]
+    },
+    {
+      "name": "search",
+      "entity": "Search",
+      "kind": "search-resource",
+      "operations": [
+        {
+          "method": "GET",
+          "path": "/search",
+          "operationId": "searchWorkspace",
+          "kind": "search-resource"
+        }
+      ],
+      "generatedFiles": [
+        "generated/src/features/search/api/index.ts",
+        "generated/src/features/search/api/useSearchWorkspaceQuery.ts",
+        "generated/src/features/search/model/index.ts",
+        "generated/src/features/search/model/search.config.ts",
+        "generated/src/features/search/model/search.i18n.ts",
+        "generated/src/features/search/model/search.permissions.ts",
+        "generated/src/shared/api/generated/search/index.ts",
+        "generated/src/shared/api/generated/search/search.client.ts",
+        "generated/src/shared/api/generated/search/search.query-keys.ts",
+        "generated/src/shared/api/generated/search/search.types.ts"
+      ]
+    },
+    {
+      "name": "dashboardSummary",
+      "entity": "DashboardSummary",
+      "kind": "dashboard-resource",
+      "operations": [
+        {
+          "method": "GET",
+          "path": "/dashboard/summary",
+          "operationId": "getDashboardSummary",
+          "kind": "dashboard-resource"
+        }
+      ],
+      "generatedFiles": [
+        "generated/src/features/dashboardSummary/api/index.ts",
+        "generated/src/features/dashboardSummary/api/useGetDashboardSummaryQuery.ts",
+        "generated/src/features/dashboardSummary/model/dashboardSummary.config.ts",
+        "generated/src/features/dashboardSummary/model/dashboardSummary.i18n.ts",
+        "generated/src/features/dashboardSummary/model/dashboardSummary.permissions.ts",
+        "generated/src/features/dashboardSummary/model/index.ts",
+        "generated/src/shared/api/generated/dashboardSummary/dashboardSummary.client.ts",
+        "generated/src/shared/api/generated/dashboardSummary/dashboardSummary.query-keys.ts",
+        "generated/src/shared/api/generated/dashboardSummary/dashboardSummary.types.ts",
+        "generated/src/shared/api/generated/dashboardSummary/index.ts"
+      ]
+    },
+    {
+      "name": "filesDownload",
+      "entity": "FilesDownload",
+      "kind": "file-operation",
+      "operations": [
+        {
+          "method": "GET",
+          "path": "/files/{fileId}/download",
+          "operationId": "downloadFile",
+          "kind": "file-operation"
+        }
+      ],
+      "generatedFiles": [
+        "generated/src/features/filesDownload/api/index.ts",
+        "generated/src/features/filesDownload/api/useDownloadFileQuery.ts",
+        "generated/src/features/filesDownload/model/filesDownload.config.ts",
+        "generated/src/features/filesDownload/model/filesDownload.i18n.ts",
+        "generated/src/features/filesDownload/model/filesDownload.permissions.ts",
+        "generated/src/features/filesDownload/model/index.ts",
+        "generated/src/shared/api/generated/filesDownload/filesDownload.client.ts",
+        "generated/src/shared/api/generated/filesDownload/filesDownload.query-keys.ts",
+        "generated/src/shared/api/generated/filesDownload/filesDownload.types.ts",
+        "generated/src/shared/api/generated/filesDownload/index.ts"
+      ]
+    }
+  ],
+  "fixSuggestions": [],
+  "readiness": {
+    "status": "ready",
+    "decision": "Generated resource layer is ready for self-serve adoption review.",
+    "blockers": [],
+    "warnings": [],
+    "nextActions": [
+      "Use this audit package as the self-serve purchase evidence bundle."
+    ],
+    "summary": {
+      "healthScore": 100,
+      "resources": 6,
+      "generatedFiles": 93,
+      "protectedFiles": 0,
+      "diagnostics": 0,
+      "drift": 0,
+      "failedChecks": 0
+    }
+  },
+  "drift": [],
+  "diagnostics": []
+}

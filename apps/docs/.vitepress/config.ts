@@ -57,6 +57,9 @@ export default defineConfig({
         text: 'Evaluate',
         items: [
           { text: 'Self-Serve Purchase', link: '/self-serve-purchase' },
+          { text: 'See Audit Report', link: '/see-audit-report' },
+          { text: 'Run Audit Quickstart', link: '/run-audit-quickstart' },
+          { text: 'What You Get', link: '/what-you-get' },
           { text: 'Evaluate in 30 Minutes', link: '/evaluate-in-30-minutes' },
           { text: 'Public Demo Walkthrough', link: '/public-demo-walkthrough' },
           { text: 'Product Demo Package', link: '/product-demo-package' },

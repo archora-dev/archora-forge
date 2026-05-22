@@ -22,6 +22,7 @@ node packages/cli/dist/index.js audit --config examples/public-crm/archora-forge
 
 The public package should show:
 
+- live audit report: `/demo-audit/`;
 - detected resources;
 - generated clients and types;
 - generated query keys and operation helpers;

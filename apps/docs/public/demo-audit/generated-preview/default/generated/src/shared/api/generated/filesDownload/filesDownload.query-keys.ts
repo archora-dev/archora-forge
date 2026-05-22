@@ -1,0 +1,8 @@
+import type { FilesDownloadId, FilesDownloadsListParams } from './filesDownload.types'
+
+export const filesDownloadQueryKeys = {
+  all: ['filesDownload'] as const,
+  list: (params?: FilesDownloadsListParams) =>
+    [...filesDownloadQueryKeys.all, 'list', params] as const,
+  detail: (id: FilesDownloadId) => [...filesDownloadQueryKeys.all, 'detail', id] as const,
+} as const

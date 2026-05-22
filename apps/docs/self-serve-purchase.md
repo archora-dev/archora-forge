@@ -28,9 +28,9 @@ Recommended scope: 1-3 schemas or one tightly related schema family.
 
 ## Self-Serve Flow
 
-1. Run the [Public CRM Demo](/public-demo-walkthrough).
-2. Run [Evaluate in 30 Minutes](/evaluate-in-30-minutes) against one private schema.
-3. Review [Private Schema Pilot Proof](/pilot-proof) to understand the current evidence level.
+1. Open the [public audit report](/see-audit-report).
+2. Run [Run Audit Quickstart](/run-audit-quickstart) against one private schema.
+3. Review [What You Get](/what-you-get) and [Private Schema Pilot Proof](/pilot-proof).
 4. Generate a local [Product Demo Package](/product-demo-package) for internal review.
 5. Fill out the [Pilot Report Template](/pilot-report-template).
 6. Request a commercial license using the contact listed in the repository license files.
