@@ -37,7 +37,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@archora/forge-config": "^1.2.2",
+    "@archora/forge-config": "workspace:^",
     "jiti": "^2.7.0",
     "prettier": "^3.5.3",
     "yaml": "^2.8.4"
