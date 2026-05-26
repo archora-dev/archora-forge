@@ -1,5 +1,7 @@
 # Archora site handoff
 
+Status: completed and historical. The live Forge page has already been updated in `archora-site`.
+
 Правки для соседнего проекта `archora-site`.
 
 ## Forge page
@@ -15,14 +17,14 @@
 
 Что поправить:
 
-- в License tab заменить `Pricing and access live behind a contact form` на ручной license request через `akotov@archora.dev` и `@akotofff`;
-- убрать формулировку `you can modify it for your own use`, если она читается шире коммерческой лицензии;
+- в License tab заменить старый contact-form wording на ручной license request через `akotov@archora.dev` и `@akotofff`;
+- убрать широкую формулировку про modification rights; оставить только permitted internal modifications внутри licensed organization;
 - добавить короткий paid pilot текст: one schema, local audit, generated output, impact report, go/no-go;
 - в CLI snippet оставить две главные команды первыми:
 
 ```bash
-archora-forge impact openapi.old.yaml openapi.yaml --repo . --pr-comment-file .forge/impact-pr.md
-archora-forge audit openapi.yaml --out .forge/audit
+archora-forge impact openapi.yaml --base origin/main --repo . --pr-comment-file .forge/impact-pr.md
+archora-forge pilot openapi.yaml --base origin/main --repo . --out .forge/pilot
 ```
 
 ## Home page

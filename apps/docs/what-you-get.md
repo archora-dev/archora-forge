@@ -7,7 +7,8 @@ Archora Forge is not just an OpenAPI client generator. The product starts with i
 One command compares two OpenAPI versions and writes a PR-ready artifact:
 
 ```bash
-archora-forge impact ./openapi.old.yaml ./openapi.yaml \
+archora-forge impact ./openapi.yaml \
+  --base origin/main \
   --repo . \
   --report markdown \
   --report-file forge-impact.md \

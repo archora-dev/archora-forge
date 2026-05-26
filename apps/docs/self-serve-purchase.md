@@ -45,8 +45,8 @@ The purchase decision should be based on artifacts: generated code, HTML reports
 ## Evaluation Commands
 
 ```bash
-pnpm exec archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --report markdown --report-file forge-impact.md --pr-comment-file forge-impact-pr.md
-pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
+pnpm exec archora-forge impact ./openapi.yaml --base origin/main --repo . --report markdown --report-file forge-impact.md --pr-comment-file forge-impact-pr.md
+pnpm exec archora-forge pilot ./openapi.yaml --base origin/main --repo . --out forge-pilot
 pnpm exec archora-forge inspect ./openapi.yaml --report-file forge-inspect.json
 pnpm exec archora-forge lint ./openapi.yaml --strict --report-file forge-lint.json
 pnpm exec archora-forge check ./openapi.yaml --report html --report-file forge-check.html

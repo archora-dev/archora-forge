@@ -74,7 +74,7 @@
   },
   "generator": {
     "status": "previewed",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "files": {
       "total": 93,
       "missingMetadata": [],
@@ -333,11 +333,11 @@
   "fixSuggestions": [],
   "readiness": {
     "status": "ready",
-    "decision": "Generated resource layer is ready for self-serve adoption review.",
+    "decision": "Generated resource layer is ready for local adoption review.",
     "blockers": [],
     "warnings": [],
     "nextActions": [
-      "Use this audit package as the self-serve purchase evidence bundle."
+      "Use this audit package as the paid pilot evidence bundle."
     ],
     "summary": {
       "healthScore": 100,

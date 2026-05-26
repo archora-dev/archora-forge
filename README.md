@@ -118,7 +118,7 @@ pnpm exec archora-forge license status
 pnpm exec archora-forge init
 pnpm exec archora-forge doctor ./openapi.yaml
 pnpm exec archora-forge inspect ./openapi.yaml
-pnpm exec archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --pr-comment-file forge-impact-pr.md
+pnpm exec archora-forge impact ./openapi.yaml --base origin/main --repo . --pr-comment-file forge-impact-pr.md
 pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
 pnpm exec archora-forge generate ./openapi.yaml
 ```

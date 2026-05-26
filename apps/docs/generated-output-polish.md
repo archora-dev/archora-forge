@@ -33,7 +33,7 @@ Avoid adding generated files unless they remove real integration work. A generat
 Use `impact` before accepting a schema change:
 
 ```bash
-pnpm exec archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo .
+pnpm exec archora-forge impact ./openapi.yaml --base origin/main --repo .
 ```
 
 Use `audit` before adopting generated output:

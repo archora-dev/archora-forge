@@ -14,14 +14,17 @@ The demo compares two OpenAPI versions and shows the frontend blast radius befor
 - source files that already use the impacted API surface;
 - a pull-request comment artifact.
 
-The same command generated the report:
+The normal PR command uses the previous schema from git:
 
 ```bash
-archora-forge impact ./openapi.old.yaml ./openapi.yaml \
+archora-forge impact ./openapi.yaml \
+  --base origin/main \
   --repo . \
   --report html \
   --report-file forge-impact.html \
   --pr-comment-file forge-impact-pr.md
 ```
+
+The public demo report is generated from checked-in old/new demo schemas because it is a static fixture.
 
 Use this report before accepting an API contract change. Regenerate files after the impact is understood.
