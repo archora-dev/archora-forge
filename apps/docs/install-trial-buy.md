@@ -67,3 +67,9 @@ You can generate the request file locally:
 ```bash
 pnpm exec archora-forge license request --plan trial --out license-request.md
 ```
+
+Operational docs:
+
+- [First User Walkthrough](/first-user-walkthrough)
+- [License Operations](/license-operations)
+- [Pilot Email Kit](/pilot-email-kit)

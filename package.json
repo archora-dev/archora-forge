@@ -1,6 +1,6 @@
 {
   "name": "archora-forge-monorepo",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "Local-first OpenAPI to typed frontend resource contract generator.",
   "license": "SEE LICENSE IN LICENSE",

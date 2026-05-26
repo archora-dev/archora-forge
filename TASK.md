@@ -70,3 +70,10 @@
 - [x] H5. Добавить `explain <diagnostic-code>` и `explain --list`.
 - [x] H6. Усилить `ci init github` параметрами `--schema`, `--base`, `--mode`.
 - [x] H7. Обновить CLI docs, install/trial path, start guide и demo docs.
+
+## Phase I: Pilot operations
+
+- [x] I1. Добавить первый пользовательский walkthrough после npm install.
+- [x] I2. Добавить ручной license operations документ.
+- [x] I3. Добавить email kit для trial/pilot lead flow.
+- [x] I4. Связать новые документы из README и install/trial docs.

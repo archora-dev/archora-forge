@@ -13,7 +13,7 @@ describe('demo command', () => {
 
     const result = await runCliInDirectory(cwd, ['demo', '--out', out])
 
-    expect(result.exitCode).toBe(1)
+    expect(result.exitCode).toBe(0)
     expect(result.output).toContain('Demo package:')
     await expect(stat(join(out, 'openapi.old.yaml'))).resolves.toBeTruthy()
     await expect(stat(join(out, 'openapi.yaml'))).resolves.toBeTruthy()

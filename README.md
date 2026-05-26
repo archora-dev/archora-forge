@@ -76,6 +76,9 @@ For the evaluation and paid pilot path, start with `apps/docs/start-guide.md`, t
 - `apps/docs/see-audit-report.md`
 - `apps/docs/ci-impact-kit.md`
 - `apps/docs/install-trial-buy.md`
+- `apps/docs/first-user-walkthrough.md`
+- `apps/docs/license-operations.md`
+- `apps/docs/pilot-email-kit.md`
 - `apps/docs/run-audit-quickstart.md`
 - `apps/docs/what-you-get.md`
 - `apps/docs/privacy-security.md`

@@ -1,6 +1,6 @@
 {
   "name": "@archora/forge-core",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Core OpenAPI analysis and generation engine for Archora Forge.",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
@@ -37,7 +37,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@archora/forge-config": "^1.2.1",
+    "@archora/forge-config": "^1.2.2",
     "jiti": "^2.7.0",
     "prettier": "^3.5.3",
     "yaml": "^2.8.4"

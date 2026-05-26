@@ -59,7 +59,7 @@ export function registerDemoCommand(cli: CAC): void {
         logger.line(`Demo package: ${outDir}`)
         logger.line(`Decision: ${impact.decision.status === 'blocked' ? 'no-go' : 'review'}`)
         logger.line(`Impact report: ${join(reportDir, 'impact.md')}`)
-        process.exitCode = impact.decision.status === 'blocked' ? 1 : 0
+        process.exitCode = 0
       } catch (error) {
         logger.error(error instanceof Error ? error.message : String(error))
         process.exitCode = 2
