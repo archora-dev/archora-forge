@@ -15,6 +15,7 @@ import {
 } from '@archora/forge-core'
 
 import { loadCliConfigSet, type CliConfigResult } from '../config.js'
+import { requireCommercialLicense } from '../license.js'
 import type { SchemaRequestCliOptions } from '../schema-request.js'
 import { writeReportFile } from '../report-file.js'
 import { logger } from '../ui/logger.js'
@@ -39,6 +40,7 @@ export function registerGenerateCommand(cli: CAC): void {
     .option('--json', 'Print machine-readable JSON')
     .option('--report-file <path>', 'Write the generation JSON summary to a file')
     .action(async (schema: string | undefined, options: GenerateOptions) => {
+      if (!options.dryRun) await requireCommercialLicense('generate')
       const plannedEntries = []
       for (const loaded of await loadCliConfigSet(schema, options)) {
         plannedEntries.push(await createGeneratePlanEntry(loaded, options))

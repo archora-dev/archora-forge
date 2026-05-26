@@ -4,7 +4,7 @@ Use this path when you open Archora Forge for the first time and want to underst
 
 ## 1. Understand The Product
 
-Forge is a local-first OpenAPI tool for frontend teams. It produces:
+Forge is a local-first OpenAPI impact review tool for frontend teams. It shows frontend risk before an API contract change lands and produces:
 
 - typed resource output;
 - API clients and operation helpers;
@@ -30,7 +30,7 @@ These pages show what a buyer can inspect before making a purchase decision.
 ## 3. Install And Check The CLI
 
 ```bash
-pnpm add -D archora-forge
+pnpm add -D @archora/forge-cli @archora/forge-adapters
 pnpm exec archora-forge --help
 ```
 
@@ -42,26 +42,45 @@ pnpm build
 node packages/cli/dist/index.js --help
 ```
 
-## 4. Run A Local Contract Review
+## 4. Run The Core Review
 
-For a first pass on one schema:
+To see the workflow without preparing a project:
 
 ```bash
-pnpm exec archora-forge doctor ./openapi.yaml
-pnpm exec archora-forge inspect ./openapi.yaml
-pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
-pnpm exec archora-forge generate ./openapi.yaml --dry-run
-pnpm exec archora-forge check ./openapi.yaml
+pnpm exec archora-forge demo --out forge-demo
 ```
 
-For a pull request with an API change:
+For a pull request with an API change, start here:
 
 ```bash
-pnpm exec archora-forge impact ./openapi.old.yaml ./openapi.yaml \
+pnpm exec archora-forge impact ./openapi.yaml \
+  --base main \
   --repo . \
   --report markdown \
   --report-file forge-impact.md \
   --pr-comment-file forge-impact-pr.md
+```
+
+For adoption of one current schema, generate the local audit package:
+
+```bash
+pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
+```
+
+For a buyer-facing pilot package, combine both:
+
+```bash
+pnpm exec archora-forge pilot ./openapi.yaml --base main --repo . --out forge-pilot
+```
+
+Use the supporting commands when you need detail before a go/no-go decision:
+
+```bash
+pnpm exec archora-forge doctor ./openapi.yaml
+pnpm exec archora-forge inspect ./openapi.yaml
+pnpm exec archora-forge explain unsupported-oneof
+pnpm exec archora-forge generate ./openapi.yaml --dry-run
+pnpm exec archora-forge check ./openapi.yaml
 ```
 
 ## 5. Decide From Artifacts
@@ -82,6 +101,7 @@ Buy or adopt Forge only when the generated resource model fits the frontend arch
 
 - [Quick Start](./quick-start.md)
 - [Install, Trial, Buy](./install-trial-buy.md)
+- [Pilot Command](./pilot-command.md)
 - [CI Impact Kit](./ci-impact-kit.md)
 - [Generated Output Typecheck](./generated-output-typecheck.md)
 - [Privacy and Security](./privacy-security.md)

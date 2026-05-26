@@ -89,7 +89,7 @@ Record the result in a short Markdown artifact:
 
 ## Acceptance Rule
 
-For a self-serve purchase, generated TypeScript should pass typecheck or every failure should be mapped to one of:
+For purchase evaluation, generated TypeScript should pass typecheck or every failure should be mapped to one of:
 
 - schema issue;
 - known Forge limitation;

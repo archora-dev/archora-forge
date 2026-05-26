@@ -1,6 +1,6 @@
 {
   "name": "archora-forge-monorepo",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Local-first OpenAPI to typed frontend resource contract generator.",
   "license": "SEE LICENSE IN LICENSE",
@@ -32,7 +32,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "pack:check": "pnpm build && node scripts/pack-check.mjs",
-    "release:check": "pnpm test && pnpm lint && pnpm typecheck && pnpm pack:check && ./scripts/smoke-external-consumer.sh"
+    "release:check": "pnpm test && pnpm lint && pnpm typecheck && pnpm pack:check && ./scripts/smoke-external-consumer.sh",
+    "license:keygen": "node scripts/license-key.mjs keygen",
+    "license:issue": "node scripts/license-key.mjs issue"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",

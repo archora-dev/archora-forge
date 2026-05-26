@@ -29,7 +29,7 @@ features:
 
 ## The Product
 
-Archora Forge is a local-first commercial developer tool for TypeScript frontend teams evaluating OpenAPI-driven resource generation. It is not a hosted SaaS and it does not claim full OpenAPI coverage.
+Archora Forge is a local-first commercial developer tool for TypeScript frontend teams reviewing OpenAPI changes before merge. It is not a hosted SaaS and it does not claim full OpenAPI coverage.
 
 The core workflow is:
 

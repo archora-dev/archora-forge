@@ -1,6 +1,6 @@
 # Audit Command
 
-`archora-forge audit` creates the self-serve adoption package. It is the fastest way to show what Forge found, what it generated and whether the output is ready to buy or adopt.
+`archora-forge audit` creates a local adoption package. It is the fastest way to show what Forge found, what it generated and whether the output is ready for a paid pilot or adoption.
 
 ```bash
 archora-forge audit ./openapi.yaml --out forge-audit

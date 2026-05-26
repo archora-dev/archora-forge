@@ -23,6 +23,7 @@ import {
 
 import { loadCliConfigSet, type CliConfigResult } from '../config.js'
 import { createHtmlReport } from '../html-report.js'
+import { requireCommercialLicense } from '../license.js'
 import { writeReportFile } from '../report-file.js'
 import type { SchemaRequestCliOptions } from '../schema-request.js'
 import { logger } from '../ui/logger.js'
@@ -68,7 +69,7 @@ type ResourceExplorerEntry = {
 }
 
 export function registerAuditCommand(cli: CAC): void {
-  cli.command('audit [schema]', 'Create a self-serve frontend API adoption package')
+  cli.command('audit [schema]', 'Create a local frontend API adoption package')
     .option('--config <path>', 'Use a specific Archora Forge config file')
     .option('--schema-header <header>', 'Add a remote schema request header as "name:value" or "name=value"')
     .option('--out <path>', 'Output directory for the audit package')
@@ -77,42 +78,22 @@ export function registerAuditCommand(cli: CAC): void {
     .option('--min-health-score <score>', 'Use this health score as the audit acceptance threshold')
     .action(async (schema: string | undefined, options: AuditOptions) => {
       try {
-        const outDir = resolve(options.out ?? 'forge-audit')
-        const minHealthScore = parseMinHealthScore(options.minHealthScore) ?? 90
-        const loaded = await loadCliConfigSet(schema, options)
-        const entries = await Promise.all(loaded.map(runAuditEntry))
-        const primary = entries[0]
-        if (!primary) throw new Error('No OpenAPI schema inputs were resolved.')
-
-        await mkdir(outDir, { recursive: true })
-        await writeGeneratedPreview(outDir, entries)
-        const typecheck = options.skipTypecheck ? createSkippedTypecheck(outDir) : await runGeneratedOutputTypecheck(outDir, entries)
-        const payload = createAuditPayload(entries, { outDir, minHealthScore, typecheck })
-        const html = createHtmlReport('Archora Forge Audit', payload)
-        const markdown = createAuditMarkdown(payload)
-
-        await Promise.all([
-          writeReportFile(join(outDir, 'index.html'), html),
-          writeReportFile(join(outDir, 'report.json'), JSON.stringify(payload, null, 2)),
-          writeReportFile(join(outDir, 'report.md'), markdown),
-          writeReportFile(join(outDir, 'adoption-plan.md'), createAdoptionPlan(payload)),
-          writeReportFile(join(outDir, 'ci.yml'), createCiWorkflow(payload)),
-          writeReportFile(join(outDir, 'typecheck.md'), createTypecheckMarkdown(typecheck)),
-        ])
+        await requireCommercialLicense('audit')
+        const result = await runAuditPackage(schema, options)
 
         if (options.json) {
-          console.log(JSON.stringify(payload, null, 2))
+          console.log(JSON.stringify(result.payload, null, 2))
         } else {
           logger.title()
-          logger.line(`Audit package: ${outDir}`)
-          logger.line(`Schemas: ${entries.length}`)
-          logger.line(`Resources: ${payload.resources}`)
-          logger.line(`Generated files: ${payload.generatedFiles}`)
-          logger.line(`Typecheck: ${typecheck.status}`)
-          logger.line(`Decision: ${payload.readiness.decision}`)
+          logger.line(`Audit package: ${result.outDir}`)
+          logger.line(`Schemas: ${result.entries.length}`)
+          logger.line(`Resources: ${result.payload.resources}`)
+          logger.line(`Generated files: ${result.payload.generatedFiles}`)
+          logger.line(`Typecheck: ${result.payload.typecheck.status}`)
+          logger.line(`Decision: ${result.payload.readiness.decision}`)
         }
 
-        process.exitCode = payload.ok ? 0 : 1
+        process.exitCode = result.payload.ok ? 0 : 1
       } catch (error) {
         if (options.json) {
           console.log(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : String(error) }, null, 2))
@@ -122,6 +103,33 @@ export function registerAuditCommand(cli: CAC): void {
         process.exitCode = 2
       }
     })
+}
+
+export async function runAuditPackage(schema: string | undefined, options: AuditOptions) {
+  const outDir = resolve(options.out ?? 'forge-audit')
+  const minHealthScore = parseMinHealthScore(options.minHealthScore) ?? 90
+  const loaded = await loadCliConfigSet(schema, options)
+  const entries = await Promise.all(loaded.map(runAuditEntry))
+  const primary = entries[0]
+  if (!primary) throw new Error('No OpenAPI schema inputs were resolved.')
+
+  await mkdir(outDir, { recursive: true })
+  await writeGeneratedPreview(outDir, entries)
+  const typecheck = options.skipTypecheck ? createSkippedTypecheck(outDir) : await runGeneratedOutputTypecheck(outDir, entries)
+  const payload = createAuditPayload(entries, { outDir, minHealthScore, typecheck })
+  const html = createHtmlReport('Archora Forge Audit', payload)
+  const markdown = createAuditMarkdown(payload)
+
+  await Promise.all([
+    writeReportFile(join(outDir, 'index.html'), html),
+    writeReportFile(join(outDir, 'report.json'), JSON.stringify(payload, null, 2)),
+    writeReportFile(join(outDir, 'report.md'), markdown),
+    writeReportFile(join(outDir, 'adoption-plan.md'), createAdoptionPlan(payload)),
+    writeReportFile(join(outDir, 'ci.yml'), createCiWorkflow(payload)),
+    writeReportFile(join(outDir, 'typecheck.md'), createTypecheckMarkdown(typecheck)),
+  ])
+
+  return { outDir, entries, payload }
 }
 
 async function runAuditEntry(loaded: CliConfigResult): Promise<AuditEntry> {
@@ -372,13 +380,13 @@ function createAuditReadiness(input: {
     ...(input.drift.length > 0 ? ['Run `archora-forge generate` and review generated drift.'] : []),
     ...(input.typecheck.status === 'failed' ? ['Open `typecheck.md`, fix generator/schema blockers, then rerun `archora-forge audit`.'] : []),
     ...(input.diagnostics.length > 0 ? ['Use fix suggestions to decide which OpenAPI changes are required before purchase.'] : []),
-    ...(input.ok ? ['Use this audit package as the self-serve purchase evidence bundle.'] : []),
+    ...(input.ok ? ['Use this audit package as the paid pilot evidence bundle.'] : []),
   ]
 
   return {
     status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'needs-attention' : 'ready',
     decision: input.ok
-      ? 'Generated resource layer is ready for self-serve adoption review.'
+      ? 'Generated resource layer is ready for local adoption review.'
       : 'Generated resource layer needs fixes or explicit risk acceptance before purchase.',
     blockers,
     warnings,

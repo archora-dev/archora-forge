@@ -94,4 +94,4 @@ Forge is not a good fit when:
 
 ## Purchase Next Step
 
-When the report is a go or conditional go, use [Self-Serve Purchase](/self-serve-purchase) to choose the commercial package and license scope.
+When the report is a go or conditional go, use [License and Paid Pilot](/self-serve-purchase) to choose the commercial package and license scope.

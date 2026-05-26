@@ -1,8 +1,8 @@
 # Why Forge
 
-Archora Forge is not a replacement for every OpenAPI generator. It targets the frontend layer that generic generators usually leave to teams.
+Archora Forge is not a replacement for every OpenAPI generator. It targets the frontend impact review and resource layer that generic generators usually leave to teams.
 
-Forge is positioned for self-serve evaluation and bounded commercial adoption. Use it when the cost of hand-maintaining frontend resource contracts is high enough to justify a local-first generator, reports and generated-output typecheck gate.
+Forge is positioned for local evaluation and bounded commercial adoption. Use it when the cost of hand-maintaining frontend resource contracts is high enough to justify a local-first generator, reports and generated-output typecheck gate.
 
 ## Compared with openapi-generator
 
@@ -30,7 +30,7 @@ Forge focuses on a different layer:
 - HTML/JSON/Markdown reports;
 - contract drift and frontend-readiness checks.
 
-Use Orval when client/query generation is enough. Use Forge when frontend teams need a committed resource contract that also informs UI metadata and CI.
+Use Orval when client/query generation is enough. Use Forge when frontend teams need PR impact review, source usage scanning and a committed resource contract that also informs UI metadata and CI.
 
 TanStack-style usage is currently an integration pattern. Forge generates query keys and operation helpers that can be wrapped by the consuming app, but a finished first-party TanStack adapter is not part of the preview claim.
 
@@ -66,4 +66,4 @@ Forge is a strong purchase candidate when a Vue/OpenAPI team wants to answer:
 - whether CI drift checks catch contract changes early;
 - how generated metadata maps into the team's table, form and permission conventions.
 
-The intended purchase path is self-serve: run the demo, evaluate one private schema locally, typecheck generated output, fill the report and buy the bounded license scope when the artifacts justify it.
+The intended purchase path is artifact-led: run the demo, evaluate one private schema locally, typecheck generated output, fill the report and request a bounded license scope when the artifacts justify it.

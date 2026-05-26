@@ -6,17 +6,24 @@ Use it when a repository has a committed schema such as `openapi.yaml` and front
 
 ## GitHub Actions
 
-Start from the template:
+Generate the workflow:
+
+```bash
+pnpm exec archora-forge ci init github --schema ./openapi.yaml --base origin/main
+```
+
+Or start from the template:
 
 [Download `forge-impact-github-actions.yml`](/templates/forge-impact-github-actions.yml)
 
 The core step is:
 
 ```bash
-pnpm exec archora-forge impact openapi.base.yaml openapi.yaml \
+pnpm exec archora-forge impact ./openapi.yaml \
+  --base origin/main \
   --repo . \
-  --json \
-  --report-file forge-impact.json \
+  --report markdown \
+  --report-file forge-impact.md \
   --pr-comment-file forge-impact-pr.md
 ```
 
@@ -27,10 +34,11 @@ pnpm exec archora-forge impact openapi.base.yaml openapi.yaml \
 For the first week, make the command advisory:
 
 ```bash
-pnpm exec archora-forge impact openapi.base.yaml openapi.yaml \
+pnpm exec archora-forge impact ./openapi.yaml \
+  --base origin/main \
   --repo . \
-  --json \
-  --report-file forge-impact.json \
+  --report markdown \
+  --report-file forge-impact.md \
   --pr-comment-file forge-impact-pr.md || true
 ```
 
@@ -40,7 +48,7 @@ Advisory mode still uploads the report and writes the PR comment. It just avoids
 
 Upload at least:
 
-- `forge-impact.json`;
+- `forge-impact.md`;
 - `forge-impact-pr.md`;
 - `forge-impact.html` when HTML review is useful.
 

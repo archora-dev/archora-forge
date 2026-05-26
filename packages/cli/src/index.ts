@@ -2,11 +2,16 @@ import { cac } from 'cac'
 
 import { registerAuditCommand } from './commands/audit.command.js'
 import { registerCheckCommand } from './commands/check.command.js'
+import { registerCiCommand } from './commands/ci.command.js'
 import { registerContractDiffCommand } from './commands/contract-diff.command.js'
+import { registerDemoCommand } from './commands/demo.command.js'
 import { registerDiffCommand } from './commands/diff.command.js'
 import { registerDoctorCommand } from './commands/doctor.command.js'
+import { registerExplainCommand } from './commands/explain.command.js'
 import { registerGenerateCommand } from './commands/generate.command.js'
 import { registerInitCommand } from './commands/init.command.js'
+import { registerLicenseCommand } from './commands/license.command.js'
+import { registerPilotCommand } from './commands/pilot.command.js'
 import { registerInspectCommand } from './commands/inspect.command.js'
 import { registerLintCommand } from './commands/lint.command.js'
 import { registerValidateCommand } from './commands/validate.command.js'
@@ -21,6 +26,11 @@ export function createCli() {
   cli.help()
 
   registerInitCommand(cli)
+  registerLicenseCommand(cli)
+  registerPilotCommand(cli)
+  registerCiCommand(cli)
+  registerDemoCommand(cli)
+  registerExplainCommand(cli)
   registerAuditCommand(cli)
   registerGenerateCommand(cli)
   registerInspectCommand(cli)
