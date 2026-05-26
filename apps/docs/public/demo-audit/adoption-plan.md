@@ -1,10 +1,10 @@
 # Adoption Plan
 
-Decision: Generated resource layer is ready for self-serve adoption review.
+Decision: Generated resource layer is ready for local adoption review.
 
 ## Next Actions
 
-- Use this audit package as the self-serve purchase evidence bundle.
+- Use this audit package as the paid pilot evidence bundle.
 
 ## Acceptance Gates
 

@@ -58,7 +58,8 @@ Not included:
 Recommended readiness commands:
 
 ```bash
-archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --report markdown --report-file forge-impact.md --pr-comment-file forge-impact-pr.md
+archora-forge impact ./openapi.yaml --base origin/main --repo . --report markdown --report-file forge-impact.md --pr-comment-file forge-impact-pr.md
+archora-forge pilot ./openapi.yaml --base origin/main --repo . --out forge-pilot
 archora-forge audit ./openapi.yaml --out forge-audit
 archora-forge check ./openapi.yaml --report html --report-file forge-check.html
 archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md

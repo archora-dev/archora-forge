@@ -25,6 +25,12 @@ The JSON report includes:
 
 Use `impact` when the output is meant for pull-request review. It includes merge risk, operation IDs, client methods, query hooks and migration hints in Markdown, JSON or HTML. Add `--repo .` to include source files that already use the impacted generated API surface.
 
+For the normal PR flow, prefer reading the previous schema from git:
+
+```bash
+archora-forge impact ./openapi.yaml --base origin/main --repo . --pr-comment-file impact-pr.md
+```
+
 ## Generated Changelog
 
 The `changelog` field gives a short review summary:
@@ -40,8 +46,8 @@ Use it in pull-request comments or release notes. The detailed `changes` list re
 
 ## Suggested Workflow
 
-1. Save the last accepted schema as `openapi.old.yaml`.
-2. Compare the old and new schemas.
+1. Prefer `impact ./openapi.yaml --base origin/main` when the previous schema exists in git.
+2. Use `contract-diff ./openapi.old.yaml ./openapi.yaml` when you need an explicit two-file comparison.
 3. Review breaking changes by resource.
 4. Review affected generated files.
 5. Regenerate only after accepting the contract change.

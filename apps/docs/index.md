@@ -34,10 +34,10 @@ Archora Forge is a local-first commercial developer tool for TypeScript frontend
 The core workflow is:
 
 ```bash
-archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --pr-comment-file forge-impact-pr.md
-archora-forge audit ./openapi.yaml --out forge-audit
+archora-forge impact ./openapi.yaml --base origin/main --repo . --pr-comment-file forge-impact-pr.md
+archora-forge pilot ./openapi.yaml --base origin/main --repo . --out forge-pilot
 ```
 
-Open `forge-impact-pr.md` before accepting the API change. Open `forge-audit/index.html` before adopting generated output.
+Open `forge-impact-pr.md` before accepting the API change. Open `forge-pilot/go-no-go.md` and `forge-pilot/audit/index.html` before adopting generated output.
 
 Start with the [public impact report](/see-impact-report), then run the same workflow on one private schema.

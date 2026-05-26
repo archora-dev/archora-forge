@@ -5,7 +5,7 @@ Repo intelligence connects contract changes to application source usage.
 `impact --repo` scans source files for the generated API surface affected by a schema change:
 
 ```bash
-pnpm exec archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo .
+pnpm exec archora-forge impact ./openapi.yaml --base origin/main --repo .
 ```
 
 The report includes:

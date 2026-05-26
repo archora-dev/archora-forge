@@ -5,10 +5,10 @@
 Public demo: [View the generated impact report](/impact-demo/).
 
 ```bash
-archora-forge impact ./openapi.old.yaml ./openapi.yaml --report markdown --report-file forge-impact.md
-archora-forge impact ./openapi.old.yaml ./openapi.yaml --report html --report-file forge-impact.html
-archora-forge impact ./openapi.old.yaml ./openapi.yaml --json --report-file forge-impact.json
-archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --pr-comment-file forge-impact-pr.md
+archora-forge impact ./openapi.yaml --base origin/main --report markdown --report-file forge-impact.md
+archora-forge impact ./openapi.yaml --base origin/main --report html --report-file forge-impact.html
+archora-forge impact ./openapi.yaml --base origin/main --json --report-file forge-impact.json
+archora-forge impact ./openapi.yaml --base origin/main --repo . --pr-comment-file forge-impact-pr.md
 ```
 
 The command is built for pull requests. It answers:
@@ -53,7 +53,7 @@ Use this before regenerating files. The API change should be accepted or fixed f
 Add `--repo <path>` when Forge should scan the consuming frontend repository for impacted usages:
 
 ```bash
-archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --report html --report-file forge-impact.html
+archora-forge impact ./openapi.yaml --base origin/main --repo . --report html --report-file forge-impact.html
 ```
 
 The scan looks for impacted operation IDs, client methods, query hooks and generated resource helpers. It skips common build folders such as `node_modules`, `.git`, `dist`, `build` and `coverage`.
@@ -75,7 +75,8 @@ The JSON report includes `sourceUsages`:
 Use `--pr-comment-file` to write a compact Markdown comment for GitHub or GitLab:
 
 ```bash
-archora-forge impact ./openapi.old.yaml ./openapi.yaml \
+archora-forge impact ./openapi.yaml \
+  --base origin/main \
   --repo . \
   --json \
   --report-file forge-impact.json \
@@ -83,3 +84,9 @@ archora-forge impact ./openapi.old.yaml ./openapi.yaml \
 ```
 
 The comment includes the decision, merge risk, migration hints and impacted source files.
+
+If the previous schema is not available in git, use the two-file fallback:
+
+```bash
+archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --pr-comment-file forge-impact-pr.md
+```

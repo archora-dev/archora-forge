@@ -10,7 +10,7 @@ For a first pull-request gate, run the commands in this order:
 archora-forge validate ./openapi.yaml --json --report-file forge-validate.json
 archora-forge inspect ./openapi.yaml --json --report-file forge-inspect.json
 archora-forge lint ./openapi.yaml --json --report-file forge-lint.json
-archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo . --json --report-file forge-impact.json --pr-comment-file forge-impact-pr.md
+archora-forge impact ./openapi.yaml --base origin/main --repo . --json --report-file forge-impact.json --pr-comment-file forge-impact-pr.md
 archora-forge diff ./openapi.yaml --json --report-file forge-diff.json
 archora-forge generate ./openapi.yaml --dry-run --json --report-file forge-generate.json
 archora-forge check ./openapi.yaml --report markdown --report-file forge-check.md

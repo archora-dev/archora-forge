@@ -128,18 +128,18 @@ archora-forge audit ./openapi.yaml --out forge-audit
 Review an API change before regeneration:
 
 ```bash
-archora-forge impact ./openapi.old.yaml ./openapi.yaml \
+archora-forge impact ./openapi.yaml \
+  --base origin/main \
   --repo . \
   --report markdown \
   --report-file forge-impact.md \
   --pr-comment-file forge-impact-pr.md
 ```
 
-When the old schema exists in git, use the shorter PR flow:
+When the old schema is not available in git, use the two-file fallback:
 
 ```bash
-archora-forge impact ./openapi.yaml \
-  --base main \
+archora-forge impact ./openapi.old.yaml ./openapi.yaml \
   --repo . \
   --report markdown \
   --report-file forge-impact.md \

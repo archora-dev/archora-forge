@@ -23,7 +23,7 @@ For private schemas:
 
 ```bash
 pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
-pnpm exec archora-forge impact ./openapi.old.yaml ./openapi.yaml --repo .
+pnpm exec archora-forge impact ./openapi.yaml --base origin/main --repo .
 ```
 
 Keep `forge-audit/`, `forge-impact.json` and `forge-impact-pr.md` as local or CI artifacts unless the buyer explicitly approves sharing them.

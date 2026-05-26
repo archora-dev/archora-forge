@@ -2,7 +2,7 @@
 
 Status: passed
 
-Decision: Generated resource layer is ready for self-serve adoption review.
+Decision: Generated resource layer is ready for local adoption review.
 
 Health score: 100
 
