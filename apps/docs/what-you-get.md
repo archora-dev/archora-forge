@@ -1,10 +1,24 @@
 # What You Get
 
-Archora Forge is not just an OpenAPI client generator. The output is a reviewable frontend API adoption package.
+Archora Forge is not just an OpenAPI client generator. The product starts with impact review: a PR can show what an API change does to frontend code before regeneration becomes app work.
+
+## Impact Report
+
+One command compares two OpenAPI versions and writes a PR-ready artifact:
+
+```bash
+archora-forge impact ./openapi.old.yaml ./openapi.yaml \
+  --repo . \
+  --report markdown \
+  --report-file forge-impact.md \
+  --pr-comment-file forge-impact-pr.md
+```
+
+The report includes merge risk, breaking changes, migration hints, affected generated surface and source usages in the consuming repository.
 
 ## Audit Report
 
-One command produces a buyer-facing report:
+One command produces a buyer-facing adoption report:
 
 ```bash
 archora-forge audit ./openapi.yaml --out forge-audit

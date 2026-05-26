@@ -31,7 +31,7 @@ describe('foundation exports', () => {
       suggestion: 'Provide an OpenAPI 3.x document.',
     })
 
-    expect(forgeCoreVersion).toBe('1.1.0')
+    expect(forgeCoreVersion).toBe('1.2.2')
     expect(error.details.suggestion).toContain('OpenAPI')
   })
 
@@ -60,7 +60,9 @@ describe('cli foundation', () => {
     const cli = createCli()
     const commandNames = cli.commands.map((command) => command.name)
 
-    expect(commandNames).toEqual(expect.arrayContaining(['init', 'audit', 'doctor', 'generate', 'inspect', 'validate', 'diff', 'lint', 'contract-diff', 'impact']))
+    expect(commandNames).toEqual(
+      expect.arrayContaining(['init', 'license', 'pilot', 'ci', 'demo', 'explain', 'audit', 'doctor', 'generate', 'inspect', 'validate', 'diff', 'lint', 'contract-diff', 'impact']),
+    )
   })
 })
 

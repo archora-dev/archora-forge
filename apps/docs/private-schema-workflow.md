@@ -34,7 +34,7 @@ pnpm exec archora-forge check ./openapi.yaml --report html --report-file forge-c
 
 Upload the report files as CI artifacts. Keep generated code committed so drift is visible in pull requests.
 
-For self-serve buying, attach the generated reports to [Pilot Report Template](/pilot-report-template) and make the purchase decision from the artifacts.
+For license requests, attach the generated reports to [Pilot Report Template](/pilot-report-template) and make the purchase decision from the artifacts.
 
 ## Security Notes
 

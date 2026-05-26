@@ -10,6 +10,13 @@ Forge does not require:
 - public issues with private OpenAPI snippets;
 - screenshots of private generated output.
 
+License activation is local. When enabled, the CLI stores the signed key
+under the user config directory by default, not in the consuming repository:
+
+```txt
+~/.config/archora-forge/license.json
+```
+
 ## Private Schemas
 
 For private schemas:

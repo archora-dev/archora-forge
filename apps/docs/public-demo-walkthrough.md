@@ -26,6 +26,14 @@ The schema is intentionally fictional. It does not include private names, custom
 From the repository root:
 
 ```bash
+pnpm exec archora-forge demo --out forge-demo
+```
+
+The command creates `openapi.old.yaml`, `openapi.yaml`, a small `src/` usage example and reports under `forge-demo/report/`.
+
+For the committed Public CRM example, run:
+
+```bash
 pnpm build
 node packages/cli/dist/index.js inspect --config examples/public-crm/archora-forge.config.ts
 node packages/cli/dist/index.js lint --config examples/public-crm/archora-forge.config.ts --strict
@@ -44,7 +52,7 @@ Current demo check result:
 - Health score 100.
 - Generated TypeScript typecheck passed in the audit package.
 
-For a buyer-facing package, pair this walkthrough with [Product Demo Package](/product-demo-package), [Generated Output Typecheck](/generated-output-typecheck) and [Self-Serve Purchase](/self-serve-purchase).
+For a buyer-facing package, pair this walkthrough with [Product Demo Package](/product-demo-package), [Generated Output Typecheck](/generated-output-typecheck) and [License and Paid Pilot](/self-serve-purchase).
 
 ## What Forge Generates
 

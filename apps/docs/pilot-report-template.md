@@ -1,6 +1,6 @@
 # Pilot Report Template
 
-Use this template as the buyer-facing adoption report. It works for self-serve evaluation, paid pilots and internal approval.
+Use this template as the buyer-facing adoption report. It works for local evaluation, paid pilots and internal approval.
 
 ## Summary
 

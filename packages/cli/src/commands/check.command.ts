@@ -15,6 +15,7 @@ import {
 
 import { loadCliConfigSet } from '../config.js'
 import { createHtmlReport } from '../html-report.js'
+import { requireCommercialLicense } from '../license.js'
 import type { SchemaRequestCliOptions } from '../schema-request.js'
 import { writeReportFile } from '../report-file.js'
 import { logger } from '../ui/logger.js'
@@ -37,6 +38,7 @@ export function registerCheckCommand(cli: CAC): void {
     .option('--min-health-score <score>', 'Fail when the OpenAPI health score is below this value')
     .action(async (schema: string | undefined, options: CheckOptions) => {
       try {
+        await requireCommercialLicense('check')
         assertReportFormat(options.report)
         const minHealthScore = parseMinHealthScore(options.minHealthScore)
         const checks = await Promise.all((await loadCliConfigSet(schema, options)).map((loaded) => runCheck(loaded, { minHealthScore })))
