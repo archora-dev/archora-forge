@@ -1,6 +1,6 @@
 {
   "name": "@archora/forge-cli",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "CLI for generating typed frontend resource contracts from OpenAPI contracts.",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
@@ -15,7 +15,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "archora-forge": "./dist/index.js"
+    "archora-forge": "dist/index.js"
   },
   "exports": {
     ".": {

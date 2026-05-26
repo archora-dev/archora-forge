@@ -1,6 +1,6 @@
 {
   "name": "@archora/forge-config",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Configuration loading and defaults for Archora Forge.",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {

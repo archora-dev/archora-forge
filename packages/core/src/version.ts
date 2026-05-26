@@ -1,1 +1,1 @@
-export const forgeCoreVersion = '1.2.0'
+export const forgeCoreVersion = '1.2.1'
