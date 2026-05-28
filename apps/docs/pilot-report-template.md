@@ -24,6 +24,8 @@ Use this template as the buyer-facing adoption report. It works for local evalua
 
 ```bash
 archora-forge doctor
+archora-forge impact ./openapi.yaml --base origin/main --repo . --report markdown --report-file forge-impact.md --pr-comment-file forge-impact-pr.md
+archora-forge pilot ./openapi.yaml --base origin/main --repo . --out forge-pilot
 archora-forge inspect ./openapi.yaml --report-file forge-inspect.json
 archora-forge lint ./openapi.yaml --strict --report-file forge-lint.json
 archora-forge check ./openapi.yaml --report html --report-file forge-check.html
@@ -31,6 +33,27 @@ archora-forge check ./openapi.yaml --report markdown --report-file forge-check.m
 archora-forge generate ./openapi.yaml
 tsc --noEmit -p ./generated-output-typecheck/tsconfig.json
 ```
+
+## Artifact Links
+
+| Artifact | Link or path | Review owner |
+| --- | --- | --- |
+| PR comment | `forge-pilot/impact-pr.md` | Frontend lead |
+| Impact report | `forge-pilot/impact.md` | Frontend lead |
+| Audit report | `forge-pilot/audit/index.html` | Frontend lead |
+| Readiness report | `forge-pilot/check.html` | Tech lead |
+| Go/no-go record | `forge-pilot/go-no-go.md` | Buyer/evaluator |
+| Generated output branch or patch | | Implementing team |
+
+## Screenshots
+
+Attach screenshots or internal links for:
+
+- PR impact comment;
+- audit report resource overview;
+- readiness report blockers/warnings;
+- one generated resource folder;
+- generated-output typecheck result.
 
 ## Results
 

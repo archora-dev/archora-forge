@@ -22,6 +22,16 @@ Generated output includes:
 
 The goal is not to replace specialized SDK generators or UI kits. The goal is to turn API contracts into typed frontend contracts that teams can connect to their chosen framework.
 
+## Honest Comparison
+
+| Tool | Strong fit | Usually stops before | Forge difference |
+| --- | --- | --- | --- |
+| OpenAPI Generator | Broad language SDK generation and mature template coverage. | Frontend resource metadata, PR impact review, local adoption reports and repo usage scan. | Narrower TypeScript/frontend scope, but includes resource contracts, mocks, drift checks and buyer-readable reports. |
+| Orval | TypeScript clients and data-fetching hooks for common frontend stacks. | Cross-resource adoption reports, form/table/permission metadata and merge-risk artifacts. | Keeps generated output framework-light and adds impact/audit artifacts around the generated surface. |
+| openapi-typescript | Fast TypeScript types from OpenAPI. | Clients, query keys, mocks, readiness reports and PR review workflow. | Builds a frontend resource layer around the schema instead of only exporting types. |
+
+Use the specialized tool when the team only needs SDKs or types. Evaluate Forge when the work includes generated resource conventions, mocks, drift checks and pull-request evidence.
+
 ## Before
 
 Client-only generators usually give the frontend a method and leave the surrounding resource contract to each team:

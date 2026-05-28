@@ -61,9 +61,11 @@ type HtmlReportPayload = {
   readiness?: {
     status?: string
     decision?: string
+    gate?: { result?: string; recommendedCiMode?: string; reason?: string }
     blockers?: string[]
     warnings?: string[]
     nextActions?: string[]
+    reviewerChecklist?: string[]
   }
   drift?: DriftLike[]
   diagnostics?: DiagnosticLike[]
@@ -215,6 +217,13 @@ function renderReadiness(readiness: HtmlReportPayload['readiness']): string {
     <div class="card">
       <h2>Pilot Readiness</h2>
       <p>Status: <strong>${escapeHtml(readiness.status ?? 'n/a')}</strong></p>
+      ${
+        readiness.gate
+          ? `<p>Gate: <strong>${escapeHtml(readiness.gate.result ?? 'n/a')}</strong></p>
+      <p>Recommended CI mode: <strong>${escapeHtml(readiness.gate.recommendedCiMode ?? 'n/a')}</strong></p>
+      <p>${escapeHtml(readiness.gate.reason ?? '')}</p>`
+          : ''
+      }
       <p>${escapeHtml(readiness.decision ?? '')}</p>
     </div>
     <div class="card">
@@ -229,6 +238,14 @@ function renderReadiness(readiness: HtmlReportPayload['readiness']): string {
       <h2>Warnings</h2>
       ${renderSimpleList(readiness.warnings ?? [], 'No warnings.')}
     </div>
+    ${
+      readiness.reviewerChecklist
+        ? `<div class="card">
+      <h2>Reviewer Checklist</h2>
+      ${renderSimpleList(readiness.reviewerChecklist, 'No reviewer checklist.')}
+    </div>`
+        : ''
+    }
   </section>`
 }
 

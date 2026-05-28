@@ -618,6 +618,8 @@ describe('Product regression coverage', () => {
     expect(report).toContain('Status: failed')
     expect(report).toContain('## Pilot Readiness')
     expect(report).toContain('Readiness: blocked')
+    expect(report).toContain('Gate: fail')
+    expect(report).toContain('Recommended CI mode: block')
     expect(report).toContain('Generated output drift is present.')
     expect(report).toContain('components.types.ts')
     expect(lines.join('\n')).toContain(`Report written: ${reportPath}`)
@@ -661,6 +663,7 @@ describe('Product regression coverage', () => {
       readiness: {
         status: string
         decision: string
+        gate: { result: 'pass' | 'warn' | 'fail'; recommendedCiMode: 'comment' | 'block'; reason: string }
         blockers: string[]
         warnings: string[]
         nextActions: string[]
@@ -672,6 +675,11 @@ describe('Product regression coverage', () => {
     expect(payload.schemas[0]?.configPath).toBeNull()
     expect(payload.drift.length).toBeGreaterThan(0)
     expect(payload.readiness.status).toBe('blocked')
+    expect(payload.readiness.gate).toEqual({
+      result: 'fail',
+      recommendedCiMode: 'block',
+      reason: 'Block merge or require explicit acceptance before pilot handoff.',
+    })
     expect(payload.readiness.decision).toContain('not ready')
     expect(payload.readiness.blockers).toContain('Generated output drift is present.')
     expect(payload.readiness.nextActions).toContain('Run `archora-forge generate` and commit the generated output, or review intentional drift before the pilot handoff.')
@@ -708,11 +716,11 @@ describe('Product regression coverage', () => {
     }
 
     expect(payload.generator.status).toBe('mismatch')
-    expect(payload.generator.version).toBe('1.2.2')
+    expect(payload.generator.version).toBe('1.3.0')
     expect(payload.generator.files.total).toBeGreaterThan(0)
     expect(payload.generator.files.missingMetadata).toEqual([])
     expect(payload.generator.files.versionMismatches).toEqual([
-      { path: 'src/shared/api/generated/components.types.ts', expected: '1.2.2', actual: '0.9.0' },
+      { path: 'src/shared/api/generated/components.types.ts', expected: '1.3.0', actual: '0.9.0' },
     ])
     expect(payload.generator.files.schemaHashMismatches[0]).toMatchObject({
       path: 'src/shared/api/generated/components.types.ts',
@@ -2100,6 +2108,9 @@ describe('Product regression coverage', () => {
     ])
     expect(comment).toContain('## Source Usage')
     expect(comment).toContain('src/users-page.ts:1,3')
+    expect(comment).toContain('Merge decision: block')
+    expect(comment).toContain('## Next Actions')
+    expect(comment).toContain('Do not merge until the breaking frontend contract changes are handled.')
   })
 
   test('lint and plugin APIs expose experimental extension points', async () => {
@@ -2286,6 +2297,10 @@ describe('Product regression coverage', () => {
     const payload = JSON.parse(output) as {
       ok: boolean
       audit: { artifacts: string[] }
+      readiness: {
+        gate: { result: 'pass' | 'warn' | 'fail'; recommendedCiMode: 'comment' | 'block'; reason: string }
+        reviewerChecklist: string[]
+      }
       scorecard: Record<string, number>
       typecheck: { status: string }
       resourceExplorer: Array<{ name: string; generatedFiles: string[] }>
@@ -2293,12 +2308,22 @@ describe('Product regression coverage', () => {
 
     expect(exitCode).toBe(1)
     expect(payload.ok).toBe(false)
+    expect(payload.readiness.gate).toEqual({
+      result: 'fail',
+      recommendedCiMode: 'block',
+      reason: 'Do not widen rollout until blockers are fixed or explicitly accepted.',
+    })
+    expect(payload.readiness.reviewerChecklist).toContain('Open `index.html` and confirm detected resources match the frontend mental model.')
     expect(payload.typecheck.status).toBe('skipped')
     expect(payload.scorecard.resourceCoverage).toBe(100)
     expect(payload.resourceExplorer.map((resource) => resource.name)).toContain('users')
     expect(payload.audit.artifacts).toContain('index.html')
     expect(await readTextFile(join(outDir, 'index.html'), 'utf8')).toContain('Resource Explorer')
-    expect(await readTextFile(join(outDir, 'report.md'), 'utf8')).toContain('frontendReadiness')
+    const report = await readTextFile(join(outDir, 'report.md'), 'utf8')
+    expect(report).toContain('## Executive Review')
+    expect(report).toContain('Gate: fail')
+    expect(report).toContain('Recommended CI mode: block')
+    expect(report).toContain('frontendReadiness')
     expect(await readTextFile(join(outDir, 'typecheck.md'), 'utf8')).toContain('skipped')
     expect(await readTextFile(join(outDir, 'ci.yml'), 'utf8')).toContain('archora-forge audit')
   })

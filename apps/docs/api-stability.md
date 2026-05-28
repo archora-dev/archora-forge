@@ -26,6 +26,17 @@ When a public surface changes intentionally, update this page and the contract t
 
 CLI JSON reports keep stable top-level keys. Nested objects may gain optional fields as Forge learns more about OpenAPI contracts.
 
+The `readiness` object is additive within v1. Current reports may include:
+
+- `status`: `ready`, `needs-attention` or `blocked`;
+- `gate.result`: `pass`, `warn` or `fail`;
+- `gate.recommendedCiMode`: `comment` or `block`;
+- `decision`;
+- `blockers`;
+- `warnings`;
+- `nextActions`;
+- `summary`.
+
 Consumers should read by key and tolerate unknown fields. CI integrations should prefer:
 
 - `ok`
@@ -34,6 +45,7 @@ Consumers should read by key and tolerate unknown fields. CI integrations should
 - `files`
 - `drift`
 - `schemas`
+- `readiness.gate.result`
 
 ## Package Export Policy
 

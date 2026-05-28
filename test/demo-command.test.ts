@@ -21,10 +21,24 @@ describe('demo command', () => {
     await expect(stat(join(out, 'report/impact.md'))).resolves.toBeTruthy()
     await expect(stat(join(out, 'report/impact-pr.md'))).resolves.toBeTruthy()
     await expect(stat(join(out, 'report/go-no-go.md'))).resolves.toBeTruthy()
+    await expect(stat(join(out, 'report/check.html'))).resolves.toBeTruthy()
+    await expect(stat(join(out, 'report/audit/index.html'))).resolves.toBeTruthy()
+    await expect(stat(join(out, 'report/README.md'))).resolves.toBeTruthy()
 
     const impact = await readFile(join(out, 'report/impact.md'), 'utf8')
     expect(impact).toContain('# Frontend API Impact')
     expect(impact).toContain('listUsers')
+
+    const handoff = await readFile(join(out, 'report/README.md'), 'utf8')
+    expect(handoff).toContain('Open `impact-pr.md` first')
+    expect(handoff).toContain('Open `check.html`')
+    expect(handoff).toContain('Open `audit/index.html`')
+    expect(handoff).toContain('archora-forge ci init github --schema ./openapi.yaml')
+    expect(handoff).toContain('--gate comment')
+
+    const check = await readFile(join(out, 'report/check.html'), 'utf8')
+    expect(check).toContain('Archora Forge Check')
+    expect(check).toContain('Pilot Readiness')
   })
 })
 

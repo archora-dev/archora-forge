@@ -19,6 +19,15 @@ At the end of the pilot, the customer should know:
 
 Recommended pilot length: 1-2 weeks.
 
+Inputs:
+
+- 1-3 OpenAPI 3.x schemas, or one tightly bounded schema family;
+- one frontend repository or representative branch;
+- the expected generated-output location;
+- the current API layer conventions: client wrapper, query library, mocks, forms, tables and permissions;
+- one representative API change for impact review;
+- CI constraints, including whether merge blocking is allowed during the pilot.
+
 Included:
 
 - 1-3 private OpenAPI schemas or one tightly bounded schema family;
@@ -54,6 +63,19 @@ Not included:
 - Short integration guide for the customer's frontend.
 - Go/no-go recommendation for broader rollout.
 - Completed pilot report using [Pilot Report Template](/pilot-report-template).
+
+The generated `pilot` folder should be reviewable without knowing Forge internals:
+
+| File | Purpose |
+| --- | --- |
+| `forge-pilot/pilot-report.md` | Frontend-lead summary: decision, artifact links, impact summary, affected surface and next review step. |
+| `forge-pilot/impact-pr.md` | PR-ready comment with merge decision, risk, source usage and next actions. |
+| `forge-pilot/impact.md` | Detailed contract impact report. |
+| `forge-pilot/impact.json` | Machine-readable impact payload for automation. |
+| `forge-pilot/audit/index.html` | Browser-readable generated surface review. |
+| `forge-pilot/audit/report.md` | Markdown audit summary for internal notes. |
+| `forge-pilot/check.html` | Readiness report with blockers, warnings and next actions. |
+| `forge-pilot/go-no-go.md` | Adoption decision record. |
 
 Recommended readiness commands:
 

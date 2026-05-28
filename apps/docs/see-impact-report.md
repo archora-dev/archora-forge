@@ -7,6 +7,7 @@ Open the public impact demo:
 The demo compares two OpenAPI versions and shows the frontend blast radius before regeneration:
 
 - decision and merge risk;
+- merge decision and next actions for the PR reviewer;
 - breaking, warning and non-breaking counts;
 - affected resources and generated files;
 - operation IDs, client methods and query hooks;

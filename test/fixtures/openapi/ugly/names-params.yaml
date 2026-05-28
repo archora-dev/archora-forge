@@ -1,0 +1,102 @@
+openapi: 3.0.3
+info:
+  title: Ugly Names Params API
+  version: 1.0.0
+components:
+  schemas:
+    user-profile.v2:
+      type: object
+      required: [id, primary-email]
+      properties:
+        id: { type: string }
+        primary-email: { type: string, format: email }
+        user.name: { type: string }
+        class: { type: string }
+        status:
+          type: string
+          enum: [needs-review, in progress, done]
+paths:
+  /orgs/{org-id}/users/{user.id}:
+    parameters:
+      - name: org-id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Users]
+      operationId: users.search
+      parameters:
+        - name: user.id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: include-inactive
+          in: query
+          schema: { type: boolean }
+        - name: x-request-id
+          in: header
+          schema: { type: string }
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/user-profile.v2'
+    patch:
+      tags: [Users]
+      operationId: update user-profile
+      parameters:
+        - name: user.id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user-profile.v2'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user-profile.v2'
+  /reports/{report-id}/export:
+    get:
+      tags: [Reports]
+      operationId: export-report
+      parameters:
+        - name: report-id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Export
+          content:
+            text/csv:
+              schema:
+                type: string
+  /reports/{report-id}/archive:
+    post:
+      tags: [Reports]
+      operationId: archive report
+      parameters:
+        - name: report-id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: x-archive-reason
+          in: header
+          schema: { type: string }
+      responses:
+        '202':
+          description: Archive accepted

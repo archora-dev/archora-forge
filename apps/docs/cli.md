@@ -13,8 +13,8 @@ archora-forge validate ./openapi.yaml
 archora-forge diff ./openapi.yaml
 archora-forge lint ./openapi.yaml
 archora-forge audit ./openapi.yaml
-archora-forge pilot ./openapi.yaml --base main --repo .
-archora-forge ci init github --schema ./openapi.yaml --base origin/main
+archora-forge pilot ./openapi.yaml --base origin/main --repo .
+archora-forge ci init github --schema ./openapi.yaml --base origin/main --gate block
 archora-forge contract-diff ./old-openapi.yaml ./new-openapi.yaml
 archora-forge impact ./openapi.yaml --base main --repo .
 archora-forge explain unsupported-oneof
@@ -38,8 +38,8 @@ For purchase evaluation, pair CLI output with:
 - `diff` shows create/update/protected file counts without writing files.
 - `lint` reports frontend generation readiness diagnostics.
 - `audit` creates a local adoption package with HTML/JSON/Markdown reports, generated preview files, generated-output typecheck, CI workflow and adoption plan.
-- `pilot` creates a paid-pilot package with impact, audit and go/no-go artifacts.
-- `ci init github` writes a GitHub Actions workflow for PR impact review.
+- `pilot` creates a paid-pilot package with impact, audit, go/no-go and pilot-report artifacts.
+- `ci init github` writes a GitHub Actions workflow for PR impact review. Use `--gate comment` for advisory rollout or `--gate block` for merge enforcement.
 - `explain` explains a diagnostic code and the adoption risk behind it.
 - `contract-diff` compares old/new contracts and reports affected generated files.
 - `impact` creates a PR-ready frontend API impact report with merge risk, migration hints and affected generated surface.
@@ -69,9 +69,9 @@ For purchase evaluation, pair CLI output with:
 - `audit --out <path>` writes the full local adoption package.
 - `audit --skip-typecheck` skips the generated TypeScript typecheck gate when TypeScript is not available in the current environment.
 - `license request --plan trial|pilot|team|organization --out <path>` writes a license request markdown file without schemas, source code, env vars or private absolute paths.
-- `pilot --old <schema> --repo <path> --out <path>` writes `impact.md`, `impact-pr.md`, `audit/` and `go-no-go.md`.
-- `pilot --base <ref> --repo <path> --out <path>` reads the previous schema from git, for example `--base main`.
-- `ci init github --schema <path> --base <ref> --mode impact|pilot --force` writes a GitHub workflow.
+- `pilot --old <schema> --repo <path> --out <path>` writes `impact.md`, `impact-pr.md`, `audit/`, `go-no-go.md` and `pilot-report.md`.
+- `pilot --base <ref> --repo <path> --out <path>` reads the previous schema from git, for example `--base origin/main`.
+- `ci init github --schema <path> --base <ref> --mode impact|pilot --gate block|comment --force` writes a GitHub workflow.
 - `impact --report markdown|json|html --report-file <path>` writes a contract impact artifact.
 - `impact <schema> --base <ref>` reads the previous schema from git instead of requiring an old schema file.
 - `impact --repo <path>` scans a frontend repository for impacted generated API usages.
@@ -108,7 +108,7 @@ Create a paid-pilot package:
 
 ```bash
 archora-forge pilot ./openapi.yaml \
-  --base main \
+  --base origin/main \
   --repo . \
   --out forge-pilot
 ```
@@ -116,7 +116,7 @@ archora-forge pilot ./openapi.yaml \
 Create a GitHub Actions impact workflow:
 
 ```bash
-archora-forge ci init github --schema ./openapi.yaml --base origin/main
+archora-forge ci init github --schema ./openapi.yaml --base origin/main --gate block
 ```
 
 Audit one schema:

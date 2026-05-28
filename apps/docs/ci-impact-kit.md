@@ -9,7 +9,8 @@ Use it when a repository has a committed schema such as `openapi.yaml` and front
 Generate the workflow:
 
 ```bash
-pnpm exec archora-forge ci init github --schema ./openapi.yaml --base origin/main
+pnpm exec archora-forge ci init github --schema ./openapi.yaml --base origin/main --gate comment
+pnpm exec archora-forge ci init github --schema ./openapi.yaml --base origin/main --gate block --force
 ```
 
 Or start from the template:
@@ -27,19 +28,22 @@ pnpm exec archora-forge impact ./openapi.yaml \
   --pr-comment-file forge-impact-pr.md
 ```
 
-`impact` exits with `1` when the decision is `blocked`. That is the strict mode.
+`--gate comment` posts the PR comment and uploads artifacts without blocking merge. `--gate block` posts the same comment, uploads the same artifacts, then fails the job when Forge reports blocked API impact.
+
+Report language maps to CI behavior:
+
+| Report gate | Meaning | Recommended CI mode |
+| --- | --- | --- |
+| `pass` | No current blockers under the selected policy. | `--gate block` |
+| `warn` | Continue review, but keep owner acceptance explicit. | `--gate comment` |
+| `fail` | Do not merge or widen rollout until blockers are fixed or accepted. | `--gate block` |
 
 ## Advisory Mode
 
-For the first week, make the command advisory:
+For the first week, use the generated advisory workflow:
 
 ```bash
-pnpm exec archora-forge impact ./openapi.yaml \
-  --base origin/main \
-  --repo . \
-  --report markdown \
-  --report-file forge-impact.md \
-  --pr-comment-file forge-impact-pr.md || true
+pnpm exec archora-forge ci init github --schema ./openapi.yaml --base origin/main --gate comment
 ```
 
 Advisory mode still uploads the report and writes the PR comment. It just avoids blocking merges while the team calibrates the workflow.

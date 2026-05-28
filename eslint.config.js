@@ -6,6 +6,7 @@ export default tseslint.config(
     ignores: [
       '**/dist/**',
       'apps/docs/public/demo-audit/**',
+      'apps/docs/public/forge-demo/**',
       'apps/docs/public/impact-demo/**',
       'examples/public-crm/generated/**',
       '**/.vitepress/cache/**',

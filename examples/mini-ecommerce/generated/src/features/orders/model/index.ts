@@ -1,5 +1,5 @@
 // @archora-forge-generated
-// @archora-forge-meta {"version":"1.2.2","schemaHash":"66e8f461600e","configHash":"f1d971045876"}
+// @archora-forge-meta {"version":"1.3.0","schemaHash":"66e8f461600e","configHash":"f1d971045876"}
 export * from './orders.permissions'
 export * from './orders.i18n'
 export * from './orders.config'

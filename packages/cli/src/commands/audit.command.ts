@@ -382,15 +382,41 @@ function createAuditReadiness(input: {
     ...(input.diagnostics.length > 0 ? ['Use fix suggestions to decide which OpenAPI changes are required before purchase.'] : []),
     ...(input.ok ? ['Use this audit package as the paid pilot evidence bundle.'] : []),
   ]
+  const status = blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'needs-attention' : 'ready'
+  const gate =
+    status === 'ready'
+      ? {
+          result: 'pass' as const,
+          recommendedCiMode: 'block' as const,
+          reason: 'Generated resource layer is ready for a blocking CI gate under the current policy.',
+        }
+      : status === 'needs-attention'
+        ? {
+            result: 'warn' as const,
+            recommendedCiMode: 'comment' as const,
+            reason: 'Continue evaluation, but require explicit owner review before blocking merges.',
+          }
+        : {
+            result: 'fail' as const,
+            recommendedCiMode: 'block' as const,
+            reason: 'Do not widen rollout until blockers are fixed or explicitly accepted.',
+          }
 
   return {
-    status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'needs-attention' : 'ready',
+    status,
+    gate,
     decision: input.ok
       ? 'Generated resource layer is ready for local adoption review.'
       : 'Generated resource layer needs fixes or explicit risk acceptance before purchase.',
     blockers,
     warnings,
     nextActions: nextActions.length > 0 ? nextActions : ['No action required.'],
+    reviewerChecklist: [
+      'Open `index.html` and confirm detected resources match the frontend mental model.',
+      'Open `report.md` and review blockers, warnings, scorecard and fix suggestions.',
+      'Open `typecheck.md` and confirm generated TypeScript passed or every failure is triaged.',
+      'Compare generated files with the existing API layer before committing rollout scope.',
+    ],
     summary: {
       healthScore: input.healthScore,
       resources: input.resources,
@@ -424,6 +450,16 @@ function createAuditMarkdown(payload: ReturnType<typeof createAuditPayload>): st
 
 Status: ${payload.ok ? 'passed' : 'failed'}
 
+## Executive Review
+
+Readiness: ${payload.readiness.status}
+
+Gate: ${payload.readiness.gate.result}
+
+Recommended CI mode: ${payload.readiness.gate.recommendedCiMode}
+
+Gate reason: ${payload.readiness.gate.reason}
+
 Decision: ${payload.readiness.decision}
 
 Health score: ${payload.healthScore}
@@ -443,6 +479,10 @@ ${Object.entries(payload.scorecard)
 ## Fix Suggestions
 
 ${payload.fixSuggestions.length > 0 ? payload.fixSuggestions.map((item) => `- ${item.code} (${item.count}): ${item.suggestion}`).join('\n') : '- No fix suggestions.'}
+
+## Reviewer Checklist
+
+${payload.readiness.reviewerChecklist.map((item) => `- ${item}`).join('\n')}
 
 ## Artifacts
 

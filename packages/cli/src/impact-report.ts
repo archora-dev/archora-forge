@@ -73,13 +73,51 @@ export function formatPullRequestComment(payload: ImpactPayload): string {
   return [
     '## Frontend API Impact',
     '',
+    `Merge decision: ${formatMergeDecision(payload.decision.status)}`,
+    `Merge risk: ${payload.decision.mergeRisk}`,
+    `Reason: ${payload.decision.reason}`,
+    '',
     payload.prSummary,
+    '',
+    '## Next Actions',
+    '',
+    ...formatNextActionLines(payload),
     '',
     '## Source Usage',
     '',
     ...formatSourceUsageLines(payload.sourceUsages ?? []),
     '',
   ].join('\n')
+}
+
+function formatMergeDecision(status: ImpactPayload['decision']['status']): string {
+  if (status === 'blocked') return 'block'
+  if (status === 'review') return 'review'
+  return 'pass'
+}
+
+function formatNextActionLines(payload: ImpactPayload): string[] {
+  if (payload.decision.status === 'blocked') {
+    return [
+      '- Do not merge until the breaking frontend contract changes are handled.',
+      '- Update impacted source usages before regenerating committed Forge output.',
+      '- Re-run `archora-forge impact` after the OpenAPI or frontend changes are updated.',
+    ]
+  }
+
+  if (payload.decision.status === 'review') {
+    return [
+      '- Review warnings with the frontend owner before merge.',
+      '- Regenerate Forge output in the branch if the contract change is accepted.',
+      '- Keep the PR comment attached to the API change for reviewer context.',
+    ]
+  }
+
+  return [
+    '- Merge can continue from the API impact perspective.',
+    '- Regenerate Forge output when the schema change is accepted.',
+    '- Keep `archora-forge check` in CI to catch drift after regeneration.',
+  ]
 }
 
 export function formatSourceUsageLines(usages: SourceUsage[]): string[] {

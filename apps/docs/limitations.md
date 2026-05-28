@@ -22,3 +22,9 @@ Archora Forge 1.0 is in public preview/private beta for its documented generatio
 - TanStack-style integration is currently consumer-owned; Forge emits query keys and operation helpers, not a finished first-party TanStack adapter.
 - Vue integration is through generated TypeScript clients, helpers and metadata; Forge does not emit Vue single-file components.
 - Full OpenAPI coverage is not claimed.
+
+## How Gaps Are Reported
+
+Forge should keep producing partial useful output when a schema mixes supported and unsupported shapes. Unsupported cases are expected to appear as diagnostics and coverage counts, not as vague failures.
+
+Current regression fixtures cover discriminator-heavy composition, cookie auth, operation-level security, unsupported request content types, binary transfer, nullable unions, unsafe names and header parameters.
