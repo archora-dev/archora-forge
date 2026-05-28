@@ -1,0 +1,136 @@
+{
+  "ok": false,
+  "oldSchema": "openapi.old.yaml",
+  "newSchema": "openapi.yaml",
+  "sourceUsages": [
+    {
+      "path": "report/audit/generated-preview/default/src/features/members/api/useMembersQuery.ts",
+      "matches": [
+        "listMembers",
+        "membersClient",
+        "membersQueryKeys"
+      ],
+      "lines": [
+        1,
+        2,
+        9,
+        10
+      ]
+    },
+    {
+      "path": "report/audit/generated-preview/default/src/features/members/model/members.config.ts",
+      "matches": [
+        "membersConfig"
+      ],
+      "lines": [
+        1
+      ]
+    },
+    {
+      "path": "report/audit/generated-preview/default/src/features/members/model/members.permissions.ts",
+      "matches": [
+        "membersPermissions"
+      ],
+      "lines": [
+        1
+      ]
+    },
+    {
+      "path": "report/audit/generated-preview/default/src/shared/api/generated/members/members.client.ts",
+      "matches": [
+        "listMembers",
+        "membersClient"
+      ],
+      "lines": [
+        21,
+        22,
+        27
+      ]
+    },
+    {
+      "path": "report/audit/generated-preview/default/src/shared/api/generated/members/members.query-keys.ts",
+      "matches": [
+        "membersQueryKeys"
+      ],
+      "lines": [
+        3,
+        5,
+        6
+      ]
+    },
+    {
+      "path": "src/users.ts",
+      "matches": [
+        "listUsers",
+        "usersClient"
+      ],
+      "lines": [
+        1,
+        4
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "code": "removed-endpoint",
+      "severity": "breaking",
+      "resource": "users",
+      "location": "GET /users",
+      "message": "GET /users was removed."
+    },
+    {
+      "code": "added-endpoint",
+      "severity": "non-breaking",
+      "resource": "members",
+      "location": "GET /members",
+      "message": "GET /members was added."
+    }
+  ],
+  "affectedResources": [
+    "members",
+    "users"
+  ],
+  "affectedFiles": [
+    "src/shared/api/generated/members/members.types.ts",
+    "src/shared/api/generated/members/members.client.ts",
+    "src/features/members/api/index.ts",
+    "src/shared/api/generated/users/users.types.ts",
+    "src/shared/api/generated/users/users.client.ts",
+    "src/features/users/api/index.ts"
+  ],
+  "changelog": [
+    "CHANGED members: 0 breaking, 1 non-breaking, 0 warning changes.",
+    "BREAKING users: 1 breaking, 0 non-breaking, 0 warning changes.",
+    "6 resource contract files affected."
+  ],
+  "summary": {
+    "breaking": 1,
+    "warnings": 0,
+    "nonBreaking": 1,
+    "total": 2
+  },
+  "decision": {
+    "status": "blocked",
+    "mergeRisk": "high",
+    "reason": "1 breaking frontend contract change detected."
+  },
+  "impactedSurface": {
+    "operationIds": [
+      "listMembers",
+      "listUsers"
+    ],
+    "clientMethods": [
+      "listMembers()",
+      "listUsers()"
+    ],
+    "queryHooks": [
+      "useListMembersQuery",
+      "useListUsersQuery"
+    ]
+  },
+  "migrationHints": [
+    "users: replace usages before regenerating. GET /users was removed.",
+    "members: new endpoint is available after regeneration. GET /members was added."
+  ],
+  "prSummary": "Frontend API impact: blocked (high risk).\n1 breaking frontend contract change detected.\nChanges: 1 breaking, 0 warnings, 1 non-breaking.\nAffected resources: members, users.\nAffected generated files: 6.\nMigration hints:\n- users: replace usages before regenerating. GET /users was removed.\n- members: new endpoint is available after regeneration. GET /members was added."
+}

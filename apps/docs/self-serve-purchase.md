@@ -37,8 +37,9 @@ Recommended scope: 1-3 schemas or one tightly related schema family.
 4. Run [Run Audit Quickstart](/run-audit-quickstart) against one private schema.
 5. Review [Install, Trial, Buy](/install-trial-buy), [What You Get](/what-you-get) and [Private Schema Pilot Proof](/pilot-proof).
 6. Generate a local [Product Demo Package](/product-demo-package) for internal review.
-7. Fill out the [Pilot Report Template](/pilot-report-template).
-8. Request a commercial license using the contact listed in the repository license files.
+7. Follow the [Team Rollout Guide](/team-rollout-guide) for a trial branch, first PR and CI gate.
+8. Fill out the generated `forge-pilot/pilot-report.md` and the [Pilot Report Template](/pilot-report-template).
+9. Request a commercial license using the contact listed in the repository license files.
 
 The purchase decision should be based on artifacts: generated code, HTML reports, drift status, diagnostics, typecheck result and a go/no-go adoption report.
 
@@ -86,7 +87,7 @@ The license should state scope, number of schemas, allowed repositories, support
 - Private schema workflow.
 - HTML and Markdown audit and impact reports.
 - CI-ready commands.
-- A report template for internal approval.
+- `forge-pilot/pilot-report.md` and a report template for internal approval.
 - Clear limitations before purchase.
 
 ## Purchase Acceptance Gate

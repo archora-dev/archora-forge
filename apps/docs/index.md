@@ -38,6 +38,8 @@ archora-forge impact ./openapi.yaml --base origin/main --repo . --pr-comment-fil
 archora-forge pilot ./openapi.yaml --base origin/main --repo . --out forge-pilot
 ```
 
-Open `forge-impact-pr.md` before accepting the API change. Open `forge-pilot/go-no-go.md` and `forge-pilot/audit/index.html` before adopting generated output.
+Open `forge-impact-pr.md` before accepting the API change. Open `forge-pilot/pilot-report.md`, `forge-pilot/go-no-go.md` and `forge-pilot/audit/index.html` before adopting generated output.
 
 Start with the [public impact report](/see-impact-report), then run the same workflow on one private schema.
+
+For a team rollout, follow the [Team Rollout Guide](/team-rollout-guide): trial branch, first PR, comment-only CI, block-merge CI and adoption decision.

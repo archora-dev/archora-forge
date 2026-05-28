@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Archora Forge Audit</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17202a; background: #f6f7f9; }
+    body { margin: 0; }
+    main { max-width: 1120px; margin: 0 auto; padding: 32px 20px 48px; }
+    h1, h2, h3 { margin: 0; line-height: 1.2; }
+    h1 { font-size: 30px; }
+    h2 { margin-top: 28px; font-size: 18px; }
+    p { margin: 8px 0 0; color: #526071; }
+    .top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 6px 10px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+    .passed { color: #0b6b3a; background: #dff7ea; }
+    .failed { color: #9d2a1f; background: #ffe2dd; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 18px; }
+    .metric, .card { background: #fff; border: 1px solid #dfe4ea; border-radius: 8px; padding: 14px; box-shadow: 0 1px 2px rgba(23, 32, 42, .04); }
+    .metric strong { display: block; font-size: 24px; color: #17202a; }
+    .metric span, .muted { color: #667386; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; background: #fff; border: 1px solid #dfe4ea; border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #edf0f3; vertical-align: top; font-size: 14px; }
+    th { background: #f0f3f6; color: #3f4b59; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    tr:last-child td { border-bottom: 0; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: #eef2f6; padding: 2px 4px; border-radius: 4px; }
+    .warning { color: #8a5a00; }
+    .error { color: #a32116; }
+    .summary { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr); gap: 12px; margin-top: 18px; }
+    .summary ul { margin: 10px 0 0; padding-left: 18px; }
+    .summary li { margin: 6px 0; }
+    .pill-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .pill { display: inline-flex; gap: 6px; align-items: center; border: 1px solid #dfe4ea; border-radius: 999px; padding: 5px 9px; background: #f8fafc; font-size: 12px; }
+    details { background: #fff; border: 1px solid #dfe4ea; border-radius: 8px; margin-top: 12px; overflow: hidden; }
+    summary { cursor: pointer; padding: 12px 14px; font-weight: 700; background: #f8fafc; }
+    pre { white-space: pre-wrap; word-break: break-word; background: #17202a; color: #f6f7f9; border-radius: 8px; padding: 12px; font-size: 12px; margin: 12px 0 0; }
+    .empty { background: #fff; border: 1px dashed #cad2dc; border-radius: 8px; padding: 16px; color: #667386; margin-top: 12px; }
+    .footer { margin-top: 32px; font-size: 12px; color: #7a8797; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="top">
+    <div>
+      <h1>Archora Forge Audit</h1>
+      <p>apps/docs/public/forge-demo/openapi.yaml</p>
+    </div>
+    <span class="badge failed">failed</span>
+  </section>
+
+  <section class="grid">
+    <div class="metric"><strong>81</strong><span>Health</span></div>
+    <div class="metric"><strong>0</strong><span>Diagnostics</span></div>
+    <div class="metric"><strong>2</strong><span>Failed checks</span></div>
+    <div class="metric"><strong>15</strong><span>Drift</span></div>
+    <div class="metric"><strong>1</strong><span>Resources</span></div>
+    <div class="metric"><strong>15</strong><span>Generated files</span></div>
+  </section>
+
+  <section class="summary">
+    <div class="card">
+      <h2>Executive Summary</h2>
+      <ul>
+        <li>Generated output needs attention before this schema should pass CI.</li>
+        <li>Health score: <strong>81</strong>.</li>
+        <li>Resources: <strong>1</strong>; generated files: <strong>15</strong>.</li>
+        <li>Diagnostics: <strong>0</strong>; drift entries: <strong>15</strong>.</li>
+        <li>Top affected resources: members (10), components.types.ts (1).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Decision Signal</h2>
+      <p>Blocked by: drift, health-score.</p>
+    </div>
+  </section>
+  <section class="summary">
+    <div class="card">
+      <h2>Pilot Readiness</h2>
+      <p>Status: <strong>blocked</strong></p>
+      <p>Gate: <strong>fail</strong></p>
+      <p>Recommended CI mode: <strong>block</strong></p>
+      <p>Do not widen rollout until blockers are fixed or explicitly accepted.</p>
+      <p>Generated resource layer needs fixes or explicit risk acceptance before purchase.</p>
+    </div>
+    <div class="card">
+      <h2>Next Actions</h2>
+      <ul><li>Run `archora-forge generate` and review generated drift.</li></ul>
+    </div>
+    <div class="card">
+      <h2>Blockers</h2>
+      <ul><li>Health score 81 is below the audit threshold 90.</li><li>Generated output drift is present.</li></ul>
+    </div>
+    <div class="card">
+      <h2>Warnings</h2>
+      <ul><li>Generated TypeScript typecheck was skipped.</li></ul>
+    </div>
+    <div class="card">
+      <h2>Reviewer Checklist</h2>
+      <ul><li>Open `index.html` and confirm detected resources match the frontend mental model.</li><li>Open `report.md` and review blockers, warnings, scorecard and fix suggestions.</li><li>Open `typecheck.md` and confirm generated TypeScript passed or every failure is triaged.</li><li>Compare generated files with the existing API layer before committing rollout scope.</li></ul>
+    </div>
+  </section>
+  <section><h2>Copyable CI Summary</h2><pre>Status: failed
+Health: 81
+Resources: 1
+Generated files: 15
+Diagnostics: 0
+Drift: 15
+Failed checks: drift, health-score</pre></section>
+  <section><h2>Generated Files by Category</h2><div class="pill-list"><span class="pill"><strong>15</strong>total generated</span><span class="pill"><strong>5</strong>api generated</span><span class="pill"><strong>2</strong>feature api</span><span class="pill"><strong>4</strong>feature model</span><span class="pill"><strong>4</strong>mocks</span></div></section>
+  <section><h2>Diagnostics Grouped</h2><div class="empty">No diagnostics to group.</div></section>
+  <section><h2>Unsupported Operations</h2><div class="empty">No unsupported operations detected.</div></section>
+  <section><h2>Top Affected Resources</h2><div class="pill-list"><span class="pill"><strong>10</strong>members</span><span class="pill"><strong>1</strong>components.types.ts</span></div></section>
+  <section><h2>Resource Explorer</h2><div class="summary"><div class="card">
+        <h3>members</h3>
+        <p>1 operations; 10 generated files.</p>
+        <details><summary>Operations</summary><ul><li><code>GET /members</code>  <span class="muted">crud-resource</span></li></ul></details>
+        <details><summary>Generated files</summary><ul><li><code>src/features/members/api/index.ts</code></li><li><code>src/features/members/api/useMembersQuery.ts</code></li><li><code>src/features/members/model/index.ts</code></li><li><code>src/features/members/model/members.config.ts</code></li><li><code>src/features/members/model/members.i18n.ts</code></li><li><code>src/features/members/model/members.permissions.ts</code></li><li><code>src/shared/api/generated/members/index.ts</code></li><li><code>src/shared/api/generated/members/members.client.ts</code></li><li><code>src/shared/api/generated/members/members.query-keys.ts</code></li><li><code>src/shared/api/generated/members/members.types.ts</code></li></ul></details>
+      </div></div></section>
+  <section>
+    <h2>Schema Coverage Matrix</h2>
+    <div class="grid">
+      <div class="metric"><strong>1</strong><span>Operations</span></div>
+      <div class="metric"><strong>1</strong><span>Generated operations</span></div>
+      <div class="metric"><strong>0</strong><span>Fallback cases</span></div>
+      <div class="metric"><strong>0</strong><span>Diagnostic-only cases</span></div>
+      <div class="metric"><strong>0</strong><span>Schemas</span></div>
+      <div class="metric"><strong>0</strong><span>Skipped operations</span></div>
+    </div>
+    <details open><summary>Operation types</summary><div class="pill-list"><span class="pill"><strong>1</strong>crud-resource</span></div></details>
+    <details><summary>Request shapes</summary><div class="pill-list"><span class="pill"><strong>1</strong>none</span></div></details>
+    <details><summary>Response shapes</summary><div class="pill-list"><span class="pill"><strong>1</strong>json</span></div></details>
+    <details><summary>Unsupported schema constructs</summary><div class="pill-list"><span class="muted">none</span></div></details>
+  </section>
+  
+  <section><h2>Contract Diff Summary</h2><div class="empty">No contract diff changes in this report.</div></section>
+  <section><h2>Schemas</h2><table><thead><tr><th>Name</th><th>Schema</th><th>Health</th><th>Resources</th><th>Diagnostics</th></tr></thead><tbody><tr><td>default</td><td><code>apps/docs/public/forge-demo/openapi.yaml</code></td><td>81</td><td>1</td><td>0</td></tr></tbody></table></section>
+  <section><h2>Failed Checks</h2><div class="card"><code>drift</code> <code>health-score</code></div></section>
+  <section><h2>Diagnostics</h2><div class="empty">No diagnostics.</div></section>
+  <section><h2>Drift</h2><table><thead><tr><th>Path</th><th>Kind</th></tr></thead><tbody><tr><td><code>src/shared/api/generated/components.types.ts</code></td><td>missing</td></tr><tr><td><code>src/shared/api/generated/members/members.client.ts</code></td><td>missing</td></tr><tr><td><code>src/shared/api/generated/members/members.types.ts</code></td><td>missing</td></tr><tr><td><code>src/shared/api/generated/members/members.query-keys.ts</code></td><td>missing</td></tr><tr><td><code>src/shared/api/generated/members/index.ts</code></td><td>missing</td></tr><tr><td><code>src/features/members/api/useMembersQuery.ts</code></td><td>missing</td></tr><tr><td><code>src/features/members/api/index.ts</code></td><td>missing</td></tr><tr><td><code>src/features/members/model/members.permissions.ts</code></td><td>missing</td></tr><tr><td><code>src/features/members/model/members.i18n.ts</code></td><td>missing</td></tr><tr><td><code>src/features/members/model/members.config.ts</code></td><td>missing</td></tr><tr><td><code>src/features/members/model/index.ts</code></td><td>missing</td></tr><tr><td><code>src/shared/mocks/members/members.fixtures.ts</code></td><td>missing</td></tr><tr><td><code>src/shared/mocks/members/members.handlers.ts</code></td><td>missing</td></tr><tr><td><code>src/shared/mocks/members/members.scenarios.ts</code></td><td>missing</td></tr><tr><td><code>src/shared/mocks/members/index.ts</code></td><td>missing</td></tr></tbody></table></section>
+
+  <p class="footer">Generated by Archora Forge CLI. Commit this report as a CI artifact or attach it to release validation notes.</p>
+</main>
+</body>
+</html>

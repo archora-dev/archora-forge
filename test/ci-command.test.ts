@@ -19,6 +19,21 @@ describe('ci command', () => {
     expect(workflow).toContain('OPENAPI_BASE_REF: origin/main')
     expect(workflow).toContain('archora-forge impact "$OPENAPI_SCHEMA" --base "$OPENAPI_BASE_REF"')
     expect(workflow).toContain('forge-impact-pr.md')
+    expect(workflow).toContain('FORGE_GATE_MODE: block')
+    expect(workflow).toContain('Block merge on blocked API impact')
+  })
+
+  test('can write a comment-only GitHub impact workflow', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'archora-forge-ci-comment-'))
+
+    const result = await runCliInDirectory(cwd, ['ci', 'init', 'github', '--schema', 'openapi.yaml', '--gate', 'comment'])
+
+    expect(result.exitCode).toBeUndefined()
+    const workflow = await readFile(join(cwd, '.github/workflows/archora-forge-impact.yml'), 'utf8')
+    expect(workflow).toContain('FORGE_GATE_MODE: comment')
+    expect(workflow).toContain('Run Forge impact')
+    expect(workflow).not.toContain('Block merge on blocked API impact')
+    expect(workflow).toContain('actions-comment-pull-request')
   })
 
   test('can write a GitHub pilot workflow', async () => {

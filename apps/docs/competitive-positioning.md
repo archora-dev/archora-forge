@@ -27,6 +27,16 @@ Forge adds the frontend resource layer around that:
 - contract impact reports;
 - repo usage scan.
 
+## Compared with Common Alternatives
+
+| Alternative | What it does well | Where Forge is different |
+| --- | --- | --- |
+| OpenAPI Generator | Mature multi-language SDK generation and broad template ecosystem. | Forge is intentionally narrower: local TypeScript frontend resource contracts, audit reports and PR impact workflow. |
+| Orval | Frontend TypeScript clients and data-fetching integrations. | Forge keeps framework bindings optional and focuses on resource metadata, mocks, drift checks, adoption reports and merge-risk review. |
+| openapi-typescript | Lightweight TypeScript type generation. | Forge adds clients, query keys, operation helpers, metadata, mocks, diagnostics, CI checks and buyer-readable artifacts. |
+
+Those tools are still the better choice when a team only wants a client or type layer. Forge should win only when the surrounding frontend contract and review workflow matter.
+
 ## Compared with Hand-written API Layers
 
 Hand-written API layers give full control, but they drift:

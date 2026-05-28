@@ -27,6 +27,11 @@ Start with the report pages before installing anything:
 
 These pages show what a buyer can inspect before making a purchase decision.
 
+The public site also includes a PR impact sample with the exact comment artifact, source usage file and full report:
+
+- `https://archora.dev/forge#pr-impact`
+- `https://archora.dev/forge#proof-package`
+
 ## 3. Install And Check The CLI
 
 ```bash
@@ -50,11 +55,13 @@ To see the workflow without preparing a project:
 pnpm exec archora-forge demo --out forge-demo
 ```
 
+Open `forge-demo/report/README.md`, then review `impact-pr.md`, `check.html`, `audit/index.html` and `go-no-go.md`.
+
 For a pull request with an API change, start here:
 
 ```bash
 pnpm exec archora-forge impact ./openapi.yaml \
-  --base main \
+  --base origin/main \
   --repo . \
   --report markdown \
   --report-file forge-impact.md \
@@ -70,8 +77,17 @@ pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
 For a buyer-facing pilot package, combine both:
 
 ```bash
-pnpm exec archora-forge pilot ./openapi.yaml --base main --repo . --out forge-pilot
+pnpm exec archora-forge pilot ./openapi.yaml --base origin/main --repo . --out forge-pilot
 ```
+
+For the first pull request workflow:
+
+```bash
+pnpm exec archora-forge ci init github --schema ./openapi.yaml --base origin/main --mode impact --gate comment
+pnpm exec archora-forge ci init github --schema ./openapi.yaml --base origin/main --mode impact --gate block --force
+```
+
+Start with `--gate comment` on a trial branch. Switch to `--gate block` when the team agrees that blocked frontend API impact should stop merge.
 
 Use the supporting commands when you need detail before a go/no-go decision:
 
@@ -91,6 +107,10 @@ Review:
 - `forge-audit/report.md`;
 - `forge-impact.md`;
 - `forge-impact-pr.md`;
+- `forge-demo/report/check.html`, when running the demo command;
+- `forge-demo/report/audit/index.html`, when running the demo command;
+- `forge-pilot/go-no-go.md`, when running the pilot command;
+- `forge-pilot/pilot-report.md`, when running the pilot command;
 - generated TypeScript preview;
 - `check` result;
 - typecheck result for the generated output.

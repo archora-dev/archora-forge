@@ -1,0 +1,82 @@
+openapi: 3.0.3
+info:
+  title: Ugly Files Nullable API
+  version: 1.0.0
+components:
+  schemas:
+    UploadMetadata:
+      type: object
+      required: [file, owner]
+      properties:
+        file:
+          type: string
+          format: binary
+        owner:
+          type: string
+        note:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          nullable: true
+          items:
+            type: string
+    FileRecord:
+      type: object
+      required: [id, url]
+      properties:
+        id: { type: string }
+        url: { type: string, format: uri }
+        checksum:
+          type: [string, 'null']
+paths:
+  /files/upload:
+    post:
+      tags: [Files]
+      operationId: uploadFile
+      parameters:
+        - name: x-upload-source
+          in: header
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadMetadata'
+      responses:
+        '201':
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileRecord'
+  /files/{id}/download:
+    get:
+      tags: [Files]
+      operationId: downloadFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Raw file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /files/raw:
+    post:
+      tags: [Files]
+      operationId: uploadRaw
+      requestBody:
+        content:
+          application/x-ndjson:
+            schema:
+              type: string
+      responses:
+        '204':
+          description: Accepted

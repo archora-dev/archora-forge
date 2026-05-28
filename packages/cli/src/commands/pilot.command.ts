@@ -54,7 +54,10 @@ export function registerPilotCommand(cli: CAC): void {
           schemaHeader: options.schemaHeader,
         })
         const decision = createGoNoGo({ impact, auditOk: audit.payload.ok, auditDecision: audit.payload.readiness.decision })
-        await writeReportFile(join(outDir, 'go-no-go.md'), decision.markdown)
+        await Promise.all([
+          writeReportFile(join(outDir, 'go-no-go.md'), decision.markdown),
+          writeReportFile(join(outDir, 'pilot-report.md'), createPilotReport({ impact, status: decision.status, auditOk: audit.payload.ok, auditDecision: audit.payload.readiness.decision })),
+        ])
 
         logger.title()
         logger.line(`Pilot package: ${outDir}`)
@@ -140,4 +143,65 @@ function createGoNoGo(input: { impact: ImpactPayload; auditOk: boolean; auditDec
     '',
   ]
   return { status, markdown: lines.join('\n') }
+}
+
+function createPilotReport(input: { impact: ImpactPayload; status: 'go' | 'conditional-go' | 'no-go'; auditOk: boolean; auditDecision: string }): string {
+  return [
+    '# Archora Forge Pilot Report',
+    '',
+    '## Decision',
+    '',
+    `Decision: ${input.status}`,
+    `Impact: ${input.impact.decision.status}`,
+    `Merge risk: ${input.impact.decision.mergeRisk}`,
+    `Audit: ${input.auditOk ? 'passed' : 'failed'}`,
+    '',
+    '## Artifact Links',
+    '',
+    '- `impact-pr.md` - PR comment for reviewers.',
+    '- `impact.md` - full frontend API impact report.',
+    '- `impact.json` - machine-readable impact payload.',
+    '- `audit/index.html` - generated output audit and readiness report.',
+    '- `audit/report.md` - Markdown audit handoff.',
+    '- `go-no-go.md` - short adoption decision.',
+    '',
+    '## Impact Summary',
+    '',
+    `- Old schema: ${input.impact.oldSchema}`,
+    `- New schema: ${input.impact.newSchema}`,
+    ...(input.impact.base ? [`- Base ref: ${input.impact.base}`] : []),
+    `- Breaking changes: ${input.impact.summary.breaking}`,
+    `- Warnings: ${input.impact.summary.warnings}`,
+    `- Non-breaking changes: ${input.impact.summary.nonBreaking}`,
+    `- Source usage matches: ${input.impact.sourceUsages?.length ?? 0}`,
+    '',
+    '## Affected Surface',
+    '',
+    `- Resources: ${formatInlineList(input.impact.affectedResources)}`,
+    `- Generated files: ${formatInlineList(input.impact.affectedFiles)}`,
+    `- Operation IDs: ${formatInlineList(input.impact.impactedSurface.operationIds)}`,
+    `- Client methods: ${formatInlineList(input.impact.impactedSurface.clientMethods)}`,
+    `- Query hooks: ${formatInlineList(input.impact.impactedSurface.queryHooks)}`,
+    '',
+    '## Reviewer Checklist',
+    '',
+    '- Confirm `impact-pr.md` gives a clear merge decision.',
+    '- Confirm `impact.md` names the breaking changes and affected generated files.',
+    '- Confirm `audit/index.html` matches the frontend resource model.',
+    '- Confirm `audit/typecheck.md` passed or every failure is triaged.',
+    '- Confirm `go-no-go.md` matches the team decision before purchase or rollout.',
+    '',
+    '## Next Review Step',
+    '',
+    input.status === 'go'
+      ? 'Add the generated GitHub workflow, run the first PR with Forge comments enabled, then decide whether to commit generated output.'
+      : input.status === 'conditional-go'
+        ? 'Review warnings with the frontend owner before committing generated output or widening scope.'
+        : 'Do not roll out Forge on this schema until blockers are fixed or explicitly accepted by the frontend owner.',
+    '',
+  ].join('\n')
+}
+
+function formatInlineList(values: string[] | undefined): string {
+  return values && values.length > 0 ? values.map((value) => `\`${value}\``).join(', ') : 'none'
 }

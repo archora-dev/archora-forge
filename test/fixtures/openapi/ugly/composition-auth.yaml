@@ -1,0 +1,72 @@
+openapi: 3.0.3
+info:
+  title: Ugly Composition Auth API
+  version: 1.0.0
+components:
+  securitySchemes:
+    cookieSession:
+      type: apiKey
+      in: cookie
+      name: session
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    BaseEvent:
+      type: object
+      required: [id, kind]
+      properties:
+        id: { type: string }
+        kind: { type: string }
+    BillingEvent:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          required: [amount]
+          properties:
+            amount: { type: number }
+    EventEnvelope:
+      oneOf:
+        - $ref: '#/components/schemas/BillingEvent'
+        - type: object
+          required: [id, kind, message]
+          properties:
+            id: { type: string }
+            kind: { type: string }
+            message: { type: string }
+      discriminator:
+        propertyName: kind
+paths:
+  /events:
+    get:
+      tags: [Events]
+      operationId: listEvents
+      security:
+        - cookieSession: []
+      responses:
+        '200':
+          description: Events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventEnvelope'
+    post:
+      tags: [Events]
+      operationId: createEvent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillingEvent'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventEnvelope'

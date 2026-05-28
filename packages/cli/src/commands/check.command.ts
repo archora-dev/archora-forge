@@ -200,6 +200,7 @@ function createMarkdownReport(payload: {
   readiness?: {
     status: string
     decision: string
+    gate?: { result: 'pass' | 'warn' | 'fail'; recommendedCiMode: 'comment' | 'block'; reason: string }
     blockers: string[]
     warnings: string[]
     nextActions: string[]
@@ -215,6 +216,8 @@ function createMarkdownReport(payload: {
     ? `## Pilot Readiness
 
 Readiness: ${payload.readiness.status}
+
+${payload.readiness.gate ? `Gate: ${payload.readiness.gate.result}\n\nRecommended CI mode: ${payload.readiness.gate.recommendedCiMode}\n\nGate reason: ${payload.readiness.gate.reason}\n` : ''}
 
 Decision: ${payload.readiness.decision}
 
@@ -323,6 +326,7 @@ function createReadinessSummary(input: {
 }): {
   status: 'ready' | 'needs-attention' | 'blocked'
   decision: string
+  gate: { result: 'pass' | 'warn' | 'fail'; recommendedCiMode: 'comment' | 'block'; reason: string }
   blockers: string[]
   warnings: string[]
   nextActions: string[]
@@ -339,6 +343,24 @@ function createReadinessSummary(input: {
     ...(input.summary.healthScore < 90 ? [`Health score is ${input.summary.healthScore}, below the recommended pilot threshold of 90.`] : []),
   ]
   const status = blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'needs-attention' : 'ready'
+  const gate =
+    status === 'ready'
+      ? {
+          result: 'pass' as const,
+          recommendedCiMode: 'block' as const,
+          reason: 'Keep the blocking check enabled; no report findings require human acceptance.',
+        }
+      : status === 'needs-attention'
+        ? {
+            result: 'warn' as const,
+            recommendedCiMode: 'comment' as const,
+            reason: 'Use comment-only mode until warnings are triaged or accepted.',
+          }
+        : {
+            result: 'fail' as const,
+            recommendedCiMode: 'block' as const,
+            reason: 'Block merge or require explicit acceptance before pilot handoff.',
+          }
   const nextActions =
     status === 'ready'
       ? ['Use the report as the pilot readiness artifact and keep `archora-forge check` in CI.']
@@ -352,6 +374,7 @@ function createReadinessSummary(input: {
 
   return {
     status,
+    gate,
     decision:
       status === 'ready'
         ? 'Schema is ready for a pilot readiness handoff under the current check policy.'

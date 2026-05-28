@@ -38,6 +38,19 @@ Review:
 
 ## 3. Preview Generated Output
 
+If this branch changes the API contract, create the PR impact artifact before generation:
+
+```bash
+pnpm exec archora-forge impact ./openapi.yaml \
+  --base origin/main \
+  --repo . \
+  --report markdown \
+  --report-file forge-impact.md \
+  --pr-comment-file forge-impact-pr.md
+```
+
+Read `forge-impact-pr.md` first. It should tell the reviewer whether the API change blocks merge, which frontend resources are affected and which source files already use the impacted API surface.
+
 ```bash
 pnpm exec archora-forge diff ./openapi.yaml
 pnpm exec archora-forge generate ./openapi.yaml --dry-run --json --report-file forge-generate.json
@@ -56,7 +69,7 @@ pnpm exec archora-forge check ./openapi.yaml --json
 pnpm exec archora-forge audit ./openapi.yaml --out forge-audit
 ```
 
-The generated output should be committed and reviewed like application code. The `check` report includes a pilot readiness section with a status, decision, blockers, warnings and next actions. Treat it as an adoption-review artifact, not as a production-readiness certificate.
+The generated output should be committed and reviewed like application code. The `check` report includes a pilot readiness section with a status, `pass` / `warn` / `fail` gate, recommended CI mode, decision, blockers, warnings and next actions. Treat it as an adoption-review artifact, not as a production-readiness certificate.
 
 ## 5. Typecheck Generated Output
 
@@ -80,8 +93,9 @@ Forge is a good fit when:
 - diagnostics are understandable and actionable;
 - generated metadata maps into your forms/tables/design system;
 - `check` can be used as a CI gate and produces a clear pilot readiness decision;
+- `impact` produces a PR comment that frontend reviewers can act on;
 - generated TypeScript passes typecheck or failures are fully triaged;
-- regeneration does not overwrite custom code.
+- regeneration does not overwrite custom code;
 - preview limitations are acceptable for the purchase scope.
 
 Forge is not a good fit when:
@@ -89,7 +103,7 @@ Forge is not a good fit when:
 - you need generated pages/components;
 - your API has no stable OpenAPI contract;
 - discriminator-heavy polymorphism is central to the domain;
-- you need a hosted schema registry rather than local code generation.
+- you need a hosted schema registry rather than local code generation;
 - you need a broad production license before proving the workflow on one schema.
 
 ## Purchase Next Step

@@ -1,0 +1,239 @@
+{
+  "ok": false,
+  "schema": "apps/docs/public/forge-demo/openapi.yaml",
+  "schemas": [
+    {
+      "name": "default",
+      "schema": "apps/docs/public/forge-demo/openapi.yaml",
+      "configPath": null,
+      "healthScore": 81,
+      "resources": 1,
+      "generatedFiles": 15,
+      "protectedFiles": 0,
+      "driftCount": 15,
+      "diagnosticsCount": 0,
+      "coverage": {
+        "operations": {
+          "total": 1,
+          "generated": 1,
+          "diagnosticOnly": 0,
+          "byKind": {
+            "crud-resource": 1
+          },
+          "byRequestShape": {
+            "none": 1
+          },
+          "byResponseShape": {
+            "json": 1
+          }
+        },
+        "schemas": {
+          "total": 0,
+          "unsupportedConstructs": {}
+        },
+        "cases": {
+          "generated": 1,
+          "skipped": 0,
+          "fallback": 0,
+          "diagnosticOnly": 0
+        }
+      }
+    }
+  ],
+  "audit": {
+    "outDir": "apps/docs/public/forge-demo/report/audit",
+    "generatedPreview": "apps/docs/public/forge-demo/report/audit/generated-preview",
+    "artifacts": [
+      "index.html",
+      "report.md",
+      "report.json",
+      "typecheck.md",
+      "ci.yml",
+      "adoption-plan.md",
+      "generated-preview/"
+    ]
+  },
+  "healthScore": 81,
+  "resources": 1,
+  "generatedFiles": 15,
+  "protectedFiles": 0,
+  "failedChecks": [
+    "drift",
+    "health-score"
+  ],
+  "scorecard": {
+    "frontendReadiness": 51,
+    "typeSafety": 70,
+    "resourceCoverage": 100,
+    "driftSafety": 0,
+    "ciAdoption": 100
+  },
+  "generator": {
+    "status": "previewed",
+    "version": "1.3.0",
+    "files": {
+      "total": 15,
+      "missingMetadata": [],
+      "versionMismatches": [],
+      "schemaHashMismatches": [],
+      "configHashMismatches": []
+    }
+  },
+  "coverage": {
+    "operations": {
+      "total": 1,
+      "generated": 1,
+      "diagnosticOnly": 0,
+      "byKind": {
+        "crud-resource": 1
+      },
+      "byRequestShape": {
+        "none": 1
+      },
+      "byResponseShape": {
+        "json": 1
+      }
+    },
+    "schemas": {
+      "total": 0,
+      "unsupportedConstructs": {}
+    },
+    "cases": {
+      "generated": 1,
+      "skipped": 0,
+      "fallback": 0,
+      "diagnosticOnly": 0
+    }
+  },
+  "typecheck": {
+    "status": "skipped",
+    "command": "skipped by --skip-typecheck",
+    "workspace": "apps/docs/public/forge-demo/report/audit/generated-output-typecheck",
+    "errors": []
+  },
+  "resourceExplorer": [
+    {
+      "name": "members",
+      "entity": "Member",
+      "kind": "crud-resource",
+      "operations": [
+        {
+          "method": "GET",
+          "path": "/members",
+          "operationId": "listMembers",
+          "kind": "crud-resource"
+        }
+      ],
+      "generatedFiles": [
+        "src/features/members/api/index.ts",
+        "src/features/members/api/useMembersQuery.ts",
+        "src/features/members/model/index.ts",
+        "src/features/members/model/members.config.ts",
+        "src/features/members/model/members.i18n.ts",
+        "src/features/members/model/members.permissions.ts",
+        "src/shared/api/generated/members/index.ts",
+        "src/shared/api/generated/members/members.client.ts",
+        "src/shared/api/generated/members/members.query-keys.ts",
+        "src/shared/api/generated/members/members.types.ts"
+      ]
+    }
+  ],
+  "fixSuggestions": [],
+  "readiness": {
+    "status": "blocked",
+    "gate": {
+      "result": "fail",
+      "recommendedCiMode": "block",
+      "reason": "Do not widen rollout until blockers are fixed or explicitly accepted."
+    },
+    "decision": "Generated resource layer needs fixes or explicit risk acceptance before purchase.",
+    "blockers": [
+      "Health score 81 is below the audit threshold 90.",
+      "Generated output drift is present."
+    ],
+    "warnings": [
+      "Generated TypeScript typecheck was skipped."
+    ],
+    "nextActions": [
+      "Run `archora-forge generate` and review generated drift."
+    ],
+    "reviewerChecklist": [
+      "Open `index.html` and confirm detected resources match the frontend mental model.",
+      "Open `report.md` and review blockers, warnings, scorecard and fix suggestions.",
+      "Open `typecheck.md` and confirm generated TypeScript passed or every failure is triaged.",
+      "Compare generated files with the existing API layer before committing rollout scope."
+    ],
+    "summary": {
+      "healthScore": 81,
+      "resources": 1,
+      "generatedFiles": 15,
+      "protectedFiles": 0,
+      "diagnostics": 0,
+      "drift": 15,
+      "failedChecks": 2
+    }
+  },
+  "drift": [
+    {
+      "path": "src/shared/api/generated/components.types.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/shared/api/generated/members/members.client.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/shared/api/generated/members/members.types.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/shared/api/generated/members/members.query-keys.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/shared/api/generated/members/index.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/features/members/api/useMembersQuery.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/features/members/api/index.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/features/members/model/members.permissions.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/features/members/model/members.i18n.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/features/members/model/members.config.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/features/members/model/index.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/shared/mocks/members/members.fixtures.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/shared/mocks/members/members.handlers.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/shared/mocks/members/members.scenarios.ts",
+      "kind": "missing"
+    },
+    {
+      "path": "src/shared/mocks/members/index.ts",
+      "kind": "missing"
+    }
+  ],
+  "diagnostics": []
+}

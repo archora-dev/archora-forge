@@ -31,11 +31,22 @@ describe('pilot command', () => {
     await expect(stat(join(out, 'impact.md'))).resolves.toBeTruthy()
     await expect(stat(join(out, 'impact-pr.md'))).resolves.toBeTruthy()
     await expect(stat(join(out, 'go-no-go.md'))).resolves.toBeTruthy()
+    await expect(stat(join(out, 'pilot-report.md'))).resolves.toBeTruthy()
     await expect(stat(join(out, 'audit/index.html'))).resolves.toBeTruthy()
 
     const decision = await readFile(join(out, 'go-no-go.md'), 'utf8')
     expect(decision).toContain('Decision: no-go')
     expect(decision).toContain('Impact decision: blocked')
+
+    const report = await readFile(join(out, 'pilot-report.md'), 'utf8')
+    expect(report).toContain('# Archora Forge Pilot Report')
+    expect(report).toContain('## Artifact Links')
+    expect(report).toContain('impact-pr.md')
+    expect(report).toContain('audit/index.html')
+    expect(report).toContain('## Decision')
+    expect(report).toContain('## Reviewer Checklist')
+    expect(report).toContain('Confirm `impact-pr.md` gives a clear merge decision.')
+    expect(report).toContain('Confirm `audit/index.html` matches the frontend resource model.')
   })
 })
 
