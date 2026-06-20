@@ -1,6 +1,6 @@
 {
   "name": "@archora/forge-runtime",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Runtime helpers used by Archora Forge generated frontend modules.",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
