@@ -88,14 +88,6 @@ try {
         2,
       ),
     )
-    // pnpm 9 reads overrides from package.json#pnpm.overrides; pnpm 10+ reads them from
-    // pnpm-workspace.yaml. Write both so the local pack check works regardless of the
-    // installed pnpm version (CI pins 9.15.4). Overrides force the @archora/* transitive
-    // ranges to the freshly packed tarballs instead of the npm registry.
-    writeFileSync(
-      join(consumerDir, 'pnpm-workspace.yaml'),
-      `overrides:\n${tarballs.map((tarball) => `  '${tarball.name}': 'file:${tarball.path}'`).join('\n')}\n`,
-    )
     const install = spawnSync(
       'pnpm',
       ['install', '--store-dir', join(consumerDir, '.pnpm-store')],
