@@ -1,5 +1,6 @@
 import type { NormalizedOpenApi, OpenApiSchema } from '../openapi/openapi.types.js'
 import { analyzeAllOfSchema, unwrapAnnotationOnlyAllOfSchema } from '../openapi/composition.js'
+import { isObjectSchemaBranch, isSupportedUnion } from '../generation/typeGeneration.js'
 import { runPluginDiagnostics } from '../plugins/plugins.js'
 
 export type ForgeDiagnostic = {
@@ -164,7 +165,7 @@ function collectSchemaDiagnostics(
   }
   for (const key of ['oneOf', 'anyOf'] as const) {
     if (!schema[key]) continue
-    if (!schema.discriminator && isSimpleUnion(schema[key])) continue
+    if (isSupportedUnion(normalized, schema, schema[key])) continue
     const branches = schema[key]
       .map((_, index) => `${location}/${key}/${index}`)
       .join(', ')
@@ -181,7 +182,7 @@ function collectSchemaDiagnostics(
           : 'Prefer a concrete object schema for v1 generation, or validate generated fallback types carefully.',
       })
   }
-  if (schema.discriminator) {
+  if (schema.discriminator && !isSupportedDiscriminatedUnion(normalized, schema)) {
     diagnostics.push({
       severity: 'warning',
       code: 'unsupported-discriminator',
@@ -199,16 +200,9 @@ function collectSchemaDiagnostics(
   }
 }
 
-function isSimpleUnion(branches: OpenApiSchema[]): boolean {
-  return branches.length > 0 && branches.every(isSimpleUnionBranch)
-}
-
-function isSimpleUnionBranch(schema: OpenApiSchema): boolean {
-  if (schema.$ref || schema.discriminator || schema.allOf || schema.oneOf || schema.anyOf) return false
-  if (schema.type === 'object' && !schema.properties && schema.additionalProperties === undefined) return true
-  if (schema.properties || schema.additionalProperties !== undefined) return false
-  if (schema.type === 'object' || schema.type === 'array') return false
-  return Boolean(schema.type || schema.enum?.length || Object.hasOwn(schema, 'const'))
+function isSupportedDiscriminatedUnion(normalized: NormalizedOpenApi, schema: OpenApiSchema): boolean {
+  const branches = schema.oneOf ?? schema.anyOf
+  return Boolean(branches?.length) && branches!.every((branch) => isObjectSchemaBranch(normalized, branch))
 }
 
 function isRuntimeSupportedSecurityScheme(value: unknown): boolean {

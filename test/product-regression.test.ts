@@ -2276,14 +2276,14 @@ describe('Product regression coverage', () => {
       binary: 1,
       empty: 1,
     })
-    expect(payload.coverage.schemas.unsupportedConstructs).toMatchObject({
-      oneOf: 1,
-    })
+    // A scalar `oneOf: [string, integer]` is a real TypeScript union, so it is no
+    // longer counted as an unsupported construct.
+    expect(payload.coverage.schemas.unsupportedConstructs).toEqual({})
     expect(payload.coverage.cases).toMatchObject({
       generated: 3,
       skipped: 1,
       fallback: 1,
-      diagnosticOnly: 2,
+      diagnosticOnly: 1,
     })
   })
 

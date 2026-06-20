@@ -25,6 +25,7 @@
     "forge:diff": "node packages/cli/dist/index.js diff test/fixtures/openapi/basic-crud.yaml",
     "forge:generate": "node packages/cli/dist/index.js generate test/fixtures/openapi/basic-crud.yaml",
     "forge:check": "node packages/cli/dist/index.js check test/fixtures/openapi/basic-crud.yaml",
+    "impact:demo": "node scripts/impact-demo.mjs",
     "test": "vitest run",
     "test:e2e": "./scripts/smoke-external-consumer.sh",
     "test:watch": "vitest --watch",

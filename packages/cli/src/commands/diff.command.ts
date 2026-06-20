@@ -6,6 +6,7 @@ import {
   parseOpenApi,
   summarizeFilePlan,
 } from '@archora/forge-core'
+import { resolveQueryComposables } from '@archora/forge-adapters'
 
 import { loadCliConfigSet, type CliConfigResult } from '../config.js'
 import type { SchemaRequestCliOptions } from '../schema-request.js'
@@ -69,6 +70,7 @@ async function createDiffEntry(loaded: CliConfigResult) {
     normalized,
     resources,
     cwd: loaded.cwd,
+    composables: resolveQueryComposables(loaded.config.target.query),
   })
   const files = summarizeFilePlan(plan.files)
 

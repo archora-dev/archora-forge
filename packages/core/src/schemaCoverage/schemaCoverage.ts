@@ -1,5 +1,6 @@
 import type { ForgeDiagnostic } from '../diagnostics/diagnostics.js'
 import type { NormalizedOpenApi, NormalizedOperation, OpenApiSchema } from '../openapi/openapi.types.js'
+import { isSupportedUnion } from '../generation/typeGeneration.js'
 
 export type SchemaCoverageMatrix = {
   operations: {
@@ -24,7 +25,7 @@ export type SchemaCoverageMatrix = {
 
 export function createSchemaCoverageMatrix(normalized: NormalizedOpenApi, diagnostics: ForgeDiagnostic[]): SchemaCoverageMatrix {
   const operations = normalized.operations
-  const unsupportedConstructs = countUnsupportedSchemaConstructs(normalized.schemas.map((schema) => schema.schema))
+  const unsupportedConstructs = countUnsupportedSchemaConstructs(normalized)
   const operationDiagnosticOnly = operations.filter((operation) => operation.operationKind === 'unsupported-operation').length
   const schemaDiagnosticOnly = Object.values(unsupportedConstructs).reduce((total, count) => total + count, 0)
   const generated = operations.filter((operation) => operation.operationKind !== 'unsupported-operation').length
@@ -102,27 +103,32 @@ function hasFallbackShape(operation: NormalizedOperation): boolean {
   return requestFallback || responseFallback
 }
 
-function countUnsupportedSchemaConstructs(schemas: OpenApiSchema[]): Record<string, number> {
+// Counts only schema constructs that are NOT fully modeled. Mergeable/annotation-only
+// allOf is already flattened during normalization, and unions that generate a real
+// TypeScript union (see isSupportedUnion) are not counted, so the matrix reflects
+// actual generation rather than every occurrence of a composition keyword.
+function countUnsupportedSchemaConstructs(normalized: NormalizedOpenApi): Record<string, number> {
   const counts: Record<string, number> = {}
-  for (const schema of schemas) {
-    visitSchema(schema, counts)
+  for (const { schema } of normalized.schemas) {
+    visitSchema(normalized, schema, counts)
   }
   return counts
 }
 
-function visitSchema(schema: OpenApiSchema, counts: Record<string, number>): void {
+function visitSchema(normalized: NormalizedOpenApi, schema: OpenApiSchema, counts: Record<string, number>): void {
   if (schema.allOf) counts.allOf = (counts.allOf ?? 0) + 1
-  if (schema.oneOf) counts.oneOf = (counts.oneOf ?? 0) + 1
-  if (schema.anyOf) counts.anyOf = (counts.anyOf ?? 0) + 1
-  if (schema.discriminator) counts.discriminator = (counts.discriminator ?? 0) + 1
+  if (schema.oneOf && !isSupportedUnion(normalized, schema, schema.oneOf)) counts.oneOf = (counts.oneOf ?? 0) + 1
+  if (schema.anyOf && !isSupportedUnion(normalized, schema, schema.anyOf)) counts.anyOf = (counts.anyOf ?? 0) + 1
+  const union = schema.oneOf ?? schema.anyOf
+  if (schema.discriminator && !(union && isSupportedUnion(normalized, schema, union))) counts.discriminator = (counts.discriminator ?? 0) + 1
   for (const property of Object.values(schema.properties ?? {})) {
-    visitSchema(property, counts)
+    visitSchema(normalized, property, counts)
   }
   if (schema.items) {
-    visitSchema(schema.items, counts)
+    visitSchema(normalized, schema.items, counts)
   }
   for (const branch of [...(schema.allOf ?? []), ...(schema.oneOf ?? []), ...(schema.anyOf ?? [])]) {
-    visitSchema(branch, counts)
+    visitSchema(normalized, branch, counts)
   }
 }
 

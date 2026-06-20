@@ -128,11 +128,12 @@ export function formatSourceUsageLines(usages: SourceUsage[]): string[] {
 export async function scanSourceUsages(repo: string, report: ContractDiffReport): Promise<SourceUsage[]> {
   const tokens = createUsageTokens(report)
   if (tokens.length === 0) return []
+  const patterns = tokens.map((token) => ({ token, pattern: tokenPattern(token) }))
   const files = await collectSourceFiles(repo)
   const usages: SourceUsage[] = []
   for (const file of files) {
     const content = await readFile(file, 'utf8')
-    const matches = tokens.filter((token) => content.includes(token))
+    const matches = patterns.filter(({ pattern }) => pattern.test(content)).map(({ token }) => token)
     if (matches.length > 0) {
       usages.push({
         path: normalizePath(relative(repo, file)),
@@ -145,12 +146,23 @@ export async function scanSourceUsages(repo: string, report: ContractDiffReport)
 }
 
 function collectMatchedLines(content: string, matches: string[]): number[] {
+  const patterns = matches.map((match) => tokenPattern(match))
   const lines = content.split(/\r?\n/)
   const matchedLines = new Set<number>()
   lines.forEach((line, index) => {
-    if (matches.some((match) => line.includes(match))) matchedLines.add(index + 1)
+    if (patterns.some((pattern) => pattern.test(line))) matchedLines.add(index + 1)
   })
   return [...matchedLines].sort((left, right) => left - right).slice(0, 20)
+}
+
+// Matches a generated identifier as a whole word so a token like `listPets` does not
+// falsely match `listPetsByOwner` or a substring inside an unrelated identifier.
+function tokenPattern(token: string): RegExp {
+  return new RegExp(`(?<![\\w$])${escapeRegExp(token)}(?![\\w$])`)
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 function createUsageTokens(report: ContractDiffReport): string[] {

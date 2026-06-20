@@ -92,7 +92,9 @@ export function schemaToTypeScript(
     return schema.type.includes('null') ? `${base} | null` : base
   }
   if (schema.oneOf?.length || schema.anyOf?.length) {
-    return (schema.oneOf ?? schema.anyOf ?? []).map((branch) => schemaToTypeScript(normalized, branch, options)).join(' | ')
+    const branches = schema.oneOf ?? schema.anyOf ?? []
+    const discriminator = getDiscriminatorInfo(schema)
+    return branches.map((branch) => renderUnionBranch(normalized, branch, options, discriminator)).join(' | ')
   }
   if (hasConst(schema)) return enumValueToTypeScript(schema.const)
   if (schema.enum) return schema.enum.map(enumValueToTypeScript).join(' | ')
@@ -125,6 +127,82 @@ export function schemaToTypeScript(
   }
 
   return 'unknown'
+}
+
+type DiscriminatorInfo = { propertyName: string; mapping: Record<string, string> }
+
+function getDiscriminatorInfo(schema: OpenApiSchema): DiscriminatorInfo | null {
+  const raw = schema.discriminator
+  if (!raw || typeof raw !== 'object') return null
+  const propertyName = (raw as { propertyName?: unknown }).propertyName
+  if (typeof propertyName !== 'string' || propertyName.length === 0) return null
+  const mapping: Record<string, string> = {}
+  const rawMapping = (raw as { mapping?: unknown }).mapping
+  if (rawMapping && typeof rawMapping === 'object') {
+    for (const [key, value] of Object.entries(rawMapping as Record<string, unknown>)) {
+      if (typeof value === 'string') mapping[key] = value
+    }
+  }
+  return { propertyName, mapping }
+}
+
+/**
+ * Renders a single union branch, pinning the discriminator property to its literal
+ * value for `$ref` object branches so the union narrows on `propertyName` in
+ * TypeScript. Branches whose discriminant cannot be determined render unchanged.
+ */
+function renderUnionBranch(
+  normalized: NormalizedOpenApi,
+  branch: OpenApiSchema,
+  options: { mode: 'request' | 'response'; enumName?: string; indent?: number },
+  discriminator: DiscriminatorInfo | null,
+): string {
+  const type = schemaToTypeScript(normalized, branch, options)
+  if (!discriminator || type === 'unknown' || !isObjectSchemaBranch(normalized, branch)) return type
+  const literal = discriminatorLiteral(discriminator, branch)
+  if (literal === null) return type
+  return `(${type} & { ${quoteObjectKeyIfNeeded(discriminator.propertyName)}: ${JSON.stringify(literal)} })`
+}
+
+function discriminatorLiteral(
+  discriminator: DiscriminatorInfo,
+  branch: OpenApiSchema,
+): string | null {
+  if (!branch.$ref) return null
+  const refName = branch.$ref.split('/').at(-1) ?? ''
+  for (const [key, target] of Object.entries(discriminator.mapping)) {
+    if (target === branch.$ref || target.split('/').at(-1) === refName) return key
+  }
+  return refName.length > 0 ? refName : null
+}
+
+export function isObjectSchemaBranch(
+  normalized: NormalizedOpenApi,
+  branch: OpenApiSchema,
+): boolean {
+  const resolved = branch.$ref ? resolveSchema(normalized, branch) : branch
+  if (!resolved) return false
+  return resolved.type === 'object' || Boolean(resolved.properties) || Boolean(resolved.allOf)
+}
+
+/**
+ * A `oneOf`/`anyOf` is modeled as a real TypeScript union when every branch renders
+ * to a concrete type. A discriminator additionally requires object branches so the
+ * narrowing is meaningful (a discriminator over scalar branches stays diagnostic-only).
+ */
+export function isSupportedUnion(
+  normalized: NormalizedOpenApi,
+  schema: OpenApiSchema,
+  branches: OpenApiSchema[],
+): boolean {
+  if (branches.length === 0) return false
+  const renderable = branches.every(
+    (branch) => schemaToTypeScript(normalized, branch, { mode: 'response' }) !== 'unknown',
+  )
+  if (!renderable) return false
+  if (getDiscriminatorInfo(schema))
+    return branches.every((branch) => isObjectSchemaBranch(normalized, branch))
+  return true
 }
 
 export function getPathParams(operation: NormalizedOperation | undefined): OpenApiParameter[] {

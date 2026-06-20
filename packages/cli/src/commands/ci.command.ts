@@ -2,6 +2,7 @@ import { access } from 'node:fs/promises'
 
 import type { CAC } from 'cac'
 
+import { requireCommercialLicense } from '../license.js'
 import { writeReportFile } from '../report-file.js'
 import { logger } from '../ui/logger.js'
 
@@ -15,7 +16,8 @@ type CiOptions = {
 }
 
 export function registerCiCommand(cli: CAC): void {
-  cli.command('ci <action> <provider>', 'Create CI workflow templates for Forge impact review')
+  cli
+    .command('ci <action> <provider>', 'Create CI workflow templates for Forge impact review')
     .option('--force', 'Overwrite an existing workflow file')
     .option('--output <path>', 'Write workflow to a custom path')
     .option('--mode <mode>', 'Workflow mode: impact or pilot')
@@ -23,8 +25,10 @@ export function registerCiCommand(cli: CAC): void {
     .option('--schema <path>', 'OpenAPI schema path inside the repository')
     .option('--base <ref>', 'Git base ref for previous schema')
     .action(async (action: string, provider: string, options: CiOptions) => {
+      await requireCommercialLicense('ci')
       if (action !== 'init') throw new Error(`Unknown CI action "${action}". Use init.`)
-      if (provider !== 'github') throw new Error(`Unsupported CI provider "${provider}". Use github.`)
+      if (provider !== 'github')
+        throw new Error(`Unsupported CI provider "${provider}". Use github.`)
       const mode = normalizeMode(options.mode)
       const gate = normalizeGate(options.gate)
 
@@ -35,7 +39,15 @@ export function registerCiCommand(cli: CAC): void {
         return
       }
 
-      await writeReportFile(path, createGithubImpactWorkflow({ mode, gate, schema: options.schema ?? 'openapi.yaml', base: options.base ?? 'origin/main' }))
+      await writeReportFile(
+        path,
+        createGithubImpactWorkflow({
+          mode,
+          gate,
+          schema: options.schema ?? 'openapi.yaml',
+          base: options.base ?? 'origin/main',
+        }),
+      )
       logger.success(`Created ${path}`)
       logger.line('Next: review OPENAPI_SCHEMA and OPENAPI_BASE_REF for your repository.')
     })
@@ -59,7 +71,12 @@ function normalizeGate(value: string | undefined): 'block' | 'comment' {
   throw new Error('Invalid CI gate mode. Use block or comment.')
 }
 
-function createGithubImpactWorkflow(options: { mode: 'impact' | 'pilot'; gate: 'block' | 'comment'; schema: string; base: string }): string {
+function createGithubImpactWorkflow(options: {
+  mode: 'impact' | 'pilot'
+  gate: 'block' | 'comment'
+  schema: string
+  base: string
+}): string {
   const runStep =
     options.mode === 'pilot'
       ? `          pnpm exec archora-forge pilot "$OPENAPI_SCHEMA" --base "$OPENAPI_BASE_REF" \\
