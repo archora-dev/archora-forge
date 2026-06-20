@@ -1,0 +1,59 @@
+name: Release
+
+# Publishes the @archora/forge-* packages to npm when a GitHub Release is published.
+# Bump versions, push, then create a Release (tag) — this workflow builds the CLI with
+# the embedded license key and publishes the public packages.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   NPM_TOKEN                              npm automation token with publish access to @archora
+#   ARCHORA_FORGE_RELEASE_PUBLIC_KEY_JWK   license verification public key (so the published CLI enforces Pro)
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Require the license public key
+        env:
+          ARCHORA_FORGE_RELEASE_PUBLIC_KEY_JWK: ${{ secrets.ARCHORA_FORGE_RELEASE_PUBLIC_KEY_JWK }}
+        run: |
+          if [ -z "$ARCHORA_FORGE_RELEASE_PUBLIC_KEY_JWK" ]; then
+            echo "ARCHORA_FORGE_RELEASE_PUBLIC_KEY_JWK is not set — refusing to publish an unenforced build."
+            exit 1
+          fi
+
+      - run: pnpm test
+
+      - name: Build with the embedded license key
+        env:
+          ARCHORA_FORGE_RELEASE_PUBLIC_KEY_JWK: ${{ secrets.ARCHORA_FORGE_RELEASE_PUBLIC_KEY_JWK }}
+        run: pnpm build
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm --filter "./packages/*" publish --access public --no-git-checks

@@ -16,13 +16,17 @@ const basicCrudSchema = join(process.cwd(), 'test/fixtures/openapi/basic-crud.ya
 describe('v1 public API contract', () => {
   test('keeps package runtime exports stable', () => {
     expect(Object.keys(adapters).sort()).toEqual([
+      'createQueryComposables',
       'mapMetadataField',
       'mapMetadataTableCell',
       'metadataFieldAdapter',
       'metadataTableAdapter',
+      'resolveQueryComposables',
+      'tanstackQueryComposables',
       'toFilterFields',
       'toFormFields',
       'toTableColumns',
+      'vueQueryComposables',
     ])
     expect(Object.keys(config).sort()).toEqual(['createForgeConfigPreset', 'defineForgeConfig', 'loadForgeConfig', 'resolveForgeConfig'])
     expect(Object.keys(core).sort()).toEqual([
@@ -52,12 +56,16 @@ describe('v1 public API contract', () => {
       'getOperationParams',
       'getPathParams',
       'getQueryParams',
+      'isObjectSchemaBranch',
       'isSafeIdentifier',
+      'isSupportedUnion',
       'lintOpenApi',
       'loadTemplateOverride',
       'mergeSchemaCoverageMatrices',
+      'neutralComposables',
       'normalizeOpenApi',
       'normalizePlugins',
+      'operationComposableName',
       'parseOpenApi',
       'pluralizeTypeName',
       'pruneGeneratedFiles',

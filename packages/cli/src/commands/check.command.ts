@@ -12,6 +12,7 @@ import {
   summarizeGeneratorMetadata,
   summarizeFilePlan,
 } from '@archora/forge-core'
+import { resolveQueryComposables } from '@archora/forge-adapters'
 
 import { loadCliConfigSet } from '../config.js'
 import { createHtmlReport } from '../html-report.js'
@@ -161,7 +162,7 @@ async function runCheck(
   const document = await parseOpenApi(loaded.schema, loaded.config.schemaRequest)
   const normalized = normalizeOpenApi(document)
   const resources = detectResources(normalized.operations).filter((resource) => loaded.config.resources[resource.name]?.enabled !== false)
-  const plan = await createGenerationPlan({ config: loaded.config, normalized, resources, cwd: loaded.cwd })
+  const plan = await createGenerationPlan({ config: loaded.config, normalized, resources, cwd: loaded.cwd, composables: resolveQueryComposables(loaded.config.target.query) })
   const summary = summarizeFilePlan(plan.files)
   const drift = await calculateDrift(plan.files, { cwd: loaded.cwd })
   const generator = await summarizeGeneratorMetadata(plan.files, { cwd: loaded.cwd })

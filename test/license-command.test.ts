@@ -35,13 +35,13 @@ describe('CLI license activation', () => {
     expect(status.output).toContain('Pilot Customer')
   })
 
-  test('requires activation for commercial commands when license enforcement is configured', async () => {
+  test('requires activation for Pro commands when license enforcement is configured', async () => {
     const cwd = await mkdtemp(join(tmpdir(), 'archora-forge-license-gate-'))
     const { publicKey } = await makeKeyPair()
 
     const result = await runCliInDirectory(
       cwd,
-      ['generate', join(process.cwd(), 'test/fixtures/openapi/basic-crud.yaml')],
+      ['check', join(process.cwd(), 'test/fixtures/openapi/basic-crud.yaml')],
       {
         ARCHORA_FORGE_LICENSE_PUBLIC_KEY_JWK: JSON.stringify(publicKey),
         ARCHORA_FORGE_LICENSE_FILE: join(cwd, 'missing-license.json'),
@@ -53,11 +53,38 @@ describe('CLI license activation', () => {
     expect(result.error).toContain('archora-forge license activate')
   })
 
+  test('runs the free generator without a license even under enforcement', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'archora-forge-free-generate-'))
+    const { publicKey } = await makeKeyPair()
+
+    const result = await runCliInDirectory(
+      cwd,
+      [
+        'generate',
+        join(process.cwd(), 'test/fixtures/openapi/basic-crud.yaml'),
+        '--dry-run',
+        '--json',
+      ],
+      {
+        ARCHORA_FORGE_LICENSE_PUBLIC_KEY_JWK: JSON.stringify(publicKey),
+        ARCHORA_FORGE_LICENSE_FILE: join(cwd, 'missing-license.json'),
+      },
+    )
+
+    expect(result.error).not.toContain('License key required')
+    expect(result.exitCode).not.toBe(2)
+    expect(result.output).toContain('"ok": true')
+  })
+
   test('creates a safe license request markdown file', async () => {
     const cwd = await mkdtemp(join(tmpdir(), 'archora-forge-license-request-'))
     const out = join(cwd, 'license-request.md')
 
-    const result = await runCliInDirectory(cwd, ['license', 'request', '--plan', 'pilot', '--out', out], {})
+    const result = await runCliInDirectory(
+      cwd,
+      ['license', 'request', '--plan', 'pilot', '--out', out],
+      {},
+    )
 
     expect(result.exitCode).toBeUndefined()
     expect(result.output).toContain('License request written')

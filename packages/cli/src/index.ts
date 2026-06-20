@@ -1,9 +1,5 @@
 import { cac } from 'cac'
 
-import { registerAuditCommand } from './commands/audit.command.js'
-import { registerCheckCommand } from './commands/check.command.js'
-import { registerCiCommand } from './commands/ci.command.js'
-import { registerContractDiffCommand } from './commands/contract-diff.command.js'
 import { registerDemoCommand } from './commands/demo.command.js'
 import { registerDiffCommand } from './commands/diff.command.js'
 import { registerDoctorCommand } from './commands/doctor.command.js'
@@ -11,10 +7,10 @@ import { registerExplainCommand } from './commands/explain.command.js'
 import { registerGenerateCommand } from './commands/generate.command.js'
 import { registerInitCommand } from './commands/init.command.js'
 import { registerLicenseCommand } from './commands/license.command.js'
-import { registerPilotCommand } from './commands/pilot.command.js'
 import { registerInspectCommand } from './commands/inspect.command.js'
 import { registerLintCommand } from './commands/lint.command.js'
 import { registerValidateCommand } from './commands/validate.command.js'
+import { registerProCommands } from './pro.js'
 import { cliVersion } from './package-metadata.js'
 
 export { createForgeConfigPreset, defineForgeConfig } from '@archora/forge-config'
@@ -25,21 +21,20 @@ export function createCli() {
   cli.version(cliVersion)
   cli.help()
 
+  // Free tier — the generator. No license required.
   registerInitCommand(cli)
   registerLicenseCommand(cli)
-  registerPilotCommand(cli)
-  registerCiCommand(cli)
-  registerDemoCommand(cli)
-  registerExplainCommand(cli)
-  registerAuditCommand(cli)
   registerGenerateCommand(cli)
   registerInspectCommand(cli)
   registerValidateCommand(cli)
   registerDiffCommand(cli)
   registerLintCommand(cli)
-  registerCheckCommand(cli)
-  registerContractDiffCommand(cli)
   registerDoctorCommand(cli)
+  registerDemoCommand(cli)
+  registerExplainCommand(cli)
+
+  // Forge Intelligence (Pro) tier — license-gated team/CI layer.
+  registerProCommands(cli)
 
   return cli
 }
@@ -60,7 +55,8 @@ export async function runCli(argv = process.argv): Promise<void> {
   }
 }
 
-const isDirectRun = process.argv[1]?.endsWith('/archora-forge') || process.argv[1]?.endsWith('/index.js')
+const isDirectRun =
+  process.argv[1]?.endsWith('/archora-forge') || process.argv[1]?.endsWith('/index.js')
 
 if (isDirectRun) {
   void runCli()

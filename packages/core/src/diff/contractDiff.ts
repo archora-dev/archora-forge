@@ -1,5 +1,9 @@
 import type { NormalizedOpenApi, NormalizedOperation, OpenApiSchema } from '../openapi/openapi.types.js'
 import { resolveSchema } from '../generation/typeGeneration.js'
+import { pluralizeTypeName } from '../generation/identifiers.js'
+import { operationComposableName } from '../generation/artifacts/composableGenerators.js'
+import { detectResources } from '../resources/detectResources.js'
+import type { DetectedResource } from '../resources/resources.types.js'
 
 export type ContractDiffSeverity = 'breaking' | 'non-breaking' | 'warning'
 
@@ -165,16 +169,52 @@ function collectImpactedSurface(
 ): ContractDiffReport['impactedSurface'] {
   const operationIds = new Set<string>()
   for (const change of changes) {
-    const operation = oldOperations.get(operationKeyFromLocation(change.location)) ?? newOperations.get(operationKeyFromLocation(change.location))
+    const operation =
+      oldOperations.get(operationKeyFromLocation(change.location)) ??
+      newOperations.get(operationKeyFromLocation(change.location))
     const operationId = operation?.sourceOperationId ?? operation?.id
     if (operationId) operationIds.add(operationId)
   }
   const sortedOperationIds = [...operationIds].sort()
+  const resources = detectResources([...new Map([...oldOperations, ...newOperations]).values()])
+  const queryHooks = new Set<string>()
+  for (const id of sortedOperationIds) {
+    queryHooks.add(
+      `use${pascalCase(id)}${id.toLowerCase().startsWith('get') || id.toLowerCase().startsWith('list') || id.toLowerCase().startsWith('search') ? 'Query' : 'Mutation'}`,
+    )
+    const generatedHook = generatedHookName(resources, id)
+    if (generatedHook) queryHooks.add(generatedHook)
+  }
   return {
     operationIds: sortedOperationIds,
     clientMethods: sortedOperationIds.map((id) => `${id}()`),
-    queryHooks: sortedOperationIds.map((id) => `use${pascalCase(id)}${id.toLowerCase().startsWith('get') || id.toLowerCase().startsWith('list') || id.toLowerCase().startsWith('search') ? 'Query' : 'Mutation'}`),
+    queryHooks: [...queryHooks].sort(),
   }
+}
+
+// Maps an affected operation to the actual generated hook name a consumer imports
+// (entity-based, e.g. usePetsQuery / usePetQuery), in addition to the operationId-based
+// name. Without this the scan misses hand-written code that uses the generated hooks.
+function generatedHookName(resources: DetectedResource[], operationId: string): string | null {
+  const isOp = (operation: NormalizedOperation | undefined): boolean =>
+    Boolean(operation) &&
+    (operation!.id === operationId || operation!.sourceOperationId === operationId)
+  for (const resource of resources) {
+    const { entity, operations } = resource
+    if (isOp(operations.list)) return `use${pluralizeTypeName(entity)}Query`
+    if (isOp(operations.detail)) return `use${entity}Query`
+    if (isOp(operations.create)) return `useCreate${entity}Mutation`
+    if (isOp(operations.update)) return `useUpdate${entity}Mutation`
+    if (isOp(operations.delete)) return `useDelete${entity}Mutation`
+    const generated = resource.operationsList.find(
+      (operation) =>
+        isOp(operation) &&
+        operation.operationKind !== 'unsupported-operation' &&
+        !Object.values(operations).includes(operation),
+    )
+    if (generated) return operationComposableName(generated)
+  }
+  return null
 }
 
 function operationKeyFromLocation(location: string): string {

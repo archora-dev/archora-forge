@@ -42,6 +42,7 @@
     "yaml": "^2.8.4"
   },
   "devDependencies": {
+    "@archora/forge-adapters": "workspace:*",
     "@archora/forge-config": "workspace:*",
     "@archora/forge-core": "workspace:*",
     "@types/node": "^22.15.17",

@@ -33,7 +33,7 @@ export type ForgeConfig = ForgeConfigInput & {
   target?: {
     framework?: 'neutral'
     language?: 'typescript'
-    query?: 'promise'
+    query?: 'promise' | 'tanstack-query' | 'vue-query'
     ui?: 'metadata' | 'custom'
     architecture?: 'feature-sliced' | 'simple' | 'custom'
   }
@@ -166,7 +166,7 @@ export type ResolvedForgeConfig = {
   target: {
     framework: 'neutral'
     language: 'typescript'
-    query: 'promise'
+    query: 'promise' | 'tanstack-query' | 'vue-query'
     ui: 'metadata' | 'custom'
     architecture: 'feature-sliced' | 'simple' | 'custom'
   }

@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["archora-forge.config.ts", "generated/src/**/*.ts", "src/**/*.ts"]
+}

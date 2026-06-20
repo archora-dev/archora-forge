@@ -7,15 +7,8 @@ import type { ForgeResourceConfig } from '@archora/forge-config'
 import type { NormalizedOpenApi } from '../openapi/openapi.types.js'
 import { runPluginAfterGenerateHooks, runPluginArtifactHooks } from '../plugins/plugins.js'
 import type { DetectedResource } from '../resources/resources.types.js'
-import {
-  createCreateMutation,
-  createDeleteMutation,
-  createDetailComposable,
-  createListComposable,
-  createOperationComposable,
-  createUpdateMutation,
-  operationComposableName,
-} from './artifacts/composablesArtifact.js'
+import { operationComposableName } from './artifacts/composablesArtifact.js'
+import { neutralComposables, type ComposableGenerators } from './artifacts/composableGenerators.js'
 import { createClientArtifact } from './artifacts/clientArtifact.js'
 import { createFixturesArtifact, createHandlersArtifact, createScenariosArtifact } from './artifacts/mocksArtifact.js'
 import {
@@ -42,7 +35,7 @@ type ForgeGenerationConfig = {
   }
   target?: {
     framework?: 'neutral'
-    query?: 'promise'
+    query?: 'promise' | 'tanstack-query' | 'vue-query'
     ui?: 'metadata' | 'custom'
   }
   validation?: 'none' | 'zod' | 'valibot'
@@ -61,6 +54,8 @@ export type CreateGenerationPlanInput = {
   normalized: NormalizedOpenApi
   resources: DetectedResource[]
   cwd: string
+  /** Feature composable generators; defaults to the framework-neutral promise helpers. */
+  composables?: ComposableGenerators
 }
 
 export async function createGenerationPlan(input: CreateGenerationPlanInput): Promise<GenerationPlan> {
@@ -161,7 +156,7 @@ async function createResourceFiles(
     [join(paths.apiDir, `${resource.name}.query-keys.ts`), createQueryKeysArtifact(resource.name, resource)],
     ...(validationArtifact ? ([[join(paths.apiDir, `${resource.name}.validation.ts`), validationArtifact]] as Array<[string, string]>) : []),
     [join(paths.apiDir, 'index.ts'), createIndex(apiExports)],
-    ...createFeatureApiFiles(paths.featureApiDir, resource.name, resource),
+    ...createFeatureApiFiles(paths.featureApiDir, resource.name, resource, input.composables ?? neutralComposables),
     ...await createModelFiles(input, resource, paths.featureModelDir, uiModel, templateOverrides),
     ...createMockFiles(paths.mocksDir, resource),
   ]
@@ -169,37 +164,37 @@ async function createResourceFiles(
   return Promise.all(generatedFiles.map(([path, content]) => createFile(input.cwd, path, 'generated', content, true)))
 }
 
-function createFeatureApiFiles(featureApiDir: string, resourceName: string, resource: DetectedResource): Array<[string, string]> {
+function createFeatureApiFiles(featureApiDir: string, resourceName: string, resource: DetectedResource, composables: ComposableGenerators): Array<[string, string]> {
   const entity = resource.entity
   const collection = pluralizeTypeName(entity)
   const crudComposables: Array<[string, string]> = []
   const crudExports: string[] = []
 
   if (resource.operations.list?.id) {
-    crudComposables.push([join(featureApiDir, `use${collection}Query.ts`), createListComposable(resourceName, resource)])
+    crudComposables.push([join(featureApiDir, `use${collection}Query.ts`), composables.list(resourceName, resource)])
     crudExports.push(`use${collection}Query`)
   }
   if (resource.operations.detail?.id) {
-    crudComposables.push([join(featureApiDir, `use${entity}Query.ts`), createDetailComposable(resourceName, resource)])
+    crudComposables.push([join(featureApiDir, `use${entity}Query.ts`), composables.detail(resourceName, resource)])
     crudExports.push(`use${entity}Query`)
   }
   if (resource.operations.create?.id) {
-    crudComposables.push([join(featureApiDir, `useCreate${entity}Mutation.ts`), createCreateMutation(resourceName, resource)])
+    crudComposables.push([join(featureApiDir, `useCreate${entity}Mutation.ts`), composables.createMutation(resourceName, resource)])
     crudExports.push(`useCreate${entity}Mutation`)
   }
   if (resource.operations.update?.id) {
-    crudComposables.push([join(featureApiDir, `useUpdate${entity}Mutation.ts`), createUpdateMutation(resourceName, resource)])
+    crudComposables.push([join(featureApiDir, `useUpdate${entity}Mutation.ts`), composables.updateMutation(resourceName, resource)])
     crudExports.push(`useUpdate${entity}Mutation`)
   }
   if (resource.operations.delete?.id) {
-    crudComposables.push([join(featureApiDir, `useDelete${entity}Mutation.ts`), createDeleteMutation(resourceName, resource)])
+    crudComposables.push([join(featureApiDir, `useDelete${entity}Mutation.ts`), composables.deleteMutation(resourceName, resource)])
     crudExports.push(`useDelete${entity}Mutation`)
   }
 
   const generatedOperations = resource.operationsList.filter((operation) => isGeneratedOperation(resource, operation))
   const operationComposables = generatedOperations.map((operation) => {
     const composableName = operationComposableName(operation)
-    return [join(featureApiDir, `${composableName}.ts`), createOperationComposable(resourceName, operation)] as [string, string]
+    return [join(featureApiDir, `${composableName}.ts`), composables.operation(resourceName, operation)] as [string, string]
   })
   const operationExports = generatedOperations.map(operationComposableName)
   const exports = [...crudExports, ...operationExports]

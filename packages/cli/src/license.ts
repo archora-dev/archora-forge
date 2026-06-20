@@ -8,6 +8,17 @@ import { TextEncoder } from 'node:util'
 const LICENSE_PREFIX = 'ARCHORA-FORGE-'
 const CLOCK_SKEW_MS = 5 * 60 * 1000
 
+// Replaced at build time by tsup `define` (see packages/cli/tsup.config.ts). Holds the
+// public verification key in enforced release builds; undefined in source/dev runs.
+declare const __ARCHORA_FORGE_PUBLIC_KEY_JWK__: string | undefined
+
+// The verification public key, preferring the build-time embedded key (which cannot be
+// removed by a user) and falling back to the env var for development and self-hosting.
+function resolvePublicKeyJwk(): string {
+  const embedded = typeof __ARCHORA_FORGE_PUBLIC_KEY_JWK__ !== 'undefined' ? __ARCHORA_FORGE_PUBLIC_KEY_JWK__ : ''
+  return embedded || process.env.ARCHORA_FORGE_LICENSE_PUBLIC_KEY_JWK || ''
+}
+
 export type LicensePlan = 'trial' | 'pilot' | 'team' | 'organization'
 
 export type LicensePayload = {
@@ -31,7 +42,7 @@ type StoredLicense = {
 }
 
 export function isLicenseEnforcementConfigured(): boolean {
-  return Boolean(process.env.ARCHORA_FORGE_LICENSE_PUBLIC_KEY_JWK)
+  return resolvePublicKeyJwk().length > 0
 }
 
 export async function activateLicenseKey(licenseKey: string, options: { now?: Date } = {}): Promise<LicenseValidation> {
@@ -116,7 +127,7 @@ export async function validateLicenseKey(
 }
 
 function publicLicenseKey(): JsonWebKey | null {
-  const raw = process.env.ARCHORA_FORGE_LICENSE_PUBLIC_KEY_JWK
+  const raw = resolvePublicKeyJwk()
   if (!raw) return null
 
   try {

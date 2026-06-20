@@ -31,7 +31,11 @@
     "dev": "tsup src/index.ts --format esm --dts --watch",
     "typecheck": "tsc --noEmit"
   },
+  "peerDependencies": {
+    "@archora/forge-core": "workspace:^"
+  },
   "devDependencies": {
+    "@archora/forge-core": "workspace:^",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3"
   }

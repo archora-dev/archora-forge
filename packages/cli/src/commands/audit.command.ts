@@ -20,6 +20,7 @@ import {
   type GenerationPlan,
   type SchemaCoverageMatrix,
 } from '@archora/forge-core'
+import { resolveQueryComposables } from '@archora/forge-adapters'
 
 import { loadCliConfigSet, type CliConfigResult } from '../config.js'
 import { createHtmlReport } from '../html-report.js'
@@ -136,7 +137,7 @@ async function runAuditEntry(loaded: CliConfigResult): Promise<AuditEntry> {
   const document = await parseOpenApi(loaded.schema, loaded.config.schemaRequest)
   const normalized = normalizeOpenApi(document)
   const resources = detectResources(normalized.operations).filter((resource) => loaded.config.resources[resource.name]?.enabled !== false)
-  const plan = await createGenerationPlan({ config: loaded.config, normalized, resources, cwd: loaded.cwd })
+  const plan = await createGenerationPlan({ config: loaded.config, normalized, resources, cwd: loaded.cwd, composables: resolveQueryComposables(loaded.config.target.query) })
   const fileSummary = summarizeFilePlan(plan.files)
   const diagnostics = collectDiagnostics(normalized)
   const coverage = createSchemaCoverageMatrix(normalized, diagnostics)

@@ -64,12 +64,16 @@ describe('Ugly OpenAPI fixtures', () => {
     expect(totals.generatedFiles).toBeGreaterThan(50)
     expect(totals.diagnosticOnly).toBeGreaterThan(0)
     expect(totals.fallbackCases).toBeGreaterThan(0)
-    expect([...allDiagnostics].sort()).toEqual(expect.arrayContaining([
-      'unsupported-security-schemes',
-      'unsupported-operation-security',
-      'unsupported-header-parameter',
-      'unsupported-content-type',
-      'unsupported-discriminator',
-    ]))
+    expect([...allDiagnostics].sort()).toEqual(
+      expect.arrayContaining([
+        'unsupported-security-schemes',
+        'unsupported-operation-security',
+        'unsupported-header-parameter',
+        'unsupported-content-type',
+      ]),
+    )
+    // Object-branch discriminated unions (EventEnvelope) are generated as narrowing
+    // TypeScript unions now, so they no longer surface as unsupported.
+    expect(allDiagnostics.has('unsupported-discriminator')).toBe(false)
   })
 })
