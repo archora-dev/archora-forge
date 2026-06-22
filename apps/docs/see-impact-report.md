@@ -2,7 +2,7 @@
 
 Open the public impact demo:
 
-[View the generated impact report](/impact-demo/)
+<a href="/impact-demo/" target="_blank" rel="noreferrer">View the generated impact report</a>
 
 The demo compares two OpenAPI versions and shows the frontend blast radius before regeneration:
 

@@ -3,7 +3,6 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { promisify } from 'node:util'
 
-import type { CAC } from 'cac'
 import {
   calculateDrift,
   calculateSchemaHealth,
@@ -22,16 +21,14 @@ import {
 } from '@archora/forge-core'
 import { resolveQueryComposables } from '@archora/forge-adapters'
 
-import { loadCliConfigSet, type CliConfigResult } from '../config.js'
-import { createHtmlReport } from '../html-report.js'
-import { requireCommercialLicense } from '../license.js'
-import { writeReportFile } from '../report-file.js'
-import type { SchemaRequestCliOptions } from '../schema-request.js'
-import { logger } from '../ui/logger.js'
+import { loadCliConfigSet, type CliConfigResult } from './config.js'
+import { createHtmlReport } from './html-report.js'
+import { writeReportFile } from './report-file.js'
+import type { SchemaRequestCliOptions } from './schema-request.js'
 
 const execFileAsync = promisify(execFile)
 
-type AuditOptions = {
+export type AuditOptions = {
   config?: string
   out?: string
   json?: boolean
@@ -69,43 +66,6 @@ type ResourceExplorerEntry = {
   generatedFiles: string[]
 }
 
-export function registerAuditCommand(cli: CAC): void {
-  cli.command('audit [schema]', 'Create a local frontend API adoption package')
-    .option('--config <path>', 'Use a specific Archora Forge config file')
-    .option('--schema-header <header>', 'Add a remote schema request header as "name:value" or "name=value"')
-    .option('--out <path>', 'Output directory for the audit package')
-    .option('--json', 'Print the audit JSON payload')
-    .option('--skip-typecheck', 'Skip generated-output TypeScript typecheck')
-    .option('--min-health-score <score>', 'Use this health score as the audit acceptance threshold')
-    .action(async (schema: string | undefined, options: AuditOptions) => {
-      try {
-        await requireCommercialLicense('audit')
-        const result = await runAuditPackage(schema, options)
-
-        if (options.json) {
-          console.log(JSON.stringify(result.payload, null, 2))
-        } else {
-          logger.title()
-          logger.line(`Audit package: ${result.outDir}`)
-          logger.line(`Schemas: ${result.entries.length}`)
-          logger.line(`Resources: ${result.payload.resources}`)
-          logger.line(`Generated files: ${result.payload.generatedFiles}`)
-          logger.line(`Typecheck: ${result.payload.typecheck.status}`)
-          logger.line(`Decision: ${result.payload.readiness.decision}`)
-        }
-
-        process.exitCode = result.payload.ok ? 0 : 1
-      } catch (error) {
-        if (options.json) {
-          console.log(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : String(error) }, null, 2))
-        } else {
-          logger.error(error instanceof Error ? error.message : String(error))
-        }
-        process.exitCode = 2
-      }
-    })
-}
-
 export async function runAuditPackage(schema: string | undefined, options: AuditOptions) {
   const outDir = resolve(options.out ?? 'forge-audit')
   const minHealthScore = parseMinHealthScore(options.minHealthScore) ?? 90
@@ -116,7 +76,9 @@ export async function runAuditPackage(schema: string | undefined, options: Audit
 
   await mkdir(outDir, { recursive: true })
   await writeGeneratedPreview(outDir, entries)
-  const typecheck = options.skipTypecheck ? createSkippedTypecheck(outDir) : await runGeneratedOutputTypecheck(outDir, entries)
+  const typecheck = options.skipTypecheck
+    ? createSkippedTypecheck(outDir)
+    : await runGeneratedOutputTypecheck(outDir, entries)
   const payload = createAuditPayload(entries, { outDir, minHealthScore, typecheck })
   const html = createHtmlReport('Archora Forge Audit', payload)
   const markdown = createAuditMarkdown(payload)
@@ -136,8 +98,16 @@ export async function runAuditPackage(schema: string | undefined, options: Audit
 async function runAuditEntry(loaded: CliConfigResult): Promise<AuditEntry> {
   const document = await parseOpenApi(loaded.schema, loaded.config.schemaRequest)
   const normalized = normalizeOpenApi(document)
-  const resources = detectResources(normalized.operations).filter((resource) => loaded.config.resources[resource.name]?.enabled !== false)
-  const plan = await createGenerationPlan({ config: loaded.config, normalized, resources, cwd: loaded.cwd, composables: resolveQueryComposables(loaded.config.target.query) })
+  const resources = detectResources(normalized.operations).filter(
+    (resource) => loaded.config.resources[resource.name]?.enabled !== false,
+  )
+  const plan = await createGenerationPlan({
+    config: loaded.config,
+    normalized,
+    resources,
+    cwd: loaded.cwd,
+    composables: resolveQueryComposables(loaded.config.target.query),
+  })
   const fileSummary = summarizeFilePlan(plan.files)
   const diagnostics = collectDiagnostics(normalized)
   const coverage = createSchemaCoverageMatrix(normalized, diagnostics)
@@ -171,7 +141,13 @@ function createAuditPayload(
   const resources = entries.reduce((total, entry) => total + entry.resources, 0)
   const coverage = mergeSchemaCoverageMatrices(entries.map((entry) => entry.coverage))
   const generator = summarizeAuditGeneratorMetadata(entries)
-  const scorecard = createScorecard({ healthScore, diagnostics, drift, coverage, typecheck: options.typecheck })
+  const scorecard = createScorecard({
+    healthScore,
+    diagnostics,
+    drift,
+    coverage,
+    typecheck: options.typecheck,
+  })
   const failedChecks = [
     ...(drift.length > 0 ? ['drift'] : []),
     ...(healthScore < options.minHealthScore ? ['health-score'] : []),
@@ -198,7 +174,15 @@ function createAuditPayload(
     audit: {
       outDir: displayPath(options.outDir),
       generatedPreview: displayPath(join(options.outDir, 'generated-preview')),
-      artifacts: ['index.html', 'report.md', 'report.json', 'typecheck.md', 'ci.yml', 'adoption-plan.md', 'generated-preview/'],
+      artifacts: [
+        'index.html',
+        'report.md',
+        'report.json',
+        'typecheck.md',
+        'ci.yml',
+        'adoption-plan.md',
+        'generated-preview/',
+      ],
     },
     healthScore,
     resources,
@@ -226,7 +210,10 @@ function createAuditPayload(
   }
 }
 
-function createResourceExplorerEntry(resource: DetectedResource, plan: GenerationPlan): ResourceExplorerEntry {
+function createResourceExplorerEntry(
+  resource: DetectedResource,
+  plan: GenerationPlan,
+): ResourceExplorerEntry {
   return {
     name: resource.name,
     entity: resource.entity,
@@ -238,7 +225,11 @@ function createResourceExplorerEntry(resource: DetectedResource, plan: Generatio
       kind: operation.operationKind,
     })),
     generatedFiles: plan.files
-      .filter((file) => file.path.includes(`/features/${resource.name}/`) || file.path.includes(`/shared/api/generated/${resource.name}/`))
+      .filter(
+        (file) =>
+          file.path.includes(`/features/${resource.name}/`) ||
+          file.path.includes(`/shared/api/generated/${resource.name}/`),
+      )
       .map((file) => file.path)
       .sort(),
   }
@@ -258,7 +249,10 @@ async function writeGeneratedPreview(outDir: string, entries: AuditEntry[]): Pro
   )
 }
 
-async function runGeneratedOutputTypecheck(outDir: string, entries: AuditEntry[]): Promise<TypecheckResult> {
+async function runGeneratedOutputTypecheck(
+  outDir: string,
+  entries: AuditEntry[],
+): Promise<TypecheckResult> {
   const workspace = join(outDir, 'generated-output-typecheck')
   const tsconfigPath = join(workspace, 'tsconfig.json')
   const srcDir = join(workspace, 'src')
@@ -276,22 +270,33 @@ async function runGeneratedOutputTypecheck(outDir: string, entries: AuditEntry[]
   await writeFile(tsconfigPath, JSON.stringify(createTypecheckTsconfig(workspace), null, 2), 'utf8')
   const command = `pnpm exec tsc -p ${displayPath(tsconfigPath)}`
   try {
-    await execFileAsync('pnpm', ['exec', 'tsc', '-p', tsconfigPath], { cwd: process.cwd(), timeout: 120_000 })
+    await execFileAsync('pnpm', ['exec', 'tsc', '-p', tsconfigPath], {
+      cwd: process.cwd(),
+      timeout: 120_000,
+    })
     return { status: 'passed', command, workspace: displayPath(workspace), errors: [] }
   } catch (error) {
     const details = error as { stdout?: string; stderr?: string; message?: string; code?: unknown }
-    const output = [details.stdout, details.stderr, details.message].filter(Boolean).join('\n').trim()
+    const output = [details.stdout, details.stderr, details.message]
+      .filter(Boolean)
+      .join('\n')
+      .trim()
     return {
       status: 'failed',
       command,
       workspace: displayPath(workspace),
-      errors: output ? output.split('\n').slice(0, 80) : [`tsc failed with code ${String(details.code ?? 'unknown')}`],
+      errors: output
+        ? output.split('\n').slice(0, 80)
+        : [`tsc failed with code ${String(details.code ?? 'unknown')}`],
     }
   }
 }
 
 function createTypecheckTsconfig(workspace: string): Record<string, unknown> {
-  const runtimeSource = relative(workspace, resolve(process.cwd(), 'packages/runtime/src/index.ts')).replace(/\\/g, '/')
+  const runtimeSource = relative(
+    workspace,
+    resolve(process.cwd(), 'packages/runtime/src/index.ts'),
+  ).replace(/\\/g, '/')
   return {
     compilerOptions: {
       baseUrl: '.',
@@ -299,7 +304,10 @@ function createTypecheckTsconfig(workspace: string): Record<string, unknown> {
       moduleResolution: 'Bundler',
       noEmit: true,
       paths: {
-        '@archora/forge-runtime': [runtimeSource, './node_modules/@archora/forge-runtime/dist/index.d.ts'],
+        '@archora/forge-runtime': [
+          runtimeSource,
+          './node_modules/@archora/forge-runtime/dist/index.d.ts',
+        ],
       },
       skipLibCheck: true,
       strict: true,
@@ -325,18 +333,30 @@ function createScorecard(input: {
   coverage: SchemaCoverageMatrix
   typecheck: TypecheckResult
 }) {
-  const errorCount = input.diagnostics.filter((diagnostic) => diagnostic.severity === 'error').length
-  const warningCount = input.diagnostics.filter((diagnostic) => diagnostic.severity === 'warning').length
+  const errorCount = input.diagnostics.filter(
+    (diagnostic) => diagnostic.severity === 'error',
+  ).length
+  const warningCount = input.diagnostics.filter(
+    (diagnostic) => diagnostic.severity === 'warning',
+  ).length
   return {
-    frontendReadiness: clamp(input.healthScore - errorCount * 15 - warningCount * 2 - input.drift.length * 2),
-    typeSafety: input.typecheck.status === 'passed' ? 100 : input.typecheck.status === 'skipped' ? 70 : 30,
-    resourceCoverage: input.coverage.operations.total === 0 ? 100 : Math.round((input.coverage.operations.generated / input.coverage.operations.total) * 100),
+    frontendReadiness: clamp(
+      input.healthScore - errorCount * 15 - warningCount * 2 - input.drift.length * 2,
+    ),
+    typeSafety:
+      input.typecheck.status === 'passed' ? 100 : input.typecheck.status === 'skipped' ? 70 : 30,
+    resourceCoverage:
+      input.coverage.operations.total === 0
+        ? 100
+        : Math.round((input.coverage.operations.generated / input.coverage.operations.total) * 100),
     driftSafety: input.drift.length === 0 ? 100 : clamp(100 - input.drift.length * 10),
     ciAdoption: input.typecheck.status === 'failed' ? 60 : 100,
   }
 }
 
-function createFixSuggestions(diagnostics: ForgeDiagnostic[]): Array<{ code: string; count: number; suggestion: string }> {
+function createFixSuggestions(
+  diagnostics: ForgeDiagnostic[],
+): Array<{ code: string; count: number; suggestion: string }> {
   const groups = new Map<string, ForgeDiagnostic[]>()
   for (const diagnostic of diagnostics) {
     groups.set(diagnostic.code, [...(groups.get(diagnostic.code) ?? []), diagnostic])
@@ -351,9 +371,12 @@ function createFixSuggestions(diagnostics: ForgeDiagnostic[]): Array<{ code: str
 }
 
 function defaultSuggestion(code: string): string {
-  if (code.includes('response-schema')) return 'Add explicit 2xx JSON response schemas for generated response types.'
-  if (code.includes('request-schema')) return 'Add explicit application/json request body schemas for generated request types.'
-  if (code.startsWith('unsupported-')) return 'Keep the endpoint in custom code or simplify the schema shape for generated v1 adoption.'
+  if (code.includes('response-schema'))
+    return 'Add explicit 2xx JSON response schemas for generated response types.'
+  if (code.includes('request-schema'))
+    return 'Add explicit application/json request body schemas for generated request types.'
+  if (code.startsWith('unsupported-'))
+    return 'Keep the endpoint in custom code or simplify the schema shape for generated v1 adoption.'
   return 'Review the diagnostic and decide whether the schema or the adoption scope should change.'
 }
 
@@ -368,19 +391,33 @@ function createAuditReadiness(input: {
   resources: number
 }) {
   const blockers = [
-    ...(input.healthScore < input.minHealthScore ? [`Health score ${input.healthScore} is below the audit threshold ${input.minHealthScore}.`] : []),
+    ...(input.healthScore < input.minHealthScore
+      ? [`Health score ${input.healthScore} is below the audit threshold ${input.minHealthScore}.`]
+      : []),
     ...(input.drift.length > 0 ? ['Generated output drift is present.'] : []),
-    ...(input.diagnostics.filter((diagnostic) => diagnostic.severity === 'error').map((diagnostic) => `Error diagnostic: ${diagnostic.code}.`)),
+    ...input.diagnostics
+      .filter((diagnostic) => diagnostic.severity === 'error')
+      .map((diagnostic) => `Error diagnostic: ${diagnostic.code}.`),
     ...(input.typecheck.status === 'failed' ? ['Generated TypeScript typecheck failed.'] : []),
   ]
   const warnings = [
-    ...(input.diagnostics.some((diagnostic) => diagnostic.severity === 'warning') ? [`${input.diagnostics.filter((diagnostic) => diagnostic.severity === 'warning').length} warning diagnostics need review.`] : []),
-    ...(input.typecheck.status === 'skipped' ? ['Generated TypeScript typecheck was skipped.'] : []),
+    ...(input.diagnostics.some((diagnostic) => diagnostic.severity === 'warning')
+      ? [
+          `${input.diagnostics.filter((diagnostic) => diagnostic.severity === 'warning').length} warning diagnostics need review.`,
+        ]
+      : []),
+    ...(input.typecheck.status === 'skipped'
+      ? ['Generated TypeScript typecheck was skipped.']
+      : []),
   ]
   const nextActions = [
     ...(input.drift.length > 0 ? ['Run `archora-forge generate` and review generated drift.'] : []),
-    ...(input.typecheck.status === 'failed' ? ['Open `typecheck.md`, fix generator/schema blockers, then rerun `archora-forge audit`.'] : []),
-    ...(input.diagnostics.length > 0 ? ['Use fix suggestions to decide which OpenAPI changes are required before purchase.'] : []),
+    ...(input.typecheck.status === 'failed'
+      ? ['Open `typecheck.md`, fix generator/schema blockers, then rerun `archora-forge audit`.']
+      : []),
+    ...(input.diagnostics.length > 0
+      ? ['Use fix suggestions to decide which OpenAPI changes are required before purchase.']
+      : []),
     ...(input.ok ? ['Use this audit package as the paid pilot evidence bundle.'] : []),
   ]
   const status = blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'needs-attention' : 'ready'
@@ -389,13 +426,15 @@ function createAuditReadiness(input: {
       ? {
           result: 'pass' as const,
           recommendedCiMode: 'block' as const,
-          reason: 'Generated resource layer is ready for a blocking CI gate under the current policy.',
+          reason:
+            'Generated resource layer is ready for a blocking CI gate under the current policy.',
         }
       : status === 'needs-attention'
         ? {
             result: 'warn' as const,
             recommendedCiMode: 'comment' as const,
-            reason: 'Continue evaluation, but require explicit owner review before blocking merges.',
+            reason:
+              'Continue evaluation, but require explicit owner review before blocking merges.',
           }
         : {
             result: 'fail' as const,
@@ -438,7 +477,9 @@ function summarizeAuditGeneratorMetadata(entries: AuditEntry[]) {
     version: files.find((file) => file.metadata)?.metadata?.version ?? 'unknown',
     files: {
       total,
-      missingMetadata: files.filter((file) => file.kind === 'generated' && !file.metadata).map((file) => ({ path: file.path })),
+      missingMetadata: files
+        .filter((file) => file.kind === 'generated' && !file.metadata)
+        .map((file) => ({ path: file.path })),
       versionMismatches: [],
       schemaHashMismatches: [],
       configHashMismatches: [],
@@ -509,7 +550,13 @@ ${payload.readiness.nextActions.map((action) => `- ${action}`).join('\n')}
 
 ## First Resource Candidates
 
-${payload.resourceExplorer.slice(0, 10).map((resource) => `- ${resource.name}: ${resource.operations.length} operations, ${resource.generatedFiles.length} generated files`).join('\n')}
+${payload.resourceExplorer
+  .slice(0, 10)
+  .map(
+    (resource) =>
+      `- ${resource.name}: ${resource.operations.length} operations, ${resource.generatedFiles.length} generated files`,
+  )
+  .join('\n')}
 `
 }
 

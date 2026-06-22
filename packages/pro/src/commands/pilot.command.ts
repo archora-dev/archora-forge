@@ -4,13 +4,7 @@ import { join, resolve } from 'node:path'
 import type { CAC } from 'cac'
 import { diffOpenApiContracts, normalizeOpenApi, parseOpenApi } from '@archora/forge-core'
 
-import { readGitBaseSchema } from '../git-base-schema.js'
-import { formatImpactReport, formatPullRequestComment, scanSourceUsages, type ImpactPayload } from '../impact-report.js'
-import { requireCommercialLicense } from '../license.js'
-import { writeReportFile } from '../report-file.js'
-import { parseSchemaRequestHeaders, type SchemaRequestCliOptions } from '../schema-request.js'
-import { logger } from '../ui/logger.js'
-import { runAuditPackage } from './audit.command.js'
+import { readGitBaseSchema, formatImpactReport, formatPullRequestComment, scanSourceUsages, type ImpactPayload, requireCommercialLicense, writeReportFile, parseSchemaRequestHeaders, type SchemaRequestCliOptions, logger, runAuditPackage } from '@archora/forge-cli/internal'
 
 type PilotOptions = {
   old?: string

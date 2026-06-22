@@ -1,11 +1,13 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/internal.ts'],
   format: ['esm'],
   dts: true,
   clean: true,
   noExternal: [/^@archora\/forge-/],
+  // The Pro add-on is an optional runtime dependency, never bundled into the free CLI.
+  external: ['@archora/forge-pro'],
   banner: {
     js: '#!/usr/bin/env node',
   },

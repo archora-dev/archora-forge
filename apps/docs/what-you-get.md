@@ -35,6 +35,7 @@ Forge generates plain TypeScript:
 - request and response types;
 - query keys;
 - operation helpers;
+- optional TanStack Query / Vue Query hooks (`target.query`);
 - form/table metadata;
 - permissions;
 - i18n label scaffolds;

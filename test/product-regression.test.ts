@@ -151,7 +151,10 @@ const crudSchema = {
 
 describe('Product regression coverage', () => {
   test('generation orchestration stays below blocker size after artifact extraction', async () => {
-    const source = await readTextFile(join(process.cwd(), 'packages/core/src/generation/createGenerationPlan.ts'), 'utf8')
+    const source = await readTextFile(
+      join(process.cwd(), 'packages/core/src/generation/createGenerationPlan.ts'),
+      'utf8',
+    )
 
     expect(source.split('\n').length).toBeLessThanOrEqual(320)
     expect(source).not.toContain('function createClient(')
@@ -163,7 +166,10 @@ describe('Product regression coverage', () => {
     const calls: Array<{ url: string; init: RequestInit }> = []
     const fetchImpl: typeof fetch = async (url, init) => {
       calls.push({ url: String(url), init: init ?? {} })
-      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } })
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
     }
     const bearerClient = createApiClient({
       baseUrl: 'https://api.test',
@@ -195,8 +201,20 @@ describe('Product regression coverage', () => {
     const fetchImpl: typeof fetch = async (_url, init) =>
       new Promise<Response>((resolve, reject) => {
         attempts += 1
-        init?.signal?.addEventListener('abort', () => reject(init.signal?.reason ?? new DOMException('Request aborted', 'AbortError')), { once: true })
-        setTimeout(() => resolve(new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } })), 30)
+        init?.signal?.addEventListener(
+          'abort',
+          () => reject(init.signal?.reason ?? new DOMException('Request aborted', 'AbortError')),
+          { once: true },
+        )
+        setTimeout(
+          () =>
+            resolve(
+              new Response(JSON.stringify({ ok: true }), {
+                headers: { 'content-type': 'application/json' },
+              }),
+            ),
+          30,
+        )
       })
     const client = createApiClient({
       baseUrl: 'https://api.test',
@@ -212,7 +230,8 @@ describe('Product regression coverage', () => {
   test('runtime client treats empty JSON responses as undefined', async () => {
     const client = createApiClient({
       baseUrl: 'https://api.test',
-      fetchImpl: async () => new Response('', { status: 200, headers: { 'content-type': 'application/json' } }),
+      fetchImpl: async () =>
+        new Response('', { status: 200, headers: { 'content-type': 'application/json' } }),
     })
 
     await expect(client.request('GET', '/empty')).resolves.toBeUndefined()
@@ -224,7 +243,10 @@ describe('Product regression coverage', () => {
       baseUrl: 'https://api.test',
       fetchImpl: async (_url, init) => {
         calls.push({ init: init ?? {} })
-        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } })
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
       },
     })
     const body = new URLSearchParams({ grant_type: 'client_credentials' })
@@ -241,7 +263,10 @@ describe('Product regression coverage', () => {
       baseUrl: 'https://api.test',
       fetchImpl: async (_url, init) => {
         calls.push({ init: init ?? {} })
-        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } })
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
       },
     })
     const body = new Uint8Array([1, 2, 3])
@@ -258,7 +283,10 @@ describe('Product regression coverage', () => {
       baseUrl: 'https://api.test',
       fetchImpl: async (_url, init) => {
         calls.push({ init: init ?? {} })
-        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } })
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
       },
     })
     const body = new ReadableStream({
@@ -281,10 +309,13 @@ describe('Product regression coverage', () => {
       if (String(url).endsWith('/broken.yaml')) {
         return new Response('nope', { status: 503, statusText: 'Unavailable' })
       }
-      return new Response('openapi: 3.0.3\ninfo:\n  title: Remote API\n  version: 1.0.0\npaths: {}\n', {
-        status: 200,
-        headers: { 'content-type': 'application/yaml' },
-      })
+      return new Response(
+        'openapi: 3.0.3\ninfo:\n  title: Remote API\n  version: 1.0.0\npaths: {}\n',
+        {
+          status: 200,
+          headers: { 'content-type': 'application/yaml' },
+        },
+      )
     }
 
     await expect(
@@ -306,10 +337,13 @@ describe('Product regression coverage', () => {
     const originalFetch = globalThis.fetch
     globalThis.fetch = (async (url, init) => {
       calls.push({ url: String(url), init: init ?? {} })
-      return new Response('openapi: 3.0.3\ninfo:\n  title: Header API\n  version: 1.0.0\npaths: {}\n', {
-        status: 200,
-        headers: { 'content-type': 'application/yaml' },
-      })
+      return new Response(
+        'openapi: 3.0.3\ninfo:\n  title: Header API\n  version: 1.0.0\npaths: {}\n',
+        {
+          status: 200,
+          headers: { 'content-type': 'application/yaml' },
+        },
+      )
     }) as typeof fetch
 
     try {
@@ -341,11 +375,17 @@ describe('Product regression coverage', () => {
   test('remote OpenAPI loading reports timeout failures clearly', async () => {
     const fetchImpl: typeof fetch = async (_url, init) =>
       new Promise<Response>((resolve, reject) => {
-        init?.signal?.addEventListener('abort', () => reject(init.signal?.reason ?? new DOMException('Request aborted', 'AbortError')), { once: true })
+        init?.signal?.addEventListener(
+          'abort',
+          () => reject(init.signal?.reason ?? new DOMException('Request aborted', 'AbortError')),
+          { once: true },
+        )
         setTimeout(() => resolve(new Response('{}')), 30)
       })
 
-    await expect(parseOpenApi('https://contracts.test/slow.yaml', { fetchImpl, timeoutMs: 1 })).rejects.toThrow('Request timed out after 1ms')
+    await expect(
+      parseOpenApi('https://contracts.test/slow.yaml', { fetchImpl, timeoutMs: 1 }),
+    ).rejects.toThrow('Request timed out after 1ms')
   })
 
   test('simple allOf object schemas merge while unsafe composition is diagnosed', async () => {
@@ -386,10 +426,17 @@ describe('Product regression coverage', () => {
     const user = normalized.schemas.find((candidate) => candidate.name === 'User')?.schema
     const diagnostics = collectDiagnostics(normalized)
 
-    expect(user?.properties).toMatchObject({ id: { type: 'string' }, email: { type: 'string', format: 'email' } })
+    expect(user?.properties).toMatchObject({
+      id: { type: 'string' },
+      email: { type: 'string', format: 'email' },
+    })
     expect(user?.required).toEqual(['id', 'email'])
     expect(diagnostics.map((diagnostic) => diagnostic.code)).toEqual(
-      expect.arrayContaining(['conflicting-allof', 'unsupported-oneof', 'unsupported-discriminator']),
+      expect.arrayContaining([
+        'conflicting-allof',
+        'unsupported-oneof',
+        'unsupported-discriminator',
+      ]),
     )
     expect(diagnostics).toEqual(
       expect.arrayContaining([
@@ -400,7 +447,9 @@ describe('Product regression coverage', () => {
         }),
       ]),
     )
-    expect(diagnostics.map((diagnostic) => diagnostic.code)).not.toContain('supported-allof-object-merge')
+    expect(diagnostics.map((diagnostic) => diagnostic.code)).not.toContain(
+      'supported-allof-object-merge',
+    )
   })
 
   test('zod validation mode generates opt-in artifacts without changing promise helpers', async () => {
@@ -428,14 +477,30 @@ describe('Product regression coverage', () => {
     expect(readFile(zodPlan, 'users.validation.ts')).toContain("import { z } from 'zod'")
     expect(readFile(zodPlan, 'users.validation.ts')).toContain('export const createUserSchema')
     expect(readFile(zodPlan, 'users.validation.ts')).toContain("kind: z.literal('user').optional()")
-    expect(readFile(zodPlan, 'users.validation.ts')).toContain('externalId: z.string().uuid().optional()')
-    expect(readFile(zodPlan, 'users.validation.ts')).toContain('tier: z.union([z.literal(1), z.literal(2)]).optional()')
-    expect(readFile(zodPlan, 'users.validation.ts')).toContain('externalKey: z.union([z.string(), z.number().int()]).optional()')
-    expect(readFile(zodPlan, 'users.validation.ts')).toContain('website: z.string().url().optional()')
-    expect(readFile(zodPlan, 'users.validation.ts')).toContain('birthday: z.string().date().optional()')
-    expect(readFile(zodPlan, 'users.validation.ts')).toContain('createdAt: z.string().datetime().optional()')
-    expect(readFile(zodPlan, 'users.validation.ts')).toContain('nickname: z.string().nullable().optional()')
-    expect(readFile(zodPlan, 'users.validation.ts')).toContain('labels: z.record(z.string(), z.string()).optional()')
+    expect(readFile(zodPlan, 'users.validation.ts')).toContain(
+      'externalId: z.string().uuid().optional()',
+    )
+    expect(readFile(zodPlan, 'users.validation.ts')).toContain(
+      'tier: z.union([z.literal(1), z.literal(2)]).optional()',
+    )
+    expect(readFile(zodPlan, 'users.validation.ts')).toContain(
+      'externalKey: z.union([z.string(), z.number().int()]).optional()',
+    )
+    expect(readFile(zodPlan, 'users.validation.ts')).toContain(
+      'website: z.string().url().optional()',
+    )
+    expect(readFile(zodPlan, 'users.validation.ts')).toContain(
+      'birthday: z.string().date().optional()',
+    )
+    expect(readFile(zodPlan, 'users.validation.ts')).toContain(
+      'createdAt: z.string().datetime().optional()',
+    )
+    expect(readFile(zodPlan, 'users.validation.ts')).toContain(
+      'nickname: z.string().nullable().optional()',
+    )
+    expect(readFile(zodPlan, 'users.validation.ts')).toContain(
+      'labels: z.record(z.string(), z.string()).optional()',
+    )
     expect(readFile(zodPlan, 'index.ts')).toContain("export * from './users.validation'")
   })
 
@@ -456,10 +521,12 @@ describe('Product regression coverage', () => {
     expect(validation).toContain("import * as v from 'valibot'")
     expect(validation).toContain('export const createUserSchema')
     expect(validation).toContain("kind: v.optional(v.literal('user'))")
-    expect(validation).toContain("v.pipe(v.string(), v.email(), v.minLength(3), v.maxLength(120))")
+    expect(validation).toContain('v.pipe(v.string(), v.email(), v.minLength(3), v.maxLength(120))')
     expect(validation).toContain('externalId: v.optional(v.pipe(v.string(), v.uuid()))')
     expect(validation).toContain('tier: v.optional(v.picklist([1, 2]))')
-    expect(validation).toContain('externalKey: v.optional(v.union([v.string(), v.pipe(v.number(), v.integer())]))')
+    expect(validation).toContain(
+      'externalKey: v.optional(v.union([v.string(), v.pipe(v.number(), v.integer())]))',
+    )
     expect(validation).toContain('website: v.optional(v.pipe(v.string(), v.url()))')
     expect(validation).toContain('birthday: v.optional(v.pipe(v.string(), v.isoDate()))')
     expect(validation).toContain('createdAt: v.optional(v.pipe(v.string(), v.isoDateTime()))')
@@ -489,7 +556,9 @@ describe('Product regression coverage', () => {
             responses: {
               '201': {
                 description: 'Created',
-                content: { 'application/json': { schema: { $ref: '#/components/schemas/Passport' } } },
+                content: {
+                  'application/json': { schema: { $ref: '#/components/schemas/Passport' } },
+                },
               },
             },
           },
@@ -542,7 +611,9 @@ describe('Product regression coverage', () => {
             responses: {
               '201': {
                 description: 'Created',
-                content: { 'application/json': { schema: { $ref: '#/components/schemas/Passport' } } },
+                content: {
+                  'application/json': { schema: { $ref: '#/components/schemas/Passport' } },
+                },
               },
             },
           },
@@ -580,15 +651,23 @@ describe('Product regression coverage', () => {
   test('vitest resolves workspace packages to source entrypoints in fresh clones', async () => {
     const vitestConfig = await readTextFile(join(process.cwd(), 'vitest.config.ts'), 'utf8')
 
-    expect(vitestConfig).toContain("'@archora/forge-core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url))")
-    expect(vitestConfig).toContain("'@archora/forge-adapters': fileURLToPath(new URL('./packages/adapters/src/index.ts', import.meta.url))")
+    expect(vitestConfig).toContain(
+      "'@archora/forge-core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url))",
+    )
+    expect(vitestConfig).toContain(
+      "'@archora/forge-adapters': fileURLToPath(new URL('./packages/adapters/src/index.ts', import.meta.url))",
+    )
   })
 
   test('check command can write a markdown report file for CI artifacts', async () => {
     const cwd = await tempDir()
     const schemaPath = join(cwd, 'openapi.yaml')
     const reportPath = join(cwd, 'forge-check.md')
-    await writeFile(schemaPath, 'openapi: 3.0.3\ninfo:\n  title: Report API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      schemaPath,
+      'openapi: 3.0.3\ninfo:\n  title: Report API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
     const previousExitCode = process.exitCode
     const previousCwd = process.cwd()
@@ -601,10 +680,22 @@ describe('Product regression coverage', () => {
     let exitCode: string | number | undefined
     try {
       process.chdir(cwd)
-      const cli = createCli()
-      cli.parse(['node', 'archora-forge', 'check', schemaPath, '--report', 'markdown', '--report-file', reportPath], {
-        run: false,
-      })
+      const cli = await createCli()
+      cli.parse(
+        [
+          'node',
+          'archora-forge',
+          'check',
+          schemaPath,
+          '--report',
+          'markdown',
+          '--report-file',
+          reportPath,
+        ],
+        {
+          run: false,
+        },
+      )
       await cli.runMatchedCommand()
       exitCode = process.exitCode
     } finally {
@@ -630,7 +721,11 @@ describe('Product regression coverage', () => {
     const cwd = await tempDir()
     const schemaPath = join(cwd, 'openapi.yaml')
     const reportPath = join(cwd, 'forge-check.json')
-    await writeFile(schemaPath, 'openapi: 3.0.3\ninfo:\n  title: JSON Report API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      schemaPath,
+      'openapi: 3.0.3\ninfo:\n  title: JSON Report API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
     const previousExitCode = process.exitCode
     const previousCwd = process.cwd()
@@ -643,10 +738,22 @@ describe('Product regression coverage', () => {
     let exitCode: string | number | undefined
     try {
       process.chdir(cwd)
-      const cli = createCli()
-      cli.parse(['node', 'archora-forge', 'check', schemaPath, '--report', 'json', '--report-file', reportPath], {
-        run: false,
-      })
+      const cli = await createCli()
+      cli.parse(
+        [
+          'node',
+          'archora-forge',
+          'check',
+          schemaPath,
+          '--report',
+          'json',
+          '--report-file',
+          reportPath,
+        ],
+        {
+          run: false,
+        },
+      )
       await cli.runMatchedCommand()
       exitCode = process.exitCode
     } finally {
@@ -663,11 +770,23 @@ describe('Product regression coverage', () => {
       readiness: {
         status: string
         decision: string
-        gate: { result: 'pass' | 'warn' | 'fail'; recommendedCiMode: 'comment' | 'block'; reason: string }
+        gate: {
+          result: 'pass' | 'warn' | 'fail'
+          recommendedCiMode: 'comment' | 'block'
+          reason: string
+        }
         blockers: string[]
         warnings: string[]
         nextActions: string[]
-        summary: { healthScore: number; resources: number; generatedFiles: number; protectedFiles: number; diagnostics: number; drift: number; failedChecks: number }
+        summary: {
+          healthScore: number
+          resources: number
+          generatedFiles: number
+          protectedFiles: number
+          diagnostics: number
+          drift: number
+          failedChecks: number
+        }
       }
     }
     expect(payload.ok).toBe(false)
@@ -682,7 +801,9 @@ describe('Product regression coverage', () => {
     })
     expect(payload.readiness.decision).toContain('not ready')
     expect(payload.readiness.blockers).toContain('Generated output drift is present.')
-    expect(payload.readiness.nextActions).toContain('Run `archora-forge generate` and commit the generated output, or review intentional drift before the pilot handoff.')
+    expect(payload.readiness.nextActions).toContain(
+      'Run `archora-forge generate` and commit the generated output, or review intentional drift before the pilot handoff.',
+    )
     expect(payload.readiness.summary.drift).toBe(payload.drift.length)
     expect(lines.join('\n')).toContain(`Report written: ${reportPath}`)
     expect(exitCode).toBe(1)
@@ -690,7 +811,11 @@ describe('Product regression coverage', () => {
 
   test('check command reports generated file metadata alignment as JSON', async () => {
     const cwd = await tempDir()
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Generator Metadata API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Generator Metadata API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--json'])
 
     const generatedPath = join(cwd, 'src/shared/api/generated/components.types.ts')
@@ -716,11 +841,11 @@ describe('Product regression coverage', () => {
     }
 
     expect(payload.generator.status).toBe('mismatch')
-    expect(payload.generator.version).toBe('1.4.0')
+    expect(payload.generator.version).toBe('2.0.0')
     expect(payload.generator.files.total).toBeGreaterThan(0)
     expect(payload.generator.files.missingMetadata).toEqual([])
     expect(payload.generator.files.versionMismatches).toEqual([
-      { path: 'src/shared/api/generated/components.types.ts', expected: '1.4.0', actual: '0.9.0' },
+      { path: 'src/shared/api/generated/components.types.ts', expected: '2.0.0', actual: '0.9.0' },
     ])
     expect(payload.generator.files.schemaHashMismatches[0]).toMatchObject({
       path: 'src/shared/api/generated/components.types.ts',
@@ -737,7 +862,11 @@ describe('Product regression coverage', () => {
     const cwd = await tempDir()
     const schemaPath = join(cwd, 'openapi.yaml')
     const reportPath = join(cwd, 'forge-check.html')
-    await writeFile(schemaPath, 'openapi: 3.0.3\ninfo:\n  title: HTML Check API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      schemaPath,
+      'openapi: 3.0.3\ninfo:\n  title: HTML Check API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
     const previousExitCode = process.exitCode
     const previousCwd = process.cwd()
@@ -750,10 +879,22 @@ describe('Product regression coverage', () => {
     let exitCode: string | number | undefined
     try {
       process.chdir(cwd)
-      const cli = createCli()
-      cli.parse(['node', 'archora-forge', 'check', schemaPath, '--report', 'html', '--report-file', reportPath], {
-        run: false,
-      })
+      const cli = await createCli()
+      cli.parse(
+        [
+          'node',
+          'archora-forge',
+          'check',
+          schemaPath,
+          '--report',
+          'html',
+          '--report-file',
+          reportPath,
+        ],
+        {
+          run: false,
+        },
+      )
       await cli.runMatchedCommand()
       exitCode = process.exitCode
     } finally {
@@ -783,7 +924,7 @@ describe('Product regression coverage', () => {
     }
     try {
       process.chdir(cwd)
-      const cli = createCli()
+      const cli = await createCli()
       cli.parse(
         [
           'node',
@@ -873,10 +1014,25 @@ describe('Product regression coverage', () => {
   test('validate can write a JSON report file for CI artifacts', async () => {
     const cwd = await tempDir()
     const reportPath = join(cwd, 'forge-validate.json')
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Validate Report API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Validate Report API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['validate', './openapi.yaml', '--json', '--report-file', reportPath])
-    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as { ok: boolean; schema: string; configPath: string | null; diagnostics: unknown[] }
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'validate',
+      './openapi.yaml',
+      '--json',
+      '--report-file',
+      reportPath,
+    ])
+    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
+      ok: boolean
+      schema: string
+      configPath: string | null
+      diagnostics: unknown[]
+    }
 
     expect(payload.ok).toBe(true)
     expect(payload.schema).toContain('openapi.yaml')
@@ -889,10 +1045,26 @@ describe('Product regression coverage', () => {
   test('lint can write a JSON report file for CI artifacts', async () => {
     const cwd = await tempDir()
     const reportPath = join(cwd, 'forge-lint.json')
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Lint Report API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Lint Report API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['lint', './openapi.yaml', '--json', '--report-file', reportPath])
-    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as { ok: boolean; schema: string; configPath: string | null; score: number; diagnostics: unknown[] }
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'lint',
+      './openapi.yaml',
+      '--json',
+      '--report-file',
+      reportPath,
+    ])
+    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
+      ok: boolean
+      schema: string
+      configPath: string | null
+      score: number
+      diagnostics: unknown[]
+    }
 
     expect(payload.ok).toBe(true)
     expect(payload.schema).toContain('openapi.yaml')
@@ -906,8 +1078,16 @@ describe('Product regression coverage', () => {
   test('validate can aggregate configured multi-schema inputs', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'contracts'), { recursive: true })
-    await writeFile(join(cwd, 'contracts/users.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'contracts/billing.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'contracts/users.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'contracts/billing.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       [
@@ -925,11 +1105,18 @@ describe('Product regression coverage', () => {
     )
 
     const { exitCode, output } = await runCliInDirectory(cwd, ['validate', '--json'])
-    const payload = JSON.parse(output) as { ok: boolean; schemas: Array<{ name: string; schema: string; diagnosticsCount: number }>; diagnostics: unknown[] }
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      schemas: Array<{ name: string; schema: string; diagnosticsCount: number }>
+      diagnostics: unknown[]
+    }
 
     expect(payload.ok).toBe(true)
     expect(payload.schemas.map((schema) => schema.name)).toEqual(['users', 'billing'])
-    expect(payload.schemas.map((schema) => schema.schema)).toEqual([join(cwd, 'contracts/users.yaml'), join(cwd, 'contracts/billing.yaml')])
+    expect(payload.schemas.map((schema) => schema.schema)).toEqual([
+      join(cwd, 'contracts/users.yaml'),
+      join(cwd, 'contracts/billing.yaml'),
+    ])
     expect(payload.schemas.map((schema) => schema.diagnosticsCount)).toEqual([0, 0])
     expect(payload.diagnostics).toEqual([])
     expect(exitCode).toBeUndefined()
@@ -944,7 +1131,14 @@ describe('Product regression coverage', () => {
       'utf8',
     )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['validate', './openapi.yaml', '--report', 'html', '--report-file', reportPath])
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'validate',
+      './openapi.yaml',
+      '--report',
+      'html',
+      '--report-file',
+      reportPath,
+    ])
     const report = await readTextFile(reportPath, 'utf8')
 
     expect(report).toContain('<!doctype html>')
@@ -958,8 +1152,16 @@ describe('Product regression coverage', () => {
   test('lint can aggregate configured multi-schema inputs', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'contracts'), { recursive: true })
-    await writeFile(join(cwd, 'contracts/users.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'contracts/billing.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'contracts/users.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'contracts/billing.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       [
@@ -977,7 +1179,11 @@ describe('Product regression coverage', () => {
     )
 
     const { exitCode, output } = await runCliInDirectory(cwd, ['lint', '--json'])
-    const payload = JSON.parse(output) as { ok: boolean; schemas: Array<{ name: string; score: number; diagnosticsCount: number }>; diagnostics: unknown[] }
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      schemas: Array<{ name: string; score: number; diagnosticsCount: number }>
+      diagnostics: unknown[]
+    }
 
     expect(payload.ok).toBe(true)
     expect(payload.schemas.map((schema) => schema.name)).toEqual(['users', 'billing'])
@@ -989,7 +1195,11 @@ describe('Product regression coverage', () => {
 
   test('generate command can use schema from discovered config', async () => {
     const cwd = await tempDir()
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Config API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Config API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       "import { defineForgeConfig } from '@archora/forge-cli'\n\nexport default defineForgeConfig({ input: './openapi.yaml' })\n",
@@ -1004,7 +1214,7 @@ describe('Product regression coverage', () => {
     }
     try {
       process.chdir(cwd)
-      const cli = createCli()
+      const cli = await createCli()
       cli.parse(['node', 'archora-forge', 'generate', '--dry-run'], { run: false })
       await cli.runMatchedCommand()
     } finally {
@@ -1017,7 +1227,11 @@ describe('Product regression coverage', () => {
 
   test('inspect json includes resource operation details for automation', async () => {
     const schemaPath = join(process.cwd(), 'test/fixtures/openapi/basic-crud.yaml')
-    const { exitCode, output } = await runCliInDirectory(process.cwd(), ['inspect', schemaPath, '--json'])
+    const { exitCode, output } = await runCliInDirectory(process.cwd(), [
+      'inspect',
+      schemaPath,
+      '--json',
+    ])
     const payload = JSON.parse(output) as {
       ok: boolean
       resourceCount: number
@@ -1048,11 +1262,67 @@ describe('Product regression coverage', () => {
     expect(exitCode).toBeUndefined()
   })
 
+  test('adoption reports coverage and committable file counts for automation', async () => {
+    const schemaPath = join(process.cwd(), 'test/fixtures/openapi/basic-crud.yaml')
+    const { exitCode, output } = await runCliInDirectory(process.cwd(), [
+      'adoption',
+      schemaPath,
+      '--json',
+    ])
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      resources: number
+      generatedFiles: number
+      coverage: { operations: { total: number; generated: number } }
+      diagnostics: { total: number; errors: number; warnings: number }
+      firstResources: Array<{ name: string; operations: number; generatedFiles: number }>
+    }
+
+    expect(payload.ok).toBe(true)
+    expect(payload.resources).toBe(1)
+    expect(payload.generatedFiles).toBeGreaterThan(0)
+    expect(payload.coverage.operations.total).toBe(5)
+    expect(payload.coverage.operations.generated).toBe(5)
+    expect(payload.diagnostics.errors).toBe(0)
+    expect(payload.firstResources[0]).toMatchObject({ name: 'users', operations: 5 })
+    expect(exitCode).toBe(0)
+  })
+
+  test('adoption surfaces unsupported constructs as diagnostics without failing generation', async () => {
+    const schemaPath = join(process.cwd(), 'test/fixtures/openapi/unsupported-composition.yaml')
+    const { exitCode, output } = await runCliInDirectory(process.cwd(), [
+      'adoption',
+      schemaPath,
+      '--json',
+    ])
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      generatedFiles: number
+      diagnostics: { total: number; warnings: number }
+      fixSuggestions: Array<{ code: string; count: number; suggestion: string }>
+    }
+
+    // Partial-useful-output invariant: unsupported parts become diagnostics, the rest still generates.
+    expect(payload.generatedFiles).toBeGreaterThan(0)
+    expect(payload.diagnostics.total).toBeGreaterThan(0)
+    expect(payload.fixSuggestions.length).toBeGreaterThan(0)
+    expect(payload.fixSuggestions[0]?.suggestion).toBeTruthy()
+    expect(exitCode).toBe(0)
+  })
+
   test('inspect can aggregate configured multi-schema inputs', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'contracts'), { recursive: true })
-    await writeFile(join(cwd, 'contracts/users.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'contracts/billing.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'contracts/users.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'contracts/billing.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       [
@@ -1079,7 +1349,10 @@ describe('Product regression coverage', () => {
 
     expect(payload.ok).toBe(true)
     expect(payload.schemas.map((schema) => schema.name)).toEqual(['users', 'billing'])
-    expect(payload.schemas.map((schema) => schema.schema)).toEqual([join(cwd, 'contracts/users.yaml'), join(cwd, 'contracts/billing.yaml')])
+    expect(payload.schemas.map((schema) => schema.schema)).toEqual([
+      join(cwd, 'contracts/users.yaml'),
+      join(cwd, 'contracts/billing.yaml'),
+    ])
     expect(payload.schemas.map((schema) => schema.resourceCount)).toEqual([0, 0])
     expect(payload.resourceCount).toBe(0)
     expect(payload.diagnostics).toEqual([])
@@ -1089,10 +1362,25 @@ describe('Product regression coverage', () => {
   test('inspect can write a JSON report file for CI artifacts', async () => {
     const cwd = await tempDir()
     const reportPath = join(cwd, 'forge-inspect.json')
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Inspect Report API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Inspect Report API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['inspect', './openapi.yaml', '--json', '--report-file', reportPath])
-    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as { ok: boolean; schema: string; configPath: string | null; resourceCount: number }
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'inspect',
+      './openapi.yaml',
+      '--json',
+      '--report-file',
+      reportPath,
+    ])
+    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
+      ok: boolean
+      schema: string
+      configPath: string | null
+      resourceCount: number
+    }
 
     expect(payload.ok).toBe(true)
     expect(payload.schema).toContain('openapi.yaml')
@@ -1111,7 +1399,14 @@ describe('Product regression coverage', () => {
       'utf8',
     )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['inspect', './openapi.yaml', '--report', 'html', '--report-file', reportPath])
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'inspect',
+      './openapi.yaml',
+      '--report',
+      'html',
+      '--report-file',
+      reportPath,
+    ])
     const report = await readTextFile(reportPath, 'utf8')
 
     expect(report).toContain('<!doctype html>')
@@ -1124,7 +1419,11 @@ describe('Product regression coverage', () => {
 
   test('doctor command reports config, schema and output readiness as JSON', async () => {
     const cwd = await tempDir()
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Doctor API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Doctor API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       "import { defineForgeConfig } from '@archora/forge-cli'\n\nexport default defineForgeConfig({ input: './openapi.yaml', output: { generatedDir: './app/generated' } })\n",
@@ -1153,15 +1452,23 @@ describe('Product regression coverage', () => {
   test('doctor command summarizes configured multi-schema inputs as JSON', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'contracts'), { recursive: true })
-    await writeFile(join(cwd, 'contracts/users.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'contracts/billing.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'contracts/users.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'contracts/billing.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       [
         "import { defineForgeConfig } from '@archora/forge-cli'",
         '',
         'export default defineForgeConfig({',
-        "  inputs: [",
+        '  inputs: [',
         "    { name: 'users', path: './contracts/users.yaml' },",
         "    { name: 'billing', path: './contracts/billing.yaml' },",
         '  ],',
@@ -1173,14 +1480,22 @@ describe('Product regression coverage', () => {
     const { exitCode, output } = await runCliInDirectory(cwd, ['doctor', '--json'])
     const payload = JSON.parse(output) as {
       ok: boolean
-      schemas: Array<{ name: string; schema: string; resourceCount: number; diagnosticsCount: number }>
+      schemas: Array<{
+        name: string
+        schema: string
+        resourceCount: number
+        diagnosticsCount: number
+      }>
       resourceCount: number
       diagnosticsCount: number
     }
 
     expect(payload.ok).toBe(true)
     expect(payload.schemas.map((schema) => schema.name)).toEqual(['users', 'billing'])
-    expect(payload.schemas.map((schema) => schema.schema)).toEqual([join(cwd, 'contracts/users.yaml'), join(cwd, 'contracts/billing.yaml')])
+    expect(payload.schemas.map((schema) => schema.schema)).toEqual([
+      join(cwd, 'contracts/users.yaml'),
+      join(cwd, 'contracts/billing.yaml'),
+    ])
     expect(payload.resourceCount).toBe(0)
     expect(payload.diagnosticsCount).toBe(0)
     expect(exitCode).toBe(0)
@@ -1189,10 +1504,24 @@ describe('Product regression coverage', () => {
   test('doctor command can write a JSON readiness report file', async () => {
     const cwd = await tempDir()
     const reportPath = join(cwd, 'forge-doctor.json')
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Doctor Report API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Doctor Report API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['doctor', './openapi.yaml', '--json', '--report-file', reportPath])
-    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as { ok: boolean; schema: string; diagnosticsCount: number }
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'doctor',
+      './openapi.yaml',
+      '--json',
+      '--report-file',
+      reportPath,
+    ])
+    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
+      ok: boolean
+      schema: string
+      diagnosticsCount: number
+    }
 
     expect(payload.ok).toBe(true)
     expect(payload.schema).toBe(join(cwd, 'openapi.yaml'))
@@ -1203,7 +1532,11 @@ describe('Product regression coverage', () => {
 
   test('diff command can print machine-readable file plan JSON', async () => {
     const cwd = await tempDir()
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Diff JSON API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Diff JSON API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
     const { exitCode, output } = await runCliInDirectory(cwd, ['diff', './openapi.yaml', '--json'])
     const payload = JSON.parse(output) as {
@@ -1225,10 +1558,23 @@ describe('Product regression coverage', () => {
   test('diff command can write a JSON file-plan report', async () => {
     const cwd = await tempDir()
     const reportPath = join(cwd, 'forge-diff.json')
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Diff Report API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Diff Report API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['diff', './openapi.yaml', '--json', '--report-file', reportPath])
-    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as { ok: boolean; files: { create: number } }
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'diff',
+      './openapi.yaml',
+      '--json',
+      '--report-file',
+      reportPath,
+    ])
+    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
+      ok: boolean
+      files: { create: number }
+    }
 
     expect(payload.ok).toBe(true)
     expect(payload.files.create).toBeGreaterThan(0)
@@ -1239,8 +1585,16 @@ describe('Product regression coverage', () => {
   test('diff command can aggregate configured multi-schema inputs', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'contracts'), { recursive: true })
-    await writeFile(join(cwd, 'contracts/users.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'contracts/billing.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'contracts/users.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'contracts/billing.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       [
@@ -1266,7 +1620,10 @@ describe('Product regression coverage', () => {
 
     expect(payload.ok).toBe(true)
     expect(payload.schemas.map((schema) => schema.name)).toEqual(['users', 'billing'])
-    expect(payload.schemas.map((schema) => schema.schema)).toEqual([join(cwd, 'contracts/users.yaml'), join(cwd, 'contracts/billing.yaml')])
+    expect(payload.schemas.map((schema) => schema.schema)).toEqual([
+      join(cwd, 'contracts/users.yaml'),
+      join(cwd, 'contracts/billing.yaml'),
+    ])
     expect(payload.schemas.map((schema) => schema.files.create)).toEqual([1, 1])
     expect(payload.files.create).toBe(2)
     expect(payload.files.update).toBe(0)
@@ -1276,9 +1633,18 @@ describe('Product regression coverage', () => {
 
   test('generate dry-run can print machine-readable write summary JSON', async () => {
     const cwd = await tempDir()
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Generate JSON API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Generate JSON API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--dry-run', '--json'])
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'generate',
+      './openapi.yaml',
+      '--dry-run',
+      '--json',
+    ])
     const payload = JSON.parse(output) as {
       ok: boolean
       schema: string
@@ -1304,58 +1670,125 @@ describe('Product regression coverage', () => {
   test('generate dry-run prune reports stale marker-owned files without deleting them', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'src/shared/api/generated/legacy'), { recursive: true })
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Prune Preview API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), '// @archora-forge-generated\nexport const legacy = true\n', 'utf8')
-    await writeFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'export const local = true\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Prune Preview API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'),
+      '// @archora-forge-generated\nexport const legacy = true\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'),
+      'export const local = true\n',
+      'utf8',
+    )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--dry-run', '--prune', '--json'])
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'generate',
+      './openapi.yaml',
+      '--dry-run',
+      '--prune',
+      '--json',
+    ])
     const payload = JSON.parse(output) as {
       ok: boolean
       dryRun: boolean
-      prune: { enabled: boolean; candidates: Array<{ path: string }>; deleted: Array<{ path: string }>; skipped: Array<{ path: string; reason: string }> }
+      prune: {
+        enabled: boolean
+        candidates: Array<{ path: string }>
+        deleted: Array<{ path: string }>
+        skipped: Array<{ path: string; reason: string }>
+      }
     }
 
     expect(payload.ok).toBe(true)
     expect(payload.dryRun).toBe(true)
     expect(payload.prune.enabled).toBe(true)
-    expect(payload.prune.candidates).toEqual([{ path: 'src/shared/api/generated/legacy/legacy.client.ts' }])
+    expect(payload.prune.candidates).toEqual([
+      { path: 'src/shared/api/generated/legacy/legacy.client.ts' },
+    ])
     expect(payload.prune.deleted).toEqual([])
     expect(payload.prune.skipped).toEqual([])
-    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), 'utf8')).resolves.toContain('legacy')
-    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'utf8')).resolves.toContain('local')
+    await expect(
+      readTextFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), 'utf8'),
+    ).resolves.toContain('legacy')
+    await expect(
+      readTextFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'utf8'),
+    ).resolves.toContain('local')
     expect(exitCode).toBeUndefined()
   })
 
   test('generate prune deletes only stale marker-owned files', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'src/shared/api/generated/legacy'), { recursive: true })
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Prune API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), '// @archora-forge-generated\nexport const legacy = true\n', 'utf8')
-    await writeFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'export const local = true\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Prune API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'),
+      '// @archora-forge-generated\nexport const legacy = true\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'),
+      'export const local = true\n',
+      'utf8',
+    )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--prune', '--json'])
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'generate',
+      './openapi.yaml',
+      '--prune',
+      '--json',
+    ])
     const payload = JSON.parse(output) as {
       ok: boolean
       dryRun: boolean
-      prune: { enabled: boolean; candidates: Array<{ path: string }>; deleted: Array<{ path: string }>; skipped: Array<{ path: string; reason: string }> }
+      prune: {
+        enabled: boolean
+        candidates: Array<{ path: string }>
+        deleted: Array<{ path: string }>
+        skipped: Array<{ path: string; reason: string }>
+      }
     }
 
     expect(payload.ok).toBe(true)
     expect(payload.dryRun).toBe(false)
     expect(payload.prune.enabled).toBe(true)
-    expect(payload.prune.candidates).toEqual([{ path: 'src/shared/api/generated/legacy/legacy.client.ts' }])
-    expect(payload.prune.deleted).toEqual([{ path: 'src/shared/api/generated/legacy/legacy.client.ts' }])
+    expect(payload.prune.candidates).toEqual([
+      { path: 'src/shared/api/generated/legacy/legacy.client.ts' },
+    ])
+    expect(payload.prune.deleted).toEqual([
+      { path: 'src/shared/api/generated/legacy/legacy.client.ts' },
+    ])
     expect(payload.prune.skipped).toEqual([])
-    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), 'utf8')).rejects.toThrow()
-    await expect(readTextFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'utf8')).resolves.toContain('local')
+    await expect(
+      readTextFile(join(cwd, 'src/shared/api/generated/legacy/legacy.client.ts'), 'utf8'),
+    ).rejects.toThrow()
+    await expect(
+      readTextFile(join(cwd, 'src/shared/api/generated/legacy/local-helper.ts'), 'utf8'),
+    ).resolves.toContain('local')
     expect(exitCode).toBeUndefined()
   })
 
   test('generate dry-run can aggregate configured multi-schema inputs', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'contracts'), { recursive: true })
-    await writeFile(join(cwd, 'contracts/users.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'contracts/billing.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'contracts/users.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'contracts/billing.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       [
@@ -1376,7 +1809,10 @@ describe('Product regression coverage', () => {
     const payload = JSON.parse(output) as {
       ok: boolean
       dryRun: boolean
-      schemas: Array<{ name: string; files: { planned: { create: number }; result: { created: number } } }>
+      schemas: Array<{
+        name: string
+        files: { planned: { create: number }; result: { created: number } }
+      }>
       files: { planned: { create: number }; result: { created: number; protected: number } }
     }
 
@@ -1393,8 +1829,16 @@ describe('Product regression coverage', () => {
   test('generate refuses multi-schema inputs with duplicate output paths', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'contracts'), { recursive: true })
-    await writeFile(join(cwd, 'contracts/users.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'contracts/billing.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'contracts/users.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'contracts/billing.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       [
@@ -1419,10 +1863,25 @@ describe('Product regression coverage', () => {
   test('generate dry-run can write a JSON summary report', async () => {
     const cwd = await tempDir()
     const reportPath = join(cwd, 'forge-generate.json')
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Generate Report API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Generate Report API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['generate', './openapi.yaml', '--dry-run', '--json', '--report-file', reportPath])
-    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as { ok: boolean; dryRun: boolean; files: { result: { created: number } } }
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'generate',
+      './openapi.yaml',
+      '--dry-run',
+      '--json',
+      '--report-file',
+      reportPath,
+    ])
+    const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
+      ok: boolean
+      dryRun: boolean
+      files: { result: { created: number } }
+    }
 
     expect(payload.ok).toBe(true)
     expect(payload.dryRun).toBe(true)
@@ -1435,14 +1894,22 @@ describe('Product regression coverage', () => {
     const cwd = await tempDir()
     const projectDir = join(cwd, 'project')
     await mkdir(projectDir, { recursive: true })
-    await writeFile(join(projectDir, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Explicit Config API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(projectDir, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Explicit Config API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(projectDir, 'archora-forge.config.ts'),
       "import { defineForgeConfig } from '@archora/forge-cli'\n\nexport default defineForgeConfig({ input: './openapi.yaml' })\n",
       'utf8',
     )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['inspect', '--config', join(projectDir, 'archora-forge.config.ts')])
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'inspect',
+      '--config',
+      join(projectDir, 'archora-forge.config.ts'),
+    ])
 
     expect(output).toContain(`Schema loaded: ${join(projectDir, 'openapi.yaml')}`)
     expect(exitCode).toBeUndefined()
@@ -1450,7 +1917,11 @@ describe('Product regression coverage', () => {
 
   test('check command honors ci failOnDrift policy from config', async () => {
     const cwd = await tempDir()
-    await writeFile(join(cwd, 'openapi.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Drift Policy API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'openapi.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Drift Policy API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       "import { defineForgeConfig } from '@archora/forge-cli'\n\nexport default defineForgeConfig({ input: './openapi.yaml', ci: { failOnDrift: false } })\n",
@@ -1536,7 +2007,11 @@ describe('Product regression coverage', () => {
     )
 
     const { exitCode, output } = await runCliInDirectory(cwd, ['check', '--json'])
-    const payload = JSON.parse(output) as { ok: boolean; failedChecks: string[]; healthScore: number }
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      failedChecks: string[]
+      healthScore: number
+    }
 
     expect(payload.ok).toBe(false)
     expect(payload.failedChecks).toContain('health-score')
@@ -1570,8 +2045,18 @@ describe('Product regression coverage', () => {
       'utf8',
     )
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['check', './openapi.yaml', '--json', '--min-health-score', '100'])
-    const payload = JSON.parse(output) as { ok: boolean; failedChecks: string[]; healthScore: number }
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'check',
+      './openapi.yaml',
+      '--json',
+      '--min-health-score',
+      '100',
+    ])
+    const payload = JSON.parse(output) as {
+      ok: boolean
+      failedChecks: string[]
+      healthScore: number
+    }
 
     expect(payload.ok).toBe(false)
     expect(payload.failedChecks).toContain('health-score')
@@ -1582,8 +2067,16 @@ describe('Product regression coverage', () => {
   test('check command can aggregate configured multi-schema inputs', async () => {
     const cwd = await tempDir()
     await mkdir(join(cwd, 'contracts'), { recursive: true })
-    await writeFile(join(cwd, 'contracts/users.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n', 'utf8')
-    await writeFile(join(cwd, 'contracts/billing.yaml'), 'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n', 'utf8')
+    await writeFile(
+      join(cwd, 'contracts/users.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Users API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'contracts/billing.yaml'),
+      'openapi: 3.0.3\ninfo:\n  title: Billing API\n  version: 1.0.0\npaths: {}\n',
+      'utf8',
+    )
     await writeFile(
       join(cwd, 'archora-forge.config.ts'),
       [
@@ -1604,7 +2097,13 @@ describe('Product regression coverage', () => {
     const { exitCode, output } = await runCliInDirectory(cwd, ['check', '--json'])
     const payload = JSON.parse(output) as {
       ok: boolean
-      schemas: Array<{ name: string; schema: string; generatedFiles: number; driftCount: number; failedChecks: string[] }>
+      schemas: Array<{
+        name: string
+        schema: string
+        generatedFiles: number
+        driftCount: number
+        failedChecks: string[]
+      }>
       generatedFiles: number
     }
 
@@ -1658,7 +2157,11 @@ describe('Product regression coverage', () => {
       'utf8',
     )
 
-    await expect(execFileAsync('pnpm', ['exec', 'tsc', '-p', join(cwd, 'tsconfig.json')], { cwd: process.cwd() })).resolves.toBeDefined()
+    await expect(
+      execFileAsync('pnpm', ['exec', 'tsc', '-p', join(cwd, 'tsconfig.json')], {
+        cwd: process.cwd(),
+      }),
+    ).resolves.toBeDefined()
   })
 
   test('generated operation helpers with unsafe parameter names typecheck in an isolated consumer', async () => {
@@ -1678,7 +2181,11 @@ describe('Product regression coverage', () => {
             requestBody: {
               content: {
                 'application/json': {
-                  schema: { type: 'object', required: ['query'], properties: { query: { type: 'string' } } },
+                  schema: {
+                    type: 'object',
+                    required: ['query'],
+                    properties: { query: { type: 'string' } },
+                  },
                 },
               },
             },
@@ -1687,7 +2194,11 @@ describe('Product regression coverage', () => {
                 description: 'OK',
                 content: {
                   'application/json': {
-                    schema: { type: 'object', required: ['items'], properties: { items: { type: 'array', items: { type: 'string' } } } },
+                    schema: {
+                      type: 'object',
+                      required: ['items'],
+                      properties: { items: { type: 'array', items: { type: 'string' } } },
+                    },
                   },
                 },
               },
@@ -1731,7 +2242,11 @@ describe('Product regression coverage', () => {
       'utf8',
     )
 
-    await expect(execFileAsync('pnpm', ['exec', 'tsc', '-p', join(cwd, 'tsconfig.json')], { cwd: process.cwd() })).resolves.toBeDefined()
+    await expect(
+      execFileAsync('pnpm', ['exec', 'tsc', '-p', join(cwd, 'tsconfig.json')], {
+        cwd: process.cwd(),
+      }),
+    ).resolves.toBeDefined()
   })
 
   test('generated Valibot validation artifacts typecheck in an isolated consumer', async () => {
@@ -1775,7 +2290,11 @@ describe('Product regression coverage', () => {
       'utf8',
     )
 
-    await expect(execFileAsync('pnpm', ['exec', 'tsc', '-p', join(cwd, 'tsconfig.json')], { cwd: process.cwd() })).resolves.toBeDefined()
+    await expect(
+      execFileAsync('pnpm', ['exec', 'tsc', '-p', join(cwd, 'tsconfig.json')], {
+        cwd: process.cwd(),
+      }),
+    ).resolves.toBeDefined()
   })
 
   test('ui target no longer emits runtime component adapters in framework-neutral output', async () => {
@@ -1832,9 +2351,21 @@ describe('Product regression coverage', () => {
 
     expect(diff.changes).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ code: 'removed-endpoint', severity: 'breaking', resource: 'users' }),
-        expect.objectContaining({ code: 'required-field-added', severity: 'breaking', resource: 'users' }),
-        expect.objectContaining({ code: 'enum-value-removed', severity: 'breaking', resource: 'users' }),
+        expect.objectContaining({
+          code: 'removed-endpoint',
+          severity: 'breaking',
+          resource: 'users',
+        }),
+        expect.objectContaining({
+          code: 'required-field-added',
+          severity: 'breaking',
+          resource: 'users',
+        }),
+        expect.objectContaining({
+          code: 'enum-value-removed',
+          severity: 'breaking',
+          resource: 'users',
+        }),
       ]),
     )
     expect(diff.affectedResources).toContain('users')
@@ -1869,14 +2400,24 @@ describe('Product regression coverage', () => {
           get: {
             operationId: 'getUser',
             tags: ['Users'],
-            responses: { '200': { description: 'User', content: { 'application/json': { schema: { type: 'object' } } } } },
+            responses: {
+              '200': {
+                description: 'User',
+                content: { 'application/json': { schema: { type: 'object' } } },
+              },
+            },
           },
         },
         '/reports/export': {
           get: {
             operationId: 'getUser',
             tags: ['Reports', 'Exports'],
-            responses: { '200': { description: 'Export', content: { 'application/json': { schema: { type: 'object' } } } } },
+            responses: {
+              '200': {
+                description: 'Export',
+                content: { 'application/json': { schema: { type: 'object' } } },
+              },
+            },
           },
         },
       },
@@ -1885,13 +2426,23 @@ describe('Product regression coverage', () => {
     const report = lintOpenApi(normalized, { strict: true })
     const codes = report.diagnostics.map((diagnostic) => diagnostic.code)
 
-    expect(codes).toEqual(expect.arrayContaining(['duplicate-operation-id', 'path-template-parameter-missing', 'multiple-resource-tags']))
+    expect(codes).toEqual(
+      expect.arrayContaining([
+        'duplicate-operation-id',
+        'path-template-parameter-missing',
+        'multiple-resource-tags',
+      ]),
+    )
     expect(report.ok).toBe(false)
   })
 
   test('config presets provide common repository layouts', () => {
-    const featureSliced = resolveForgeConfig(createForgeConfigPreset('feature-sliced', { input: './openapi.yaml' }))
-    const simple = resolveForgeConfig(createForgeConfigPreset('simple', { input: './openapi.yaml' }))
+    const featureSliced = resolveForgeConfig(
+      createForgeConfigPreset('feature-sliced', { input: './openapi.yaml' }),
+    )
+    const simple = resolveForgeConfig(
+      createForgeConfigPreset('simple', { input: './openapi.yaml' }),
+    )
     const monorepo = resolveForgeConfig(
       createForgeConfigPreset('monorepo', {
         inputs: [
@@ -1904,7 +2455,10 @@ describe('Product regression coverage', () => {
     expect(featureSliced.output.featuresDir).toBe('./src/features')
     expect(simple.output.featuresDir).toBe('./src/api/features')
     expect(simple.target.architecture).toBe('simple')
-    expect(monorepo.inputs.map((input) => input.output?.generatedDir)).toEqual(['./src/generated/users', './src/generated/billing'])
+    expect(monorepo.inputs.map((input) => input.output?.generatedDir)).toEqual([
+      './src/generated/users',
+      './src/generated/billing',
+    ])
   })
 
   test('generated artifacts avoid private-corpus typecheck traps', async () => {
@@ -1917,7 +2471,14 @@ describe('Product regression coverage', () => {
           get: {
             operationId: 'listRecords',
             tags: ['Records'],
-            responses: { '200': { description: 'Records', content: { 'application/json': { schema: { type: 'array', items: { type: 'object' } } } } } },
+            responses: {
+              '200': {
+                description: 'Records',
+                content: {
+                  'application/json': { schema: { type: 'array', items: { type: 'object' } } },
+                },
+              },
+            },
           },
         },
         '/reset-password': {
@@ -1943,7 +2504,12 @@ describe('Product regression coverage', () => {
           post: {
             operationId: 'createType',
             tags: ['Types'],
-            responses: { '200': { description: 'Type', content: { 'application/json': { schema: { type: 'object' } } } } },
+            responses: {
+              '200': {
+                description: 'Type',
+                content: { 'application/json': { schema: { type: 'object' } } },
+              },
+            },
           },
         },
         '/services/{name}/goal/{code}': {
@@ -1960,11 +2526,22 @@ describe('Product regression coverage', () => {
       },
     })
     const resources = detectResources(normalized.operations)
-    const plan = await createGenerationPlan({ config: resolveForgeConfig({ input: './openapi.yaml' }), normalized, resources, cwd })
+    const plan = await createGenerationPlan({
+      config: resolveForgeConfig({ input: './openapi.yaml' }),
+      normalized,
+      resources,
+      cwd,
+    })
 
-    expect(readFile(plan, 'records.fixtures.ts')).toContain('type RecordFixture = Record<string, unknown>')
-    expect(plan.files.map((file) => file.content).join('\n')).toContain("'new-password': 'New-password'")
-    expect(readFile(plan, 'types.types.ts')).toContain('export type CreateTypeValueRequest = Partial<TypeValue>')
+    expect(readFile(plan, 'records.fixtures.ts')).toContain(
+      'type RecordFixture = Record<string, unknown>',
+    )
+    expect(plan.files.map((file) => file.content).join('\n')).toContain(
+      "'new-password': 'New-password'",
+    )
+    expect(readFile(plan, 'types.types.ts')).toContain(
+      'export type CreateTypeValueRequest = Partial<TypeValue>',
+    )
     expect(readFile(plan, 'useDeleteGoalMutation.ts')).toContain('goalQueryKeys.detail(id)')
   })
 
@@ -1984,7 +2561,14 @@ describe('Product regression coverage', () => {
     await writeFile(oldPath, JSON.stringify(crudSchema), 'utf8')
     await writeFile(newPath, JSON.stringify(nextSchema), 'utf8')
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['contract-diff', oldPath, newPath, '--json', '--report-file', reportPath])
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'contract-diff',
+      oldPath,
+      newPath,
+      '--json',
+      '--report-file',
+      reportPath,
+    ])
     const payload = JSON.parse(await readTextFile(reportPath, 'utf8')) as {
       ok: boolean
       oldSchema: string
@@ -2027,8 +2611,24 @@ describe('Product regression coverage', () => {
     await writeFile(oldPath, JSON.stringify(crudSchema), 'utf8')
     await writeFile(newPath, JSON.stringify(nextSchema), 'utf8')
 
-    const markdown = await runCliInDirectory(cwd, ['impact', oldPath, newPath, '--report', 'markdown', '--report-file', markdownPath])
-    const html = await runCliInDirectory(cwd, ['impact', oldPath, newPath, '--report', 'html', '--report-file', htmlPath])
+    const markdown = await runCliInDirectory(cwd, [
+      'impact',
+      oldPath,
+      newPath,
+      '--report',
+      'markdown',
+      '--report-file',
+      markdownPath,
+    ])
+    const html = await runCliInDirectory(cwd, [
+      'impact',
+      oldPath,
+      newPath,
+      '--report',
+      'html',
+      '--report-file',
+      htmlPath,
+    ])
     const markdownReport = await readTextFile(markdownPath, 'utf8')
     const htmlReport = await readTextFile(htmlPath, 'utf8')
 
@@ -2110,7 +2710,9 @@ describe('Product regression coverage', () => {
     expect(comment).toContain('src/users-page.ts:1,3')
     expect(comment).toContain('Merge decision: block')
     expect(comment).toContain('## Next Actions')
-    expect(comment).toContain('Do not merge until the breaking frontend contract changes are handled.')
+    expect(comment).toContain(
+      'Do not merge until the breaking frontend contract changes are handled.',
+    )
   })
 
   test('lint and plugin APIs expose experimental extension points', async () => {
@@ -2137,7 +2739,14 @@ describe('Product regression coverage', () => {
           suggestion: 'Plugin suggestion',
         },
       ],
-      generateArtifacts: () => [{ path: 'src/plugin-artifact.txt', content: 'plugin\n', kind: 'generated', overwrite: true }],
+      generateArtifacts: () => [
+        {
+          path: 'src/plugin-artifact.txt',
+          content: 'plugin\n',
+          kind: 'generated',
+          overwrite: true,
+        },
+      ],
     }
     const lint = lintOpenApi(normalized, { strict: true })
     const diagnostics = collectDiagnostics(normalized, { plugins: [plugin] })
@@ -2157,13 +2766,19 @@ describe('Product regression coverage', () => {
   })
 
   test('lint keeps regression fixture score useful and avoids missing response-schema noise', async () => {
-    const normalized = normalizeOpenApi(await parseOpenApi(join(process.cwd(), 'test/fixtures/openapi/basic-crud.yaml')))
+    const normalized = normalizeOpenApi(
+      await parseOpenApi(join(process.cwd(), 'test/fixtures/openapi/basic-crud.yaml')),
+    )
     const report = lintOpenApi(normalized)
-    const diagnosticKeys = report.diagnostics.map((diagnostic) => `${diagnostic.code}:${diagnostic.location ?? ''}`)
+    const diagnosticKeys = report.diagnostics.map(
+      (diagnostic) => `${diagnostic.code}:${diagnostic.location ?? ''}`,
+    )
 
     expect(report.score).toBeGreaterThanOrEqual(70)
     expect(new Set(diagnosticKeys).size).toBe(diagnosticKeys.length)
-    expect(report.diagnostics.filter((diagnostic) => diagnostic.code === 'missing-response-schema')).toHaveLength(0)
+    expect(
+      report.diagnostics.filter((diagnostic) => diagnostic.code === 'missing-response-schema'),
+    ).toHaveLength(0)
   })
 
   test('check report includes schema coverage matrix for adoption review', async () => {
@@ -2181,7 +2796,11 @@ describe('Product regression coverage', () => {
               responses: {
                 '200': {
                   description: 'Users',
-                  content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/User' } } } },
+                  content: {
+                    'application/json': {
+                      schema: { type: 'array', items: { $ref: '#/components/schemas/User' } },
+                    },
+                  },
                 },
               },
             },
@@ -2194,7 +2813,9 @@ describe('Product regression coverage', () => {
               responses: {
                 '201': {
                   description: 'Created',
-                  content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } },
+                  content: {
+                    'application/json': { schema: { $ref: '#/components/schemas/User' } },
+                  },
                 },
               },
             },
@@ -2206,7 +2827,9 @@ describe('Product regression coverage', () => {
               responses: {
                 '200': {
                   description: 'Export',
-                  content: { 'application/octet-stream': { schema: { type: 'string', format: 'binary' } } },
+                  content: {
+                    'application/octet-stream': { schema: { type: 'string', format: 'binary' } },
+                  },
                 },
               },
             },
@@ -2293,12 +2916,23 @@ describe('Product regression coverage', () => {
     const outDir = join(cwd, 'forge-audit')
     await writeFile(schemaPath, JSON.stringify(crudSchema), 'utf8')
 
-    const { exitCode, output } = await runCliInDirectory(cwd, ['audit', './openapi.yaml', '--json', '--skip-typecheck', '--out', outDir])
+    const { exitCode, output } = await runCliInDirectory(cwd, [
+      'audit',
+      './openapi.yaml',
+      '--json',
+      '--skip-typecheck',
+      '--out',
+      outDir,
+    ])
     const payload = JSON.parse(output) as {
       ok: boolean
       audit: { artifacts: string[] }
       readiness: {
-        gate: { result: 'pass' | 'warn' | 'fail'; recommendedCiMode: 'comment' | 'block'; reason: string }
+        gate: {
+          result: 'pass' | 'warn' | 'fail'
+          recommendedCiMode: 'comment' | 'block'
+          reason: string
+        }
         reviewerChecklist: string[]
       }
       scorecard: Record<string, number>
@@ -2313,7 +2947,9 @@ describe('Product regression coverage', () => {
       recommendedCiMode: 'block',
       reason: 'Do not widen rollout until blockers are fixed or explicitly accepted.',
     })
-    expect(payload.readiness.reviewerChecklist).toContain('Open `index.html` and confirm detected resources match the frontend mental model.')
+    expect(payload.readiness.reviewerChecklist).toContain(
+      'Open `index.html` and confirm detected resources match the frontend mental model.',
+    )
     expect(payload.typecheck.status).toBe('skipped')
     expect(payload.scorecard.resourceCoverage).toBe(100)
     expect(payload.resourceExplorer.map((resource) => resource.name)).toContain('users')
@@ -2334,7 +2970,9 @@ function readFile(plan: Awaited<ReturnType<typeof createGenerationPlan>>, suffix
 }
 
 async function tempDir(): Promise<string> {
-  const dir = await mkdir(join(tmpdir(), `archora-forge-${crypto.randomUUID()}`), { recursive: true })
+  const dir = await mkdir(join(tmpdir(), `archora-forge-${crypto.randomUUID()}`), {
+    recursive: true,
+  })
   if (!dir) {
     throw new Error('Failed to create temp dir')
   }
@@ -2342,10 +2980,17 @@ async function tempDir(): Promise<string> {
   return dir
 }
 
-async function writeGeneratedTypecheckFiles(cwd: string, plan: Awaited<ReturnType<typeof createGenerationPlan>>): Promise<void> {
+async function writeGeneratedTypecheckFiles(
+  cwd: string,
+  plan: Awaited<ReturnType<typeof createGenerationPlan>>,
+): Promise<void> {
   await Promise.all(
     plan.files
-      .filter((file) => file.path.endsWith('.ts') && (file.path.includes('/shared/api/generated/') || file.path.includes('/features/')))
+      .filter(
+        (file) =>
+          file.path.endsWith('.ts') &&
+          (file.path.includes('/shared/api/generated/') || file.path.includes('/features/')),
+      )
       .map(async (file) => {
         const path = join(cwd, file.path)
         await mkdir(dirname(path), { recursive: true })
@@ -2354,7 +2999,10 @@ async function writeGeneratedTypecheckFiles(cwd: string, plan: Awaited<ReturnTyp
   )
 }
 
-async function runCliInDirectory(cwd: string, args: string[]): Promise<{ exitCode: string | number | undefined; output: string }> {
+async function runCliInDirectory(
+  cwd: string,
+  args: string[],
+): Promise<{ exitCode: string | number | undefined; output: string }> {
   const previousExitCode = process.exitCode
   const previousCwd = process.cwd()
   const lines: string[] = []
@@ -2365,7 +3013,7 @@ async function runCliInDirectory(cwd: string, args: string[]): Promise<{ exitCod
   }
   try {
     process.chdir(cwd)
-    const cli = createCli()
+    const cli = await createCli()
     cli.parse(['node', 'archora-forge', ...args], { run: false })
     await cli.runMatchedCommand()
 

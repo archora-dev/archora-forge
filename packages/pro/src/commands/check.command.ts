@@ -14,12 +14,7 @@ import {
 } from '@archora/forge-core'
 import { resolveQueryComposables } from '@archora/forge-adapters'
 
-import { loadCliConfigSet } from '../config.js'
-import { createHtmlReport } from '../html-report.js'
-import { requireCommercialLicense } from '../license.js'
-import type { SchemaRequestCliOptions } from '../schema-request.js'
-import { writeReportFile } from '../report-file.js'
-import { logger } from '../ui/logger.js'
+import { loadCliConfigSet, createHtmlReport, requireCommercialLicense, writeReportFile, logger , type SchemaRequestCliOptions } from '@archora/forge-cli/internal'
 
 type CheckOptions = {
   config?: string

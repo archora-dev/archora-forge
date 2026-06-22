@@ -1,0 +1,45 @@
+{
+  "name": "@archora/forge-pro",
+  "version": "2.0.0",
+  "description": "Forge Intelligence: the commercial team/CI layer (impact, check, audit, ci, pilot) for Archora Forge.",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/archora-dev/archora-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/archora-dev/archora-forge/issues"
+  },
+  "homepage": "https://github.com/archora-dev/archora-forge#readme",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@archora/forge-adapters": "workspace:*",
+    "@archora/forge-cli": "workspace:*",
+    "@archora/forge-core": "workspace:*",
+    "cac": "^6.7.14"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  }
+}

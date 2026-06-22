@@ -153,7 +153,7 @@ async function runCliInDirectory(
       previousEnv[key] = process.env[key]
       process.env[key] = value
     }
-    const cli = createCli()
+    const cli = await createCli()
     cli.parse(['node', 'archora-forge', ...args], { run: false })
     try {
       await cli.runMatchedCommand()

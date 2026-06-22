@@ -191,6 +191,25 @@ describe('v1 public API contract', () => {
     )
     await expectCliJsonKeys(
       cwd,
+      ['adoption', basicCrudSchema, '--json'],
+      [
+        'ok',
+        'schema',
+        'configPath',
+        'schemas',
+        'healthScore',
+        'resources',
+        'generatedFiles',
+        'protectedFiles',
+        'drift',
+        'coverage',
+        'diagnostics',
+        'fixSuggestions',
+        'firstResources',
+      ],
+    )
+    await expectCliJsonKeys(
+      cwd,
       ['impact', basicCrudSchema, basicCrudSchema, '--json'],
       [
         'ok',
@@ -249,7 +268,7 @@ async function runCliInDirectory(
   }
   try {
     process.chdir(cwd)
-    const cli = createCli()
+    const cli = await createCli()
     cli.parse(['node', 'archora-forge', ...args], { run: false })
     await cli.runMatchedCommand()
 

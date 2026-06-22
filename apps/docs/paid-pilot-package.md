@@ -66,16 +66,16 @@ Not included:
 
 The generated `pilot` folder should be reviewable without knowing Forge internals:
 
-| File | Purpose |
-| --- | --- |
-| `forge-pilot/pilot-report.md` | Frontend-lead summary: decision, artifact links, impact summary, affected surface and next review step. |
-| `forge-pilot/impact-pr.md` | PR-ready comment with merge decision, risk, source usage and next actions. |
-| `forge-pilot/impact.md` | Detailed contract impact report. |
-| `forge-pilot/impact.json` | Machine-readable impact payload for automation. |
-| `forge-pilot/audit/index.html` | Browser-readable generated surface review. |
-| `forge-pilot/audit/report.md` | Markdown audit summary for internal notes. |
-| `forge-pilot/check.html` | Readiness report with blockers, warnings and next actions. |
-| `forge-pilot/go-no-go.md` | Adoption decision record. |
+| File                           | Purpose                                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `forge-pilot/pilot-report.md`  | Frontend-lead summary: decision, artifact links, impact summary, affected surface and next review step. |
+| `forge-pilot/impact-pr.md`     | PR-ready comment with merge decision, risk, source usage and next actions.                              |
+| `forge-pilot/impact.md`        | Detailed contract impact report.                                                                        |
+| `forge-pilot/impact.json`      | Machine-readable impact payload for automation.                                                         |
+| `forge-pilot/audit/index.html` | Browser-readable generated surface review.                                                              |
+| `forge-pilot/audit/report.md`  | Markdown audit summary for internal notes.                                                              |
+| `forge-pilot/check.html`       | Readiness report with blockers, warnings and next actions.                                              |
+| `forge-pilot/go-no-go.md`      | Adoption decision record.                                                                               |
 
 Recommended readiness commands:
 
@@ -123,7 +123,7 @@ Recommend no-go when:
 ## Preview Boundaries
 
 - The pilot covers a bounded schema or schema family, not unlimited OpenAPI support.
-- Zod and Valibot output are experimental opt-in modes.
-- TanStack-style usage requires a customer-owned wrapper today.
+- Zod and Valibot output are opt-in validator-schema modes.
+- First-party TanStack Query and Vue Query hooks are generated via `target.query`; other frameworks use a customer-owned wrapper.
 - Forge does not generate Vue pages, routes or design-system components.
 - Private pilot artifacts should stay private unless explicitly cleared for publication.
