@@ -1,5 +1,5 @@
 // @archora-forge-generated
-// @archora-forge-meta {"version":"1.4.0","schemaHash":"5462738c2a15","configHash":"92d23261264d"}
+// @archora-forge-meta {"version":"2.1.0","schemaHash":"5462738c2a15","configHash":"92d23261264d"}
 import { createQuery, type CreateQueryOptions } from '@tanstack/svelte-query'
 import { usersClient } from '../../../shared/api/generated/users/users.client'
 import { usersQueryKeys } from '../../../shared/api/generated/users/users.query-keys'

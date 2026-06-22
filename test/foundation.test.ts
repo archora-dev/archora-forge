@@ -31,7 +31,7 @@ describe('foundation exports', () => {
       suggestion: 'Provide an OpenAPI 3.x document.',
     })
 
-    expect(forgeCoreVersion).toBe('2.0.0')
+    expect(forgeCoreVersion).toBe('2.1.0')
     expect(error.details.suggestion).toContain('OpenAPI')
   })
 

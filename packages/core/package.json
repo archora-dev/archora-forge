@@ -1,6 +1,6 @@
 {
   "name": "@archora/forge-core",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Core OpenAPI analysis and generation engine for Archora Forge.",
   "license": "MIT",
   "repository": {

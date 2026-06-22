@@ -841,11 +841,11 @@ describe('Product regression coverage', () => {
     }
 
     expect(payload.generator.status).toBe('mismatch')
-    expect(payload.generator.version).toBe('2.0.0')
+    expect(payload.generator.version).toBe('2.1.0')
     expect(payload.generator.files.total).toBeGreaterThan(0)
     expect(payload.generator.files.missingMetadata).toEqual([])
     expect(payload.generator.files.versionMismatches).toEqual([
-      { path: 'src/shared/api/generated/components.types.ts', expected: '2.0.0', actual: '0.9.0' },
+      { path: 'src/shared/api/generated/components.types.ts', expected: '2.1.0', actual: '0.9.0' },
     ])
     expect(payload.generator.files.schemaHashMismatches[0]).toMatchObject({
       path: 'src/shared/api/generated/components.types.ts',

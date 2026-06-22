@@ -1,5 +1,5 @@
 // @archora-forge-generated
-// @archora-forge-meta {"version":"1.4.0","schemaHash":"5462738c2a15","configHash":"3740e4dc71e2"}
+// @archora-forge-meta {"version":"2.1.0","schemaHash":"5462738c2a15","configHash":"3740e4dc71e2"}
 import type { UserId, UsersListParams } from './users.types'
 
 export const usersQueryKeys = {
