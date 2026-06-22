@@ -86,6 +86,66 @@ describe('discriminated unions', () => {
     )
   })
 
+  test('implicit mapping derives the discriminant from an enum-constrained property', () => {
+    const normalized = normalizeOpenApi({
+      ...baseDocument,
+      components: {
+        schemas: {
+          AssetKind: { type: 'string', enum: ['car', 'truck'] },
+          Car: {
+            type: 'object',
+            required: ['kind'],
+            properties: {
+              kind: { $ref: '#/components/schemas/AssetKind' },
+              seats: { type: 'integer' },
+            },
+          },
+          Truck: {
+            type: 'object',
+            required: ['kind'],
+            properties: {
+              kind: { $ref: '#/components/schemas/AssetKind' },
+              axles: { type: 'integer' },
+            },
+          },
+          Pet: {
+            oneOf: [{ $ref: '#/components/schemas/Car' }, { $ref: '#/components/schemas/Truck' }],
+            discriminator: { propertyName: 'kind' },
+          },
+        },
+      },
+    })
+
+    const types = createSharedSchemaTypes(normalized)
+    // Without explicit mapping the discriminant is taken from the enum the property is
+    // constrained to (lowercase `car`), not the capitalized schema name `Car`, so the
+    // narrowed literal actually inhabits the property type and the union typechecks.
+    expect(types).toMatch(
+      /\(Car & \{ kind: ['"]car['"] \}\) \| \(Truck & \{ kind: ['"]truck['"] \}\)/,
+    )
+    expect(types).not.toMatch(/kind: ['"]Car['"]/)
+  })
+
+  test('top-level enum schema is emitted as a string-literal union, not an empty interface', () => {
+    const normalized = normalizeOpenApi({
+      ...baseDocument,
+      components: {
+        schemas: {
+          AssetKind: { type: 'string', enum: ['car', 'truck', 'drone'] },
+          Pet: {
+            type: 'object',
+            properties: { kind: { $ref: '#/components/schemas/AssetKind' } },
+          },
+        },
+      },
+    })
+
+    const types = createSharedSchemaTypes(normalized)
+    expect(types).toMatch(/export type AssetKind = ['"]car['"] \| ['"]truck['"] \| ['"]drone['"]/)
+    // A bare `interface AssetKind {}` would silently widen the type to accept anything.
+    expect(types).not.toMatch(/interface AssetKind\b/)
+  })
+
   test('discriminator over scalar branches stays diagnostic-only', () => {
     const normalized = normalizeOpenApi({
       ...baseDocument,

@@ -1,6 +1,11 @@
 import type { ForgeDiagnostic } from '../diagnostics/diagnostics.js'
-import type { NormalizedOpenApi, NormalizedOperation, OpenApiSchema } from '../openapi/openapi.types.js'
+import type {
+  NormalizedOpenApi,
+  NormalizedOperation,
+  OpenApiSchema,
+} from '../openapi/openapi.types.js'
 import { isSupportedUnion } from '../generation/typeGeneration.js'
+import { analyzeAllOfSchema, unwrapAnnotationOnlyAllOfSchema } from '../openapi/composition.js'
 
 export type SchemaCoverageMatrix = {
   operations: {
@@ -23,15 +28,29 @@ export type SchemaCoverageMatrix = {
   }
 }
 
-export function createSchemaCoverageMatrix(normalized: NormalizedOpenApi, diagnostics: ForgeDiagnostic[]): SchemaCoverageMatrix {
+export function createSchemaCoverageMatrix(
+  normalized: NormalizedOpenApi,
+  diagnostics: ForgeDiagnostic[],
+): SchemaCoverageMatrix {
   const operations = normalized.operations
   const unsupportedConstructs = countUnsupportedSchemaConstructs(normalized)
-  const operationDiagnosticOnly = operations.filter((operation) => operation.operationKind === 'unsupported-operation').length
-  const schemaDiagnosticOnly = Object.values(unsupportedConstructs).reduce((total, count) => total + count, 0)
-  const generated = operations.filter((operation) => operation.operationKind !== 'unsupported-operation').length
+  const operationDiagnosticOnly = operations.filter(
+    (operation) => operation.operationKind === 'unsupported-operation',
+  ).length
+  const schemaDiagnosticOnly = Object.values(unsupportedConstructs).reduce(
+    (total, count) => total + count,
+    0,
+  )
+  const generated = operations.filter(
+    (operation) => operation.operationKind !== 'unsupported-operation',
+  ).length
   const fallback =
     operations.filter(hasFallbackShape).length +
-    diagnostics.filter((diagnostic) => diagnostic.code === 'missing-request-schema' || diagnostic.code === 'missing-response-schema').length
+    diagnostics.filter(
+      (diagnostic) =>
+        diagnostic.code === 'missing-request-schema' ||
+        diagnostic.code === 'missing-response-schema',
+    ).length
 
   return {
     operations: {
@@ -55,7 +74,9 @@ export function createSchemaCoverageMatrix(normalized: NormalizedOpenApi, diagno
   }
 }
 
-export function mergeSchemaCoverageMatrices(matrices: SchemaCoverageMatrix[]): SchemaCoverageMatrix {
+export function mergeSchemaCoverageMatrices(
+  matrices: SchemaCoverageMatrix[],
+): SchemaCoverageMatrix {
   return {
     operations: {
       total: sum(matrices, (matrix) => matrix.operations.total),
@@ -67,7 +88,9 @@ export function mergeSchemaCoverageMatrices(matrices: SchemaCoverageMatrix[]): S
     },
     schemas: {
       total: sum(matrices, (matrix) => matrix.schemas.total),
-      unsupportedConstructs: mergeRecords(matrices.map((matrix) => matrix.schemas.unsupportedConstructs)),
+      unsupportedConstructs: mergeRecords(
+        matrices.map((matrix) => matrix.schemas.unsupportedConstructs),
+      ),
     },
     cases: {
       generated: sum(matrices, (matrix) => matrix.cases.generated),
@@ -98,8 +121,15 @@ function responseShape(operation: NormalizedOperation): string {
 
 function hasFallbackShape(operation: NormalizedOperation): boolean {
   if (operation.operationKind === 'unsupported-operation') return false
-  const requestFallback = Boolean(operation.operation.requestBody) && !operation.isJsonRequest && !operation.hasFilePayload
-  const responseFallback = !operation.responseBodyEmpty && !operation.isJsonResponse && !operation.hasFilePayload && operation.method !== 'delete'
+  const requestFallback =
+    Boolean(operation.operation.requestBody) &&
+    !operation.isJsonRequest &&
+    !operation.hasFilePayload
+  const responseFallback =
+    !operation.responseBodyEmpty &&
+    !operation.isJsonResponse &&
+    !operation.hasFilePayload &&
+    operation.method !== 'delete'
   return requestFallback || responseFallback
 }
 
@@ -115,19 +145,35 @@ function countUnsupportedSchemaConstructs(normalized: NormalizedOpenApi): Record
   return counts
 }
 
-function visitSchema(normalized: NormalizedOpenApi, schema: OpenApiSchema, counts: Record<string, number>): void {
-  if (schema.allOf) counts.allOf = (counts.allOf ?? 0) + 1
-  if (schema.oneOf && !isSupportedUnion(normalized, schema, schema.oneOf)) counts.oneOf = (counts.oneOf ?? 0) + 1
-  if (schema.anyOf && !isSupportedUnion(normalized, schema, schema.anyOf)) counts.anyOf = (counts.anyOf ?? 0) + 1
+function visitSchema(
+  normalized: NormalizedOpenApi,
+  schema: OpenApiSchema,
+  counts: Record<string, number>,
+): void {
+  if (schema.allOf && !unwrapAnnotationOnlyAllOfSchema(schema)) {
+    // Only count allOf the generator cannot represent. Mergeable inheritance-style allOf
+    // is flattened into a concrete object type and typechecks, so it counts as supported.
+    if (analyzeAllOfSchema(normalized.document, schema).kind !== 'mergeable')
+      counts.allOf = (counts.allOf ?? 0) + 1
+  }
+  if (schema.oneOf && !isSupportedUnion(normalized, schema, schema.oneOf))
+    counts.oneOf = (counts.oneOf ?? 0) + 1
+  if (schema.anyOf && !isSupportedUnion(normalized, schema, schema.anyOf))
+    counts.anyOf = (counts.anyOf ?? 0) + 1
   const union = schema.oneOf ?? schema.anyOf
-  if (schema.discriminator && !(union && isSupportedUnion(normalized, schema, union))) counts.discriminator = (counts.discriminator ?? 0) + 1
+  if (schema.discriminator && !(union && isSupportedUnion(normalized, schema, union)))
+    counts.discriminator = (counts.discriminator ?? 0) + 1
   for (const property of Object.values(schema.properties ?? {})) {
     visitSchema(normalized, property, counts)
   }
   if (schema.items) {
     visitSchema(normalized, schema.items, counts)
   }
-  for (const branch of [...(schema.allOf ?? []), ...(schema.oneOf ?? []), ...(schema.anyOf ?? [])]) {
+  for (const branch of [
+    ...(schema.allOf ?? []),
+    ...(schema.oneOf ?? []),
+    ...(schema.anyOf ?? []),
+  ]) {
     visitSchema(normalized, branch, counts)
   }
 }
