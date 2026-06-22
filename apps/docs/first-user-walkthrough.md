@@ -15,7 +15,7 @@ npx archora-forge --version
 Expected result:
 
 ```txt
-archora-forge/1.3.0
+archora-forge/1.4.0
 ```
 
 ## Demo Before Private Schema
@@ -72,4 +72,3 @@ Continue only when the artifacts answer these questions:
 - Does generated TypeScript match the repo conventions closely enough?
 - Are diagnostics actionable?
 - Can the workflow run in CI?
-

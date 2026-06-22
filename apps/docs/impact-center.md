@@ -2,7 +2,7 @@
 
 `archora-forge impact` turns an OpenAPI contract change into a frontend review artifact.
 
-Public demo: [View the generated impact report](/impact-demo/).
+Public demo: <a href="/impact-demo/" target="_blank" rel="noreferrer">View the generated impact report</a>.
 
 ```bash
 archora-forge impact ./openapi.yaml --base origin/main --report markdown --report-file forge-impact.md

@@ -3,7 +3,7 @@
   "version": "1.3.0",
   "private": true,
   "description": "Archora Forge documentation site.",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vitepress dev .",

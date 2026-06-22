@@ -72,18 +72,20 @@ The goal is to make support boundaries measurable. A team should not have to inf
 
 ## 4. Framework Integration Patterns
 
-The core generator should remain framework-neutral, but teams need documented ways to connect generated output to real frontend stacks.
+The core generator stays framework-neutral, while teams need documented ways to connect generated output to real frontend stacks.
+
+Shipped:
+
+- first-party TanStack Query and Vue Query adapters (`@archora/forge-adapters`) that emit real `useQuery`/`useMutation` hooks via `target.query`, with React and Vue examples.
 
 Planned work:
 
-- document Vue usage patterns;
-- document TanStack Query integration patterns;
 - show how to wrap generated clients in application services;
 - show how resource metadata maps into UI-kit tables and forms;
 - document where Forge stops and application-owned code begins;
 - add framework-specific examples only when they do not change the core generator contract.
 
-Later adapter packages may be added for common query integration or metadata-to-UI-kit mapping, but only when pilot evidence justifies first-party maintenance.
+Further adapter packages (additional query integrations or metadata-to-UI-kit mapping) may follow, but only when pilot evidence justifies first-party maintenance.
 
 ## 5. Runtime Hardening
 
@@ -170,4 +172,3 @@ Current priority order:
 4. Framework Integration Patterns v1.
 5. Runtime Hardening v1.
 6. Release Checklist and Upgrade Notes v1.
-

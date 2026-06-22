@@ -26,6 +26,8 @@ export default defineForgeConfig({
 
 Defaults are applied when output or target options are omitted.
 
+`target.query` selects the generated data-fetching surface: `'promise'` (default, framework-neutral helpers), `'tanstack-query'` (real `useQuery`/`useMutation` hooks for `@tanstack/react-query`) or `'vue-query'` (hooks for `@tanstack/vue-query`). The query adapters live in `@archora/forge-adapters`; the core stays framework-neutral.
+
 For common layouts, use [Config Presets](/config-presets).
 
 Use `inputs` instead of `input` for multi-schema monorepos. `doctor`, `inspect`, `validate`, `lint`, `check`, `diff` and `generate` aggregate configured inputs when no schema argument is passed. Set a distinct `output.generatedDir` per input; `generate` refuses duplicate generated paths.

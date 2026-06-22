@@ -1,17 +1,21 @@
 Archora Forge
-Copyright (c) 2026 Aleksandr Kotov. All rights reserved.
+Copyright (c) 2026 Aleksandr Kotov.
 
-This product is proprietary, source-available software licensed under the
-terms in the LICENSE file at the root of this repository. It is NOT open
-source. Any use of this software requires a paid commercial license; see
-COMMERCIAL-LICENSE.md for details.
+Archora Forge is distributed as open-core under two licenses:
 
-Prior versions of this software may have been distributed under the MIT
-License. Such prior versions remain governed by the license under which
-they were originally distributed, with respect to the specific commits
-to which that prior license applied.
+1. Free, open-source tier (MIT License — see LICENSE).
+   The typed-contract generator and its supporting packages:
+   @archora/forge-core, @archora/forge-config, @archora/forge-runtime,
+   @archora/forge-adapters, @archora/forge-templates, and @archora/forge-cli.
+   These may be used freely under the terms of the MIT License.
 
-Third-party components bundled with or used by this Software, if any, are
-subject to the licenses provided by their respective authors. The terms
-of those third-party licenses apply only to those components and do not
-change the licensing of this Software as a whole.
+2. Commercial tier (proprietary, source-available — see packages/pro/LICENSE
+   and COMMERCIAL-LICENSE.md).
+   Forge Intelligence (@archora/forge-pro): the team/CI layer providing the
+   pilot, ci, audit, check, and impact commands. Use of this package beyond
+   short-term evaluation requires a paid commercial license.
+
+Third-party components bundled with or used by this software are subject to
+the licenses provided by their respective authors. The terms of those
+third-party licenses apply only to those components and do not change the
+licensing of Archora Forge as a whole.

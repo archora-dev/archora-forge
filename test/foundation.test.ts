@@ -56,19 +56,37 @@ describe('foundation exports', () => {
 })
 
 describe('cli foundation', () => {
-  test('registers required commands', () => {
-    const cli = createCli()
+  test('registers required commands', async () => {
+    const cli = await createCli()
     const commandNames = cli.commands.map((command) => command.name)
 
     expect(commandNames).toEqual(
-      expect.arrayContaining(['init', 'license', 'pilot', 'ci', 'demo', 'explain', 'audit', 'doctor', 'generate', 'inspect', 'validate', 'diff', 'lint', 'contract-diff', 'impact']),
+      expect.arrayContaining([
+        'init',
+        'license',
+        'pilot',
+        'ci',
+        'demo',
+        'adoption',
+        'explain',
+        'audit',
+        'doctor',
+        'generate',
+        'inspect',
+        'validate',
+        'diff',
+        'lint',
+        'contract-diff',
+        'impact',
+      ]),
     )
   })
 })
 
 describe('repository automation', () => {
-  test('package manifests point to the repository license terms', async () => {
-    const packageJsonPaths = [
+  test('package manifests carry the open-core license terms', async () => {
+    // Free, open-source tier — MIT (see LICENSE at the repository root).
+    const mitPackageJsonPaths = [
       'package.json',
       'apps/docs/package.json',
       'packages/adapters/package.json',
@@ -83,11 +101,19 @@ describe('repository automation', () => {
       'examples/ui-kit-integration/package.json',
     ]
 
-    for (const packageJsonPath of packageJsonPaths) {
-      const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8')) as { license?: string }
+    for (const packageJsonPath of mitPackageJsonPaths) {
+      const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8')) as {
+        license?: string
+      }
 
-      expect(packageJson.license, packageJsonPath).toBe('SEE LICENSE IN LICENSE')
+      expect(packageJson.license, packageJsonPath).toBe('MIT')
     }
+
+    // Commercial tier — Forge Intelligence stays proprietary (see packages/pro/LICENSE).
+    const proManifest = JSON.parse(await readFile('packages/pro/package.json', 'utf8')) as {
+      license?: string
+    }
+    expect(proManifest.license, 'packages/pro/package.json').toBe('SEE LICENSE IN LICENSE')
   })
 
   test('ships a primary CI workflow for release checks', async () => {

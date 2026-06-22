@@ -70,7 +70,7 @@ Forge uses this marker to identify stale files that may be pruned. `archora-forg
 Generated TypeScript files also include metadata:
 
 ```ts
-// @archora-forge-meta {"version":"1.0.0","schemaHash":"...","configHash":"..."}
+// @archora-forge-meta {"version":"1.4.0","schemaHash":"...","configHash":"..."}
 ```
 
 `schemaHash` identifies the normalized OpenAPI input used for generation. `configHash` identifies generation-relevant config such as output roots, resource overrides, target settings and validation mode.

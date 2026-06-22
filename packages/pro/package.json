@@ -1,8 +1,8 @@
 {
-  "name": "@archora/forge-config",
+  "name": "@archora/forge-pro",
   "version": "1.4.0",
-  "description": "Configuration loading and defaults for Archora Forge.",
-  "license": "MIT",
+  "description": "Forge Intelligence: the commercial team/CI layer (impact, check, audit, ci, pilot) for Archora Forge.",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/archora-dev/archora-forge.git"
@@ -27,16 +27,19 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean",
-    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@archora/forge-adapters": "workspace:*",
+    "@archora/forge-cli": "workspace:*",
+    "@archora/forge-core": "workspace:*",
+    "cac": "^6.7.14"
+  },
   "devDependencies": {
+    "@types/node": "^22.15.17",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "jiti": "^2.7.0",
-    "yaml": "^2.8.4"
   }
 }

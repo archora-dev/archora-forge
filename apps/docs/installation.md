@@ -18,7 +18,7 @@ pnpm exec archora-forge demo --out forge-demo
 pnpm exec archora-forge generate
 ```
 
-Commercial builds may require license activation before write/report commands:
+Commercial builds may require license activation before the Pro intelligence commands (`impact`, `check`, `audit`, `ci`, `pilot`, `contract-diff`). The free generator — including `generate` — always runs without a license:
 
 ```bash
 pnpm exec archora-forge license activate ARCHORA-FORGE-...

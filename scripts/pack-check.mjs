@@ -12,6 +12,7 @@ const packages = [
   'packages/adapters',
   'packages/templates',
   'packages/cli',
+  'packages/pro',
 ]
 const forbidden = ['/node_modules/', '/prompts/', '/.vitepress/', '/screenshots/', '.map']
 

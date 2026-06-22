@@ -2,7 +2,7 @@
   "name": "@archora/forge-adapters",
   "version": "1.4.0",
   "description": "Design-system adapter mappings for Archora Forge generated modules.",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/archora-dev/archora-forge.git"

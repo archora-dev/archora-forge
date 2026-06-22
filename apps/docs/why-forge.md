@@ -32,7 +32,7 @@ Forge focuses on a different layer:
 
 Use Orval when client/query generation is enough. Use Forge when frontend teams need PR impact review, source usage scanning and a committed resource contract that also informs UI metadata and CI.
 
-TanStack-style usage is currently an integration pattern. Forge generates query keys and operation helpers that can be wrapped by the consuming app, but a finished first-party TanStack adapter is not part of the preview claim.
+First-party TanStack Query and Vue Query adapters generate real `useQuery`/`useMutation` hooks via `target.query`, on top of the emitted clients and query keys. Other frameworks remain consumer-owned wrappers around the generated operation helpers.
 
 ## What Forge Generates
 
