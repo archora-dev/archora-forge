@@ -35,7 +35,7 @@ type ForgeGenerationConfig = {
   }
   target?: {
     framework?: 'neutral'
-    query?: 'promise' | 'tanstack-query' | 'vue-query'
+    query?: 'promise' | 'tanstack-query' | 'vue-query' | 'svelte-query' | 'angular-query'
     ui?: 'metadata' | 'custom'
   }
   validation?: 'none' | 'zod' | 'valibot'

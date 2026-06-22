@@ -19,6 +19,8 @@ export default defineForgeConfig({
 - `promise` (default) — framework-neutral helpers returning a `Promise`.
 - `tanstack-query` — real `useQuery` / `useMutation` hooks for `@tanstack/react-query`.
 - `vue-query` — the same for `@tanstack/vue-query` (see `examples/vue-query`).
+- `svelte-query` — `createQuery` / `createMutation` runes for `@tanstack/svelte-query` (see `examples/svelte-query`).
+- `angular-query` — `injectQuery` / `injectMutation` factories for `@tanstack/angular-query-experimental` (see `examples/angular-query`).
 
 The core stays framework-neutral: hook generation lives in `@archora/forge-adapters`,
 and the generated code imports `@tanstack/react-query` as a peer dependency of this
