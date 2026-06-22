@@ -241,6 +241,30 @@ function discriminatorPropertyLiterals(
   return values.filter((value): value is string => typeof value === 'string')
 }
 
+/**
+ * Resolves a `oneOf`/`anyOf` with a discriminator into the discriminant property and the
+ * literal that pins each branch, in branch order. Returns `null` unless every branch is an
+ * object with a derivable literal — i.e. only when the union can be emitted as a real
+ * discriminated union (TS narrowing, `z.discriminatedUnion`, `v.variant`).
+ */
+export function resolveDiscriminatedUnion(
+  normalized: NormalizedOpenApi,
+  schema: OpenApiSchema,
+): { propertyName: string; branches: Array<{ schema: OpenApiSchema; literal: string }> } | null {
+  const branches = schema.oneOf ?? schema.anyOf
+  if (!branches || branches.length === 0) return null
+  const info = getDiscriminatorInfo(schema)
+  if (!info) return null
+  if (!branches.every((branch) => isObjectSchemaBranch(normalized, branch))) return null
+  const resolved: Array<{ schema: OpenApiSchema; literal: string }> = []
+  for (const branch of branches) {
+    const literal = discriminatorLiteral(normalized, info, branch)
+    if (literal === null) return null
+    resolved.push({ schema: branch, literal })
+  }
+  return { propertyName: info.propertyName, branches: resolved }
+}
+
 export function isObjectSchemaBranch(
   normalized: NormalizedOpenApi,
   branch: OpenApiSchema,

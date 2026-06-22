@@ -94,4 +94,83 @@ describe('validation generation', () => {
     expect(file).toContain('v.nullable(v.string())')
     expect(file).toContain('v.optional(')
   })
+
+  const discriminatedDocument = {
+    openapi: '3.0.3',
+    info: { title: 'Assets', version: '1.0.0' },
+    paths: {
+      '/assets': {
+        post: {
+          operationId: 'createAsset',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/AssetInput' } },
+            },
+          },
+          responses: { '201': { description: 'created' } },
+        },
+        get: { operationId: 'listAssets', responses: { '200': { description: 'ok' } } },
+      },
+    },
+    components: {
+      schemas: {
+        AssetKind: { type: 'string', enum: ['car', 'truck'] },
+        Car: {
+          type: 'object',
+          required: ['kind', 'seats'],
+          properties: {
+            kind: { $ref: '#/components/schemas/AssetKind' },
+            seats: { type: 'integer' },
+          },
+        },
+        Truck: {
+          type: 'object',
+          required: ['kind', 'payloadKg'],
+          properties: {
+            kind: { $ref: '#/components/schemas/AssetKind' },
+            payloadKg: { type: 'integer' },
+          },
+        },
+        AssetInput: {
+          oneOf: [{ $ref: '#/components/schemas/Car' }, { $ref: '#/components/schemas/Truck' }],
+          discriminator: { propertyName: 'kind' },
+        },
+      },
+    },
+  }
+
+  async function assetValidationFile(mode: 'zod' | 'valibot'): Promise<string> {
+    const normalized = normalizeOpenApi(discriminatedDocument)
+    const config = resolveForgeConfig({ input: './openapi.yaml', validation: mode } as ForgeConfig)
+    const plan = await createGenerationPlan({
+      config,
+      normalized,
+      resources: detectResources(normalized.operations),
+      cwd: await mkdir(
+        join(tmpdir(), `forge-val-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+        {
+          recursive: true,
+        },
+      ).then((dir) => dir as string),
+    })
+    return plan.files.find((file) => file.path.endsWith('assets.validation.ts'))?.content ?? ''
+  }
+
+  test('zod emits a discriminated union with a literal discriminant per branch', async () => {
+    const file = await assetValidationFile('zod')
+    expect(file).toContain("z.discriminatedUnion('kind', [")
+    expect(file).toContain("kind: z.literal('car')")
+    expect(file).toContain("kind: z.literal('truck')")
+    // Not the broad fallback that loses the discriminant.
+    expect(file).not.toMatch(/z\.union\(\[/)
+  })
+
+  test('valibot emits a variant with a literal discriminant per branch', async () => {
+    const file = await assetValidationFile('valibot')
+    expect(file).toContain("v.variant('kind', [")
+    expect(file).toContain("kind: v.literal('car')")
+    expect(file).toContain("kind: v.literal('truck')")
+    expect(file).not.toMatch(/v\.union\(\[/)
+  })
 })
