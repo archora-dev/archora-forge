@@ -93,4 +93,17 @@ describe('composition coverage', () => {
     expect(types).toMatch(/note\?: string \| null/)
     expect(types).toMatch(/legacy\?: string \| null/)
   })
+
+  // A nullable top-level enum/scalar component must keep `| null` on its type alias,
+  // not just on property uses, otherwise callers cannot assign the null the API allows.
+  test('nullable top-level enum alias keeps the null member', () => {
+    const normalized = normalizeOpenApi(
+      documentWith({
+        Mode: { type: 'string', enum: ['auto', 'manual'], nullable: true },
+      }),
+    )
+
+    const types = createSharedSchemaTypes(normalized)
+    expect(types).toMatch(/export type Mode = ['"]auto['"] \| ['"]manual['"] \| null/)
+  })
 })

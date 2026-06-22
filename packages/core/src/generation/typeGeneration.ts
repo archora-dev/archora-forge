@@ -337,12 +337,16 @@ function createSchemaDeclaration(
   schema: OpenApiSchema,
   enumAliases: Map<string, string>,
 ): string {
+  // OAS 3.0 `nullable: true` is carried on the schema as a boolean (the 3.1 `type: [..,'null']`
+  // form is handled inside schemaToTypeScript). Type-alias declarations must preserve it.
+  const nullableSuffix = schema.nullable ? ' | null' : ''
+
   if (schema.oneOf?.length || schema.anyOf?.length) {
-    return `export type ${name} = ${schemaToTypeScript(normalized, schema, { mode: 'response' })}`
+    return `export type ${name} = ${schemaToTypeScript(normalized, schema, { mode: 'response' })}${nullableSuffix}`
   }
 
   if (isPureDictionarySchema(schema)) {
-    return `export type ${name} = ${createDictionaryType(normalized, schema.additionalProperties, { mode: 'response' })}`
+    return `export type ${name} = ${createDictionaryType(normalized, schema.additionalProperties, { mode: 'response' })}${nullableSuffix}`
   }
 
   // Top-level enum/scalar/array component schemas are type aliases, not interfaces.
@@ -354,7 +358,7 @@ function createSchemaDeclaration(
     Array.isArray(schema.type) ||
     (typeof schema.type === 'string' && schema.type !== 'object')
   if (isScalarOrEnumDeclaration) {
-    return `export type ${name} = ${schemaToTypeScript(normalized, schema, { mode: 'response' })}`
+    return `export type ${name} = ${schemaToTypeScript(normalized, schema, { mode: 'response' })}${nullableSuffix}`
   }
 
   const mode = name.endsWith('Dto') ? 'request' : 'response'
