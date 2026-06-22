@@ -67,12 +67,14 @@ describe('Ugly OpenAPI fixtures', () => {
       expect.arrayContaining([
         'unsupported-security-schemes',
         'unsupported-operation-security',
-        'unsupported-header-parameter',
         'unsupported-content-type',
       ]),
     )
     // Object-branch discriminated unions (EventEnvelope) are generated as narrowing
     // TypeScript unions now, so they no longer surface as unsupported.
     expect(allDiagnostics.has('unsupported-discriminator')).toBe(false)
+    // Header parameters are generated (typed onto params / options.headers), so they are
+    // no longer reported as unsupported.
+    expect(allDiagnostics.has('unsupported-header-parameter')).toBe(false)
   })
 })

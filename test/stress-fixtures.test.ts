@@ -52,6 +52,14 @@ describe('stress fixtures generate fully covered, correct contracts', () => {
     expect(componentTypes).toMatch(/children\?: OrgUnit\[\]/)
   })
 
+  test('demo-fleet: required header parameters are typed onto the CRUD client options', async () => {
+    const { plan } = await planFor('demo-fleet.yaml')
+    const client = plan.files.find((file) => file.path.endsWith('assets.client.ts'))?.content ?? ''
+    // x-tenant-id is a required header on the assets CRUD endpoints, so it is typed onto
+    // options.headers rather than dropped to a diagnostic.
+    expect(client).toMatch(/headers: \{ 'x-tenant-id': string \} & Record<string, string>/)
+  })
+
   test('demo-edge-types: numeric/nullable enums, unions and nested arrays', async () => {
     const { coverage, componentTypes } = await planFor('demo-edge-types.yaml')
 

@@ -16,27 +16,38 @@ export type CollectDiagnosticsOptions = {
   plugins?: unknown[]
 }
 
-export function collectDiagnostics(normalized: NormalizedOpenApi, options: CollectDiagnosticsOptions = {}): ForgeDiagnostic[] {
+export function collectDiagnostics(
+  normalized: NormalizedOpenApi,
+  options: CollectDiagnosticsOptions = {},
+): ForgeDiagnostic[] {
   const diagnostics: ForgeDiagnostic[] = []
-  const groupedParameters = new Map<string, { in: 'header' | 'cookie'; name: string; locations: string[] }>()
+  const groupedParameters = new Map<
+    string,
+    { in: 'header' | 'cookie'; name: string; locations: string[] }
+  >()
 
-  const unsupportedSecuritySchemes = Object.entries(normalized.document.components?.securitySchemes ?? {}).filter(
-    ([, scheme]) => !isRuntimeSupportedSecurityScheme(scheme),
-  )
+  const unsupportedSecuritySchemes = Object.entries(
+    normalized.document.components?.securitySchemes ?? {},
+  ).filter(([, scheme]) => !isRuntimeSupportedSecurityScheme(scheme))
   if (unsupportedSecuritySchemes.length > 0) {
     diagnostics.push({
       severity: 'warning',
       code: 'unsupported-security-schemes',
       message: 'Unsupported security schemes are detected.',
-      location: unsupportedSecuritySchemes.map(([name]) => `components.securitySchemes.${name}`).join(', '),
-      suggestion: 'Configure auth headers through the runtime client until security scheme generation is supported.',
+      location: unsupportedSecuritySchemes
+        .map(([name]) => `components.securitySchemes.${name}`)
+        .join(', '),
+      suggestion:
+        'Configure auth headers through the runtime client until security scheme generation is supported.',
     })
   }
 
   for (const operation of normalized.operations) {
     const location = `${operation.method.toUpperCase()} ${operation.path}`
     const requestContentTypes = getContentTypes(operation.operation.requestBody)
-    const responseContentTypes = Object.values(operation.operation.responses ?? {}).flatMap((response) => Object.keys(response.content ?? {}))
+    const responseContentTypes = Object.values(operation.operation.responses ?? {}).flatMap(
+      (response) => Object.keys(response.content ?? {}),
+    )
 
     if (operation.operationKind === 'unsupported-operation') {
       diagnostics.push({
@@ -44,44 +55,60 @@ export function collectDiagnostics(normalized: NormalizedOpenApi, options: Colle
         code: 'unsupported-operation',
         message: `${location} is preserved but is not generated as an interactive resource yet.`,
         location,
-        impact: 'Generated output uses an explicit unsupported operation panel instead of silently dropping the operation.',
-        suggestion: 'Use a supported HTTP method and JSON-compatible request/response schemas, or implement this endpoint with custom code.',
+        impact:
+          'Generated output uses an explicit unsupported operation panel instead of silently dropping the operation.',
+        suggestion:
+          'Use a supported HTTP method and JSON-compatible request/response schemas, or implement this endpoint with custom code.',
       })
     }
 
     if (operation.operation.requestBody && !operation.requestBodySchema) {
       diagnostics.push({
         severity: 'warning',
-        code: requestContentTypes.some((type) => !isJsonCompatibleContentType(type)) ? 'unsupported-content-type' : 'missing-request-schema',
+        code: requestContentTypes.some((type) => !isJsonCompatibleContentType(type))
+          ? 'unsupported-content-type'
+          : 'missing-request-schema',
         message: `${location} has no supported JSON request schema. Generated request type will use an explicit fallback.`,
         location,
         impact: 'Request payload typing may fall back to an explicit generic type.',
-        suggestion: 'Add an application/json request body schema to improve generated request types.',
+        suggestion:
+          'Add an application/json request body schema to improve generated request types.',
       })
     }
 
-    if (!operation.responseSchema && !operation.responseBodyEmpty && operation.method !== 'delete') {
+    if (
+      !operation.responseSchema &&
+      !operation.responseBodyEmpty &&
+      operation.method !== 'delete'
+    ) {
       diagnostics.push({
         severity: 'warning',
-        code: responseContentTypes.some((type) => !isJsonCompatibleContentType(type)) ? 'unsupported-content-type' : 'missing-response-schema',
+        code: responseContentTypes.some((type) => !isJsonCompatibleContentType(type))
+          ? 'unsupported-content-type'
+          : 'missing-response-schema',
         message: `${location} has no 2xx JSON response schema. Generated response type will be unknown.`,
         location,
         impact: 'Response typing and generated UI metadata may be incomplete.',
-        suggestion: 'Add an application/json 2xx response schema to improve generated response types.',
+        suggestion:
+          'Add an application/json 2xx response schema to improve generated response types.',
       })
     }
 
     for (const parameter of operation.parameters) {
       if (parameter.in === 'header' || parameter.in === 'cookie') {
-        if (parameter.in === 'header' && parameter.name.toLowerCase() === 'authorization') {
-          continue
-        }
-        if (parameter.in === 'header' && operation.operationKind !== 'crud-resource' && parameter.name.toLowerCase() !== 'authorization') {
+        if (parameter.in === 'header') {
+          // Header parameters are generated: non-CRUD helpers carry them in the typed
+          // params object, CRUD helpers type them onto `options.headers`, and the
+          // `authorization` header is the runtime auth layer's responsibility.
           continue
         }
         if (parameter.in === 'cookie' && parameter.name.toLowerCase() === 'authorization') {
           const key = `${parameter.in}:${parameter.name.toLowerCase()}`
-          const grouped = groupedParameters.get(key) ?? { in: parameter.in, name: parameter.name, locations: [] }
+          const grouped = groupedParameters.get(key) ?? {
+            in: parameter.in,
+            name: parameter.name,
+            locations: [],
+          }
           grouped.locations.push(location)
           groupedParameters.set(key, grouped)
           continue
@@ -92,7 +119,8 @@ export function collectDiagnostics(normalized: NormalizedOpenApi, options: Colle
           message: `${location} uses an unsupported ${parameter.in} parameter "${parameter.name}".`,
           location,
           impact: 'Generated client signatures do not include this parameter yet.',
-          suggestion: 'Model this value through runtime headers until header/cookie parameter generation is supported.',
+          suggestion:
+            'Model this value through runtime headers until header/cookie parameter generation is supported.',
         })
       }
     }
@@ -114,16 +142,23 @@ export function collectDiagnostics(normalized: NormalizedOpenApi, options: Colle
       severity: 'warning',
       code: `unsupported-${grouped.in}-parameter`,
       message: `${grouped.locations.length} operations use unsupported ${grouped.in} parameter "${grouped.name}".`,
-      location: grouped.locations.slice(0, 3).join(', ') + (grouped.locations.length > 3 ? ', ...' : ''),
+      location:
+        grouped.locations.slice(0, 3).join(', ') + (grouped.locations.length > 3 ? ', ...' : ''),
       impact: 'Repeated auth/header parameters are grouped to reduce diagnostic noise.',
-      suggestion: 'Model this value through runtime headers until header/cookie parameter generation is supported.',
+      suggestion:
+        'Model this value through runtime headers until header/cookie parameter generation is supported.',
     })
   }
 
   const schemaDiagnostics: ForgeDiagnostic[] = []
   for (const schema of normalized.schemas) {
     const originalSchema = normalized.document.components?.schemas?.[schema.name] ?? schema.schema
-    collectSchemaDiagnostics(normalized, originalSchema, `#/components/schemas/${schema.name}`, schemaDiagnostics)
+    collectSchemaDiagnostics(
+      normalized,
+      originalSchema,
+      `#/components/schemas/${schema.name}`,
+      schemaDiagnostics,
+    )
   }
   diagnostics.push(...schemaDiagnostics)
 
@@ -166,21 +201,19 @@ function collectSchemaDiagnostics(
   for (const key of ['oneOf', 'anyOf'] as const) {
     if (!schema[key]) continue
     if (isSupportedUnion(normalized, schema, schema[key])) continue
-    const branches = schema[key]
-      .map((_, index) => `${location}/${key}/${index}`)
-      .join(', ')
-      diagnostics.push({
-        severity: 'warning',
-        code: `unsupported-${key.toLowerCase()}`,
-        message: `${location} uses ${key}, which is reported but not deeply modeled yet.`,
-        location,
-        impact: schema.discriminator
-          ? `Generated types may fall back to a broader shape for discriminator-based branches: ${branches}.`
-          : `Generated types may fall back to a broader shape for branches: ${branches}.`,
-        suggestion: schema.discriminator
-          ? 'Discriminator is present; validate generated fallback types carefully or prefer an explicit non-polymorphic response shape for v1 generation.'
-          : 'Prefer a concrete object schema for v1 generation, or validate generated fallback types carefully.',
-      })
+    const branches = schema[key].map((_, index) => `${location}/${key}/${index}`).join(', ')
+    diagnostics.push({
+      severity: 'warning',
+      code: `unsupported-${key.toLowerCase()}`,
+      message: `${location} uses ${key}, which is reported but not deeply modeled yet.`,
+      location,
+      impact: schema.discriminator
+        ? `Generated types may fall back to a broader shape for discriminator-based branches: ${branches}.`
+        : `Generated types may fall back to a broader shape for branches: ${branches}.`,
+      suggestion: schema.discriminator
+        ? 'Discriminator is present; validate generated fallback types carefully or prefer an explicit non-polymorphic response shape for v1 generation.'
+        : 'Prefer a concrete object schema for v1 generation, or validate generated fallback types carefully.',
+    })
   }
   if (schema.discriminator && !isSupportedDiscriminatedUnion(normalized, schema)) {
     diagnostics.push({
@@ -200,15 +233,26 @@ function collectSchemaDiagnostics(
   }
 }
 
-function isSupportedDiscriminatedUnion(normalized: NormalizedOpenApi, schema: OpenApiSchema): boolean {
+function isSupportedDiscriminatedUnion(
+  normalized: NormalizedOpenApi,
+  schema: OpenApiSchema,
+): boolean {
   const branches = schema.oneOf ?? schema.anyOf
-  return Boolean(branches?.length) && branches!.every((branch) => isObjectSchemaBranch(normalized, branch))
+  return (
+    Boolean(branches?.length) &&
+    branches!.every((branch) => isObjectSchemaBranch(normalized, branch))
+  )
 }
 
 function isRuntimeSupportedSecurityScheme(value: unknown): boolean {
   if (!value || typeof value !== 'object') return false
   const scheme = value as { type?: unknown; scheme?: unknown; in?: unknown }
-  if (scheme.type === 'http' && typeof scheme.scheme === 'string' && scheme.scheme.toLowerCase() === 'bearer') return true
+  if (
+    scheme.type === 'http' &&
+    typeof scheme.scheme === 'string' &&
+    scheme.scheme.toLowerCase() === 'bearer'
+  )
+    return true
   if (scheme.type === 'oauth2') return true
   return scheme.type === 'apiKey' && scheme.in === 'header'
 }
