@@ -70,12 +70,18 @@ try {
 
   const consumerDir = mkdtempSync(join(tmpdir(), 'archora-forge-pack-consumer-'))
   try {
+    // Pin every packed package to its tarball so transitive @archora/forge-* deps resolve
+    // locally instead of from the registry (their bumped versions may not be published yet).
+    // The project uses pnpm 9 (see packageManager), which reads overrides from package.json.
     writeFileSync(
       join(consumerDir, 'package.json'),
       JSON.stringify(
         {
           type: 'module',
           private: true,
+          // Pin the consumer to the project's pnpm so package.json overrides are honored
+          // consistently (pnpm 10+ ignores them; CI and this check both run pnpm 9).
+          packageManager: 'pnpm@9.15.4',
           dependencies: Object.fromEntries(
             tarballs.map((tarball) => [tarball.name, `file:${tarball.path}`]),
           ),

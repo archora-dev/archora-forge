@@ -20,32 +20,33 @@ for pkg in "${PACKAGES[@]}"; do
 done
 
 cd "$CONSUMER_DIR"
-# A deterministic manifest avoids `pnpm init` writing an environment-specific packageManager pin.
+# A deterministic manifest with pnpm.overrides (the project uses pnpm 9) pins every
+# @archora/forge-* to the freshly packed tarballs, so the split Pro add-on resolves the local
+# CLI (with its /internal entry) instead of a pre-split version from the registry.
 cat > package.json <<JSON
 {
   "name": "archora-forge-consumer-smoke",
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@9.15.4",
   "dependencies": {
     "@archora/forge-cli": "file:${TARBALLS[cli]}",
     "@archora/forge-pro": "file:${TARBALLS[pro]}"
+  },
+  "pnpm": {
+    "overrides": {
+      "@archora/forge-config": "file:${TARBALLS[config]}",
+      "@archora/forge-runtime": "file:${TARBALLS[runtime]}",
+      "@archora/forge-core": "file:${TARBALLS[core]}",
+      "@archora/forge-adapters": "file:${TARBALLS[adapters]}",
+      "@archora/forge-templates": "file:${TARBALLS[templates]}",
+      "@archora/forge-cli": "file:${TARBALLS[cli]}",
+      "@archora/forge-pro": "file:${TARBALLS[pro]}"
+    }
   }
 }
 JSON
-# pnpm 10+ reads overrides from pnpm-workspace.yaml, not package.json. Pin every @archora/forge-*
-# to the freshly packed tarballs so the split Pro add-on resolves the local CLI (with its
-# /internal entry) instead of a pre-split version from the registry.
-cat > pnpm-workspace.yaml <<YAML
-overrides:
-  '@archora/forge-config': file:${TARBALLS[config]}
-  '@archora/forge-runtime': file:${TARBALLS[runtime]}
-  '@archora/forge-core': file:${TARBALLS[core]}
-  '@archora/forge-adapters': file:${TARBALLS[adapters]}
-  '@archora/forge-templates': file:${TARBALLS[templates]}
-  '@archora/forge-cli': file:${TARBALLS[cli]}
-  '@archora/forge-pro': file:${TARBALLS[pro]}
-YAML
 pnpm install --store-dir "$CONSUMER_DIR/.pnpm-store"
 
 pnpm exec archora-forge demo --out forge-demo

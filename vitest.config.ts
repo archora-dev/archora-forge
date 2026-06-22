@@ -10,6 +10,8 @@ export default defineConfig({
       '@archora/forge-core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url)),
       '@archora/forge-runtime': fileURLToPath(new URL('./packages/runtime/src/index.ts', import.meta.url)),
       '@archora/forge-templates': fileURLToPath(new URL('./packages/templates/src/index.ts', import.meta.url)),
+      '@archora/forge-cli/internal': fileURLToPath(new URL('./packages/cli/src/internal.ts', import.meta.url)),
+      '@archora/forge-pro': fileURLToPath(new URL('./packages/pro/src/index.ts', import.meta.url)),
     },
   },
   test: {

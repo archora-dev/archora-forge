@@ -1,6 +1,6 @@
 {
   "name": "@archora/forge-pro",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Forge Intelligence: the commercial team/CI layer (impact, check, audit, ci, pilot) for Archora Forge.",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {

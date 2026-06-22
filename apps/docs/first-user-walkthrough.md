@@ -15,7 +15,7 @@ npx archora-forge --version
 Expected result:
 
 ```txt
-archora-forge/1.4.0
+archora-forge/2.0.0
 ```
 
 ## Demo Before Private Schema

@@ -1,5 +1,5 @@
 // @archora-forge-generated
-// @archora-forge-meta {"version":"1.4.0","schemaHash":"5462738c2a15","configHash":"7258580f1759"}
+// @archora-forge-meta {"version":"2.0.0","schemaHash":"5462738c2a15","configHash":"7258580f1759"}
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query'
 import { ordersClient } from '../../../shared/api/generated/orders/orders.client'
 import { ordersQueryKeys } from '../../../shared/api/generated/orders/orders.query-keys'
