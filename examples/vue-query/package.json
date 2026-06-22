@@ -12,7 +12,7 @@
     "@archora/forge-config": "workspace:*",
     "@archora/forge-runtime": "workspace:*",
     "@tanstack/vue-query": "^5.59.0",
-    "vue": "^3.5.12"
+    "vue": "^3.5.38"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

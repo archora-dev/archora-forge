@@ -38,7 +38,7 @@
     "cac": "^6.7.14"
   },
   "devDependencies": {
-    "@types/node": "^22.15.17",
+    "@types/node": "^22.20.0",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3"
   }
