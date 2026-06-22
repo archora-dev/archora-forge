@@ -1,0 +1,175 @@
+openapi: 3.0.3
+info:
+  title: Fleet Operations API
+  version: 2.3.0
+servers:
+  - url: https://api.fleet.example.com/v2
+security:
+  - tenantApiKey: []
+paths:
+  /assets:
+    get:
+      operationId: listAssets
+      tags: [Assets]
+      parameters:
+        - { name: x-tenant-id, in: header, required: true, schema: { type: string } }
+        - { name: session, in: cookie, schema: { type: string } }
+        - { name: kind, in: query, schema: { $ref: '#/components/schemas/AssetKind' } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+      responses:
+        '200':
+          description: Matching assets
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Asset' }
+                  total: { type: integer }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: createAsset
+      tags: [Assets]
+      parameters:
+        - { name: x-tenant-id, in: header, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssetInput' }
+      responses:
+        '201':
+          description: Created asset
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /assets/{assetId}:
+    get:
+      operationId: getAsset
+      tags: [Assets]
+      parameters:
+        - { name: assetId, in: path, required: true, schema: { type: string } }
+        - { name: x-tenant-id, in: header, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: One asset
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /org-units:
+    get:
+      operationId: getOrgTree
+      tags: [Org]
+      responses:
+        '200':
+          description: Organization tree
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrgUnit' }
+components:
+  securitySchemes:
+    tenantApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+  responses:
+    Problem:
+      description: RFC7807 problem document
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    AssetKind:
+      type: string
+      enum: [car, truck, drone]
+    Identified:
+      type: object
+      required: [id]
+      properties:
+        id: { type: string, format: uuid }
+    Timestamped:
+      type: object
+      required: [createdAt]
+      properties:
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    AssetBase:
+      allOf:
+        - { $ref: '#/components/schemas/Identified' }
+        - { $ref: '#/components/schemas/Timestamped' }
+        - type: object
+          required: [kind, label]
+          properties:
+            kind: { $ref: '#/components/schemas/AssetKind' }
+            label: { type: string }
+    Car:
+      allOf:
+        - { $ref: '#/components/schemas/AssetBase' }
+        - type: object
+          required: [seats]
+          properties:
+            seats: { type: integer }
+            plate: { type: string }
+    Truck:
+      allOf:
+        - { $ref: '#/components/schemas/AssetBase' }
+        - type: object
+          required: [payloadKg]
+          properties:
+            payloadKg: { type: integer }
+            axles: { type: integer }
+    Drone:
+      allOf:
+        - { $ref: '#/components/schemas/AssetBase' }
+        - type: object
+          required: [maxAltitudeM]
+          properties:
+            maxAltitudeM: { type: integer }
+    Asset:
+      oneOf:
+        - { $ref: '#/components/schemas/Car' }
+        - { $ref: '#/components/schemas/Truck' }
+        - { $ref: '#/components/schemas/Drone' }
+      discriminator:
+        propertyName: kind
+        mapping:
+          car: '#/components/schemas/Car'
+          truck: '#/components/schemas/Truck'
+          drone: '#/components/schemas/Drone'
+    AssetInput:
+      oneOf:
+        - { $ref: '#/components/schemas/Car' }
+        - { $ref: '#/components/schemas/Truck' }
+        - { $ref: '#/components/schemas/Drone' }
+      discriminator:
+        propertyName: kind
+    OrgUnit:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        children:
+          type: array
+          items: { $ref: '#/components/schemas/OrgUnit' }
+    Problem:
+      type: object
+      required: [status, title]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }

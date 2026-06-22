@@ -33,7 +33,7 @@ export type ForgeConfig = ForgeConfigInput & {
   target?: {
     framework?: 'neutral'
     language?: 'typescript'
-    query?: 'promise' | 'tanstack-query' | 'vue-query'
+    query?: 'promise' | 'tanstack-query' | 'vue-query' | 'svelte-query' | 'angular-query'
     ui?: 'metadata' | 'custom'
     architecture?: 'feature-sliced' | 'simple' | 'custom'
   }
@@ -96,7 +96,10 @@ export function defineForgeConfig(config: ForgeConfig): ForgeConfig {
 
 export type ForgeConfigPresetName = 'feature-sliced' | 'simple' | 'monorepo'
 
-export function createForgeConfigPreset(name: ForgeConfigPresetName, config: ForgeConfig): ForgeConfig {
+export function createForgeConfigPreset(
+  name: ForgeConfigPresetName,
+  config: ForgeConfig,
+): ForgeConfig {
   if (name === 'simple') {
     return {
       ...config,
@@ -166,7 +169,7 @@ export type ResolvedForgeConfig = {
   target: {
     framework: 'neutral'
     language: 'typescript'
-    query: 'promise' | 'tanstack-query' | 'vue-query'
+    query: 'promise' | 'tanstack-query' | 'vue-query' | 'svelte-query' | 'angular-query'
     ui: 'metadata' | 'custom'
     architecture: 'feature-sliced' | 'simple' | 'custom'
   }
@@ -286,7 +289,9 @@ export async function loadForgeConfig(filePath: string): Promise<ForgeConfig> {
 
 function parseConfig(value: unknown): ForgeConfig {
   if (!isForgeConfig(value)) {
-    throw new Error('Invalid Archora Forge config: `input` must be a string or `inputs` must contain at least one schema entry.')
+    throw new Error(
+      'Invalid Archora Forge config: `input` must be a string or `inputs` must contain at least one schema entry.',
+    )
   }
 
   return value
@@ -322,9 +327,10 @@ function loadConfigFromSource(source: string): ForgeConfig | null {
     return null
   }
 
-  const createConfig = new Function('defineForgeConfig', `return defineForgeConfig(${match[1]})`) as (
-    helper: typeof defineForgeConfig,
-  ) => unknown
+  const createConfig = new Function(
+    'defineForgeConfig',
+    `return defineForgeConfig(${match[1]})`,
+  ) as (helper: typeof defineForgeConfig) => unknown
 
   return parseConfig(createConfig(defineForgeConfig))
 }

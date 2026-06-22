@@ -152,7 +152,7 @@ describe('framework-agnostic resource contract generation', () => {
     expect(metadata).toEqual(
       plan.files.find((file) => file.path.endsWith('users.client.ts'))?.metadata,
     )
-    expect(metadata?.version).toBe('2.0.0')
+    expect(metadata?.version).toBe('2.1.0')
     expect(metadata?.schemaHash).toMatch(/^[a-f0-9]{12}$/)
     expect(metadata?.configHash).toMatch(/^[a-f0-9]{12}$/)
   })
@@ -233,7 +233,7 @@ describe('framework-agnostic resource contract generation', () => {
     const summary = await summarizeGeneratorMetadata(plan.files, { cwd })
 
     expect(summary.status).toBe('mismatch')
-    expect(summary.version).toBe('2.0.0')
+    expect(summary.version).toBe('2.1.0')
     expect(summary.files.total).toBe(plan.files.filter((file) => file.kind === 'generated').length)
     expect(summary.files.missingMetadata).toEqual([
       { path: 'src/shared/api/generated/users/users.types.ts' },
@@ -241,7 +241,7 @@ describe('framework-agnostic resource contract generation', () => {
     expect(summary.files.versionMismatches).toEqual([
       {
         path: 'src/shared/api/generated/users/users.client.ts',
-        expected: '2.0.0',
+        expected: '2.1.0',
         actual: '0.9.0',
       },
     ])

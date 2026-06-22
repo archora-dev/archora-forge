@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: Petstore demo API
+  version: 1.0.0
+  description: Compact Petstore schema for Archora Forge previews. Inspired by the canonical Swagger Petstore.
+servers:
+  - url: https://api.petstore.test
+tags:
+  - name: Pets
+  - name: Orders
+  - name: Users
+
+paths:
+  /pets:
+    get:
+      tags: [Pets]
+      operationId: listPets
+      summary: List pets
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [available, pending, sold]
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Pets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Pet" }
+    post:
+      tags: [Pets]
+      operationId: createPet
+      summary: Add a pet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreatePetDto" }
+      responses:
+        "201":
+          description: Created pet
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pet" }
+
+  /pets/{petId}:
+    parameters:
+      - in: path
+        name: petId
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Pets]
+      operationId: getPet
+      summary: Get pet by id
+      responses:
+        "200":
+          description: Pet
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pet" }
+        "404": { description: Not found }
+    patch:
+      tags: [Pets]
+      operationId: updatePet
+      summary: Update pet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdatePetDto" }
+      responses:
+        "200":
+          description: Updated pet
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pet" }
+    delete:
+      tags: [Pets]
+      operationId: deletePet
+      summary: Delete pet
+      responses:
+        "204": { description: Deleted }
+
+  /orders:
+    post:
+      tags: [Orders]
+      operationId: placeOrder
+      summary: Place an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateOrderDto" }
+      responses:
+        "201":
+          description: Order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+
+  /orders/{orderId}:
+    parameters:
+      - in: path
+        name: orderId
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Orders]
+      operationId: getOrder
+      summary: Get order
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+
+  /users/{username}:
+    parameters:
+      - in: path
+        name: username
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Users]
+      operationId: getUser
+      summary: Get user by username
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+
+components:
+  schemas:
+    Pet:
+      type: object
+      required: [id, name, status]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, minLength: 1, maxLength: 64 }
+        category:
+          type: string
+          enum: [dog, cat, bird, reptile, other]
+        status:
+          type: string
+          enum: [available, pending, sold]
+        tags:
+          type: array
+          items: { type: string }
+        photoUrls:
+          type: array
+          items: { type: string, format: uri }
+
+    CreatePetDto:
+      type: object
+      required: [name, category]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 64 }
+        category:
+          type: string
+          enum: [dog, cat, bird, reptile, other]
+        tags:
+          type: array
+          items: { type: string }
+
+    UpdatePetDto:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 64 }
+        status:
+          type: string
+          enum: [available, pending, sold]
+
+    Order:
+      type: object
+      required: [id, petId, quantity, status]
+      properties:
+        id: { type: string, format: uuid }
+        petId: { type: string, format: uuid }
+        quantity: { type: integer, minimum: 1 }
+        shipDate: { type: string, format: date-time }
+        status:
+          type: string
+          enum: [placed, approved, delivered]
+        complete: { type: boolean }
+
+    CreateOrderDto:
+      type: object
+      required: [petId, quantity]
+      properties:
+        petId: { type: string, format: uuid }
+        quantity: { type: integer, minimum: 1 }
+        shipDate: { type: string, format: date-time }
+
+    User:
+      type: object
+      required: [username, email]
+      properties:
+        username: { type: string }
+        email: { type: string, format: email }
+        firstName: { type: string }
+        lastName: { type: string }
+        phone: { type: string }

@@ -14,11 +14,7 @@ import {
 } from '../packages/core/src/index.js'
 
 const fixtureDir = join(process.cwd(), 'test/fixtures/openapi/ugly')
-const expectedFixtures = [
-  'composition-auth.yaml',
-  'files-nullable.yaml',
-  'names-params.yaml',
-]
+const expectedFixtures = ['composition-auth.yaml', 'files-nullable.yaml', 'names-params.yaml']
 
 describe('Ugly OpenAPI fixtures', () => {
   test('parse, produce partial useful output, and report unsupported cases explicitly', async () => {
@@ -62,18 +58,23 @@ describe('Ugly OpenAPI fixtures', () => {
     expect(totals.operations).toBeGreaterThanOrEqual(9)
     expect(totals.resources).toBeGreaterThanOrEqual(5)
     expect(totals.generatedFiles).toBeGreaterThan(50)
-    expect(totals.diagnosticOnly).toBeGreaterThan(0)
+    // Mergeable inheritance-style allOf is now flattened into concrete types and counts as
+    // supported coverage, so these fixtures no longer report schema-level diagnostic-only
+    // cases. Explicit unsupported reporting is still asserted through the diagnostics below.
+    expect(allDiagnostics.size).toBeGreaterThan(0)
     expect(totals.fallbackCases).toBeGreaterThan(0)
     expect([...allDiagnostics].sort()).toEqual(
       expect.arrayContaining([
         'unsupported-security-schemes',
         'unsupported-operation-security',
-        'unsupported-header-parameter',
         'unsupported-content-type',
       ]),
     )
     // Object-branch discriminated unions (EventEnvelope) are generated as narrowing
     // TypeScript unions now, so they no longer surface as unsupported.
     expect(allDiagnostics.has('unsupported-discriminator')).toBe(false)
+    // Header parameters are generated (typed onto params / options.headers), so they are
+    // no longer reported as unsupported.
+    expect(allDiagnostics.has('unsupported-header-parameter')).toBe(false)
   })
 })

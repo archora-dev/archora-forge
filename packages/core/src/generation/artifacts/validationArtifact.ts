@@ -1,6 +1,6 @@
 import type { NormalizedOpenApi, OpenApiSchema } from '../../openapi/openapi.types.js'
 import type { DetectedResource } from '../../resources/resources.types.js'
-import { resolveSchema, resolveSchemaName } from '../typeGeneration.js'
+import { resolveDiscriminatedUnion, resolveSchema, resolveSchemaName } from '../typeGeneration.js'
 
 export type ValidationMode = 'zod' | 'valibot'
 
@@ -25,7 +25,11 @@ export function createValidationSchemas(
   return `import { z } from 'zod'\n\nexport const create${resource.entity}Schema = ${schemaToZod(normalized, createSchema)}\n\nexport const update${resource.entity}Schema = ${schemaToZod(normalized, updateSchema)}\n\nexport const ${entity}ValidationSchemas = {\n  create: create${resource.entity}Schema,\n  update: update${resource.entity}Schema,\n} as const\n`
 }
 
-function schemaToZod(normalized: NormalizedOpenApi, schema: OpenApiSchema | null | undefined, resolvingRefs: string[] = []): string {
+function schemaToZod(
+  normalized: NormalizedOpenApi,
+  schema: OpenApiSchema | null | undefined,
+  resolvingRefs: string[] = [],
+): string {
   if (schema?.$ref) {
     const refName = resolveSchemaName(schema)
     if (refName && resolvingRefs.includes(refName)) {
@@ -46,17 +50,35 @@ function schemaToZod(normalized: NormalizedOpenApi, schema: OpenApiSchema | null
     return appendNullable('z.unknown()', resolved)
   }
   if (resolved.oneOf?.length || resolved.anyOf?.length) {
-    return appendNullable(createZodUnion(normalized, resolved.oneOf ?? resolved.anyOf ?? [], resolvingRefs), resolved)
+    const discriminated = resolveDiscriminatedUnion(normalized, resolved)
+    if (discriminated) {
+      return appendNullable(
+        createZodDiscriminatedUnion(normalized, discriminated, resolvingRefs),
+        resolved,
+      )
+    }
+    return appendNullable(
+      createZodUnion(normalized, resolved.oneOf ?? resolved.anyOf ?? [], resolvingRefs),
+      resolved,
+    )
   }
-  if (hasConst(resolved)) return appendNullable(`z.literal(${JSON.stringify(resolved.const)})`, resolved)
+  if (hasConst(resolved))
+    return appendNullable(`z.literal(${JSON.stringify(resolved.const)})`, resolved)
   if (resolved.enum?.length) return appendNullable(createZodEnum(resolved.enum), resolved)
   if (resolved.type === 'string') return zodString(resolved)
   if (resolved.type === 'integer') return appendNullable('z.number().int()', resolved)
   if (resolved.type === 'number') return appendNullable(zodNumber(resolved), resolved)
   if (resolved.type === 'boolean') return appendNullable('z.boolean()', resolved)
-  if (resolved.type === 'array') return appendNullable(`z.array(${schemaToZod(normalized, resolved.items, resolvingRefs)})`, resolved)
+  if (resolved.type === 'array')
+    return appendNullable(
+      `z.array(${schemaToZod(normalized, resolved.items, resolvingRefs)})`,
+      resolved,
+    )
   if (isPureDictionarySchema(resolved)) {
-    return appendNullable(`z.record(z.string(), ${schemaToZodRecordValue(normalized, resolved.additionalProperties, resolvingRefs)})`, resolved)
+    return appendNullable(
+      `z.record(z.string(), ${schemaToZodRecordValue(normalized, resolved.additionalProperties, resolvingRefs)})`,
+      resolved,
+    )
   }
   if (resolved.type === 'object' || resolved.properties) {
     const required = new Set(resolved.required ?? [])
@@ -74,7 +96,11 @@ function schemaToZod(normalized: NormalizedOpenApi, schema: OpenApiSchema | null
   return appendNullable('z.unknown()', resolved)
 }
 
-function schemaToValibot(normalized: NormalizedOpenApi, schema: OpenApiSchema | null | undefined, resolvingRefs: string[] = []): string {
+function schemaToValibot(
+  normalized: NormalizedOpenApi,
+  schema: OpenApiSchema | null | undefined,
+  resolvingRefs: string[] = [],
+): string {
   if (schema?.$ref) {
     const refName = resolveSchemaName(schema)
     if (refName && resolvingRefs.includes(refName)) {
@@ -84,7 +110,11 @@ function schemaToValibot(normalized: NormalizedOpenApi, schema: OpenApiSchema | 
     const resolved = resolveSchema(normalized, schema)
     if (!resolved || resolved === schema) return wrapValibotNullable('v.unknown()', schema)
 
-    return schemaToValibot(normalized, resolved, refName ? [...resolvingRefs, refName] : resolvingRefs)
+    return schemaToValibot(
+      normalized,
+      resolved,
+      refName ? [...resolvingRefs, refName] : resolvingRefs,
+    )
   }
 
   const resolved = resolveSchema(normalized, schema)
@@ -95,19 +125,41 @@ function schemaToValibot(normalized: NormalizedOpenApi, schema: OpenApiSchema | 
     return wrapValibotNullable('v.unknown()', resolved)
   }
   if (resolved.oneOf?.length || resolved.anyOf?.length) {
-    return wrapValibotNullable(createValibotUnion(normalized, resolved.oneOf ?? resolved.anyOf ?? [], resolvingRefs), resolved)
+    const discriminated = resolveDiscriminatedUnion(normalized, resolved)
+    if (discriminated) {
+      return wrapValibotNullable(
+        createValibotVariant(normalized, discriminated, resolvingRefs),
+        resolved,
+      )
+    }
+    return wrapValibotNullable(
+      createValibotUnion(normalized, resolved.oneOf ?? resolved.anyOf ?? [], resolvingRefs),
+      resolved,
+    )
   }
-  if (hasConst(resolved)) return wrapValibotNullable(`v.literal(${JSON.stringify(resolved.const)})`, resolved)
+  if (hasConst(resolved))
+    return wrapValibotNullable(`v.literal(${JSON.stringify(resolved.const)})`, resolved)
   if (resolved.enum?.length) {
-    return wrapValibotNullable(`v.picklist([${resolved.enum.map((value) => JSON.stringify(value)).join(', ')}])`, resolved)
+    return wrapValibotNullable(
+      `v.picklist([${resolved.enum.map((value) => JSON.stringify(value)).join(', ')}])`,
+      resolved,
+    )
   }
   if (resolved.type === 'string') return valibotString(resolved)
-  if (resolved.type === 'integer') return wrapValibotNullable('v.pipe(v.number(), v.integer())', resolved)
+  if (resolved.type === 'integer')
+    return wrapValibotNullable('v.pipe(v.number(), v.integer())', resolved)
   if (resolved.type === 'number') return wrapValibotNullable(valibotNumber(resolved), resolved)
   if (resolved.type === 'boolean') return wrapValibotNullable('v.boolean()', resolved)
-  if (resolved.type === 'array') return wrapValibotNullable(`v.array(${schemaToValibot(normalized, resolved.items, resolvingRefs)})`, resolved)
+  if (resolved.type === 'array')
+    return wrapValibotNullable(
+      `v.array(${schemaToValibot(normalized, resolved.items, resolvingRefs)})`,
+      resolved,
+    )
   if (isPureDictionarySchema(resolved)) {
-    return wrapValibotNullable(`v.record(v.string(), ${schemaToValibotRecordValue(normalized, resolved.additionalProperties, resolvingRefs)})`, resolved)
+    return wrapValibotNullable(
+      `v.record(v.string(), ${schemaToValibotRecordValue(normalized, resolved.additionalProperties, resolvingRefs)})`,
+      resolved,
+    )
   }
   if (resolved.type === 'object' || resolved.properties) {
     const required = new Set(resolved.required ?? [])
@@ -123,6 +175,79 @@ function schemaToValibot(normalized: NormalizedOpenApi, schema: OpenApiSchema | 
   }
 
   return wrapValibotNullable('v.unknown()', resolved)
+}
+
+type ResolvedDiscriminatedUnion = NonNullable<ReturnType<typeof resolveDiscriminatedUnion>>
+
+function createZodDiscriminatedUnion(
+  normalized: NormalizedOpenApi,
+  discriminated: ResolvedDiscriminatedUnion,
+  resolvingRefs: string[],
+): string {
+  const branches = discriminated.branches.map((branch) =>
+    discriminatedBranch(normalized, branch, discriminated.propertyName, resolvingRefs, {
+      object: (fields) => `z.object({\n${fields}\n})`,
+      literal: (value) => `z.literal(${JSON.stringify(value)})`,
+      optional: (expression) => `${expression}.optional()`,
+      render: schemaToZod,
+    }),
+  )
+  return `z.discriminatedUnion(${JSON.stringify(discriminated.propertyName)}, [${branches.join(', ')}])`
+}
+
+function createValibotVariant(
+  normalized: NormalizedOpenApi,
+  discriminated: ResolvedDiscriminatedUnion,
+  resolvingRefs: string[],
+): string {
+  const branches = discriminated.branches.map((branch) =>
+    discriminatedBranch(normalized, branch, discriminated.propertyName, resolvingRefs, {
+      object: (fields) => `v.object({\n${fields}\n})`,
+      literal: (value) => `v.literal(${JSON.stringify(value)})`,
+      optional: (expression) => `v.optional(${expression})`,
+      render: schemaToValibot,
+    }),
+  )
+  return `v.variant(${JSON.stringify(discriminated.propertyName)}, [${branches.join(', ')}])`
+}
+
+// Renders one branch of a discriminated union as an object whose discriminant property is
+// pinned to its literal, so the union compiles to z.discriminatedUnion / v.variant (which
+// require a literal discriminant per branch and give precise per-variant errors).
+function discriminatedBranch(
+  normalized: NormalizedOpenApi,
+  branch: ResolvedDiscriminatedUnion['branches'][number],
+  propertyName: string,
+  resolvingRefs: string[],
+  emit: {
+    object: (fields: string) => string
+    literal: (value: string) => string
+    optional: (expression: string) => string
+    render: (
+      normalized: NormalizedOpenApi,
+      schema: OpenApiSchema,
+      resolvingRefs: string[],
+    ) => string
+  },
+): string {
+  const resolved = resolveSchema(normalized, branch.schema)
+  if (!resolved || (resolved.type !== 'object' && !resolved.properties)) {
+    return emit.render(normalized, branch.schema, resolvingRefs)
+  }
+  const refName = resolveSchemaName(branch.schema)
+  const branchRefs = refName ? [...resolvingRefs, refName] : resolvingRefs
+  const required = new Set(resolved.required ?? [])
+  const fields = Object.entries(resolved.properties ?? {})
+    .map(([name, property]) => {
+      const rendered =
+        name === propertyName
+          ? emit.literal(branch.literal)
+          : emit.render(normalized, property, branchRefs)
+      const value = required.has(name) ? rendered : emit.optional(rendered)
+      return `  ${toCodeKey(name)}: ${value},`
+    })
+    .join('\n')
+  return emit.object(fields)
 }
 
 function zodString(schema: OpenApiSchema): string {
@@ -154,10 +279,16 @@ function createZodEnum(values: Array<string | number | boolean | null>): string 
   }
 
   const literals = values.map((value) => `z.literal(${JSON.stringify(value)})`)
-  return literals.length === 1 ? literals[0] ?? 'z.unknown()' : `z.union([${literals.join(', ')}])`
+  return literals.length === 1
+    ? (literals[0] ?? 'z.unknown()')
+    : `z.union([${literals.join(', ')}])`
 }
 
-function createZodUnion(normalized: NormalizedOpenApi, branches: OpenApiSchema[], resolvingRefs: string[]): string {
+function createZodUnion(
+  normalized: NormalizedOpenApi,
+  branches: OpenApiSchema[],
+  resolvingRefs: string[],
+): string {
   const schemas = branches.map((branch) => schemaToZod(normalized, branch, resolvingRefs))
   if (schemas.length === 0) return 'z.unknown()'
   if (schemas.length === 1) return schemas[0] ?? 'z.unknown()'
@@ -173,7 +304,8 @@ function valibotString(schema: OpenApiSchema): string {
   if (schema.format === 'date-time') actions.push('v.isoDateTime()')
   if (schema.minLength !== undefined) actions.push(`v.minLength(${schema.minLength})`)
   if (schema.maxLength !== undefined) actions.push(`v.maxLength(${schema.maxLength})`)
-  const expression = actions.length === 0 ? 'v.string()' : `v.pipe(v.string(), ${actions.join(', ')})`
+  const expression =
+    actions.length === 0 ? 'v.string()' : `v.pipe(v.string(), ${actions.join(', ')})`
   return wrapValibotNullable(expression, schema)
 }
 
@@ -188,7 +320,11 @@ function wrapValibotNullable(expression: string, schema: OpenApiSchema): string 
   return schema.nullable ? `v.nullable(${expression})` : expression
 }
 
-function createValibotUnion(normalized: NormalizedOpenApi, branches: OpenApiSchema[], resolvingRefs: string[]): string {
+function createValibotUnion(
+  normalized: NormalizedOpenApi,
+  branches: OpenApiSchema[],
+  resolvingRefs: string[],
+): string {
   const schemas = branches.map((branch) => schemaToValibot(normalized, branch, resolvingRefs))
   if (schemas.length === 0) return 'v.unknown()'
   if (schemas.length === 1) return schemas[0] ?? 'v.unknown()'
@@ -198,8 +334,8 @@ function createValibotUnion(normalized: NormalizedOpenApi, branches: OpenApiSche
 function isPureDictionarySchema(schema: OpenApiSchema): boolean {
   return Boolean(
     (schema.type === 'object' || schema.additionalProperties !== undefined) &&
-      schema.additionalProperties !== undefined &&
-      Object.keys(schema.properties ?? {}).length === 0,
+    schema.additionalProperties !== undefined &&
+    Object.keys(schema.properties ?? {}).length === 0,
   )
 }
 
@@ -238,6 +374,8 @@ function toCodeKey(value: string): string {
   return /^[A-Za-z_$][\w$]*$/.test(value) ? value : JSON.stringify(value)
 }
 
-function hasConst(schema: OpenApiSchema): schema is OpenApiSchema & { const: string | number | boolean | null } {
+function hasConst(
+  schema: OpenApiSchema,
+): schema is OpenApiSchema & { const: string | number | boolean | null } {
   return Object.hasOwn(schema, 'const')
 }

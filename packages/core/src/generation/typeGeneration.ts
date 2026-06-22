@@ -1,4 +1,9 @@
-import type { NormalizedOpenApi, NormalizedOperation, OpenApiParameter, OpenApiSchema } from '../openapi/openapi.types.js'
+import type {
+  NormalizedOpenApi,
+  NormalizedOperation,
+  OpenApiParameter,
+  OpenApiSchema,
+} from '../openapi/openapi.types.js'
 import { unwrapAnnotationOnlyAllOfSchema } from '../openapi/composition.js'
 import type { DetectedResource } from '../resources/resources.types.js'
 import { pluralizeTypeName, quoteObjectKeyIfNeeded, toSafeTypeName } from './identifiers.js'
@@ -46,10 +51,19 @@ export function createOperationTypeNames(operation: NormalizedOperation): Operat
   }
 }
 
-export function createTypeScriptTypes(normalized: NormalizedOpenApi, resource: DetectedResource): string {
+export function createTypeScriptTypes(
+  normalized: NormalizedOpenApi,
+  resource: DetectedResource,
+): string {
   const declarations: string[] = []
-  if (!normalized.schemas.some((schema) => toSafeTypeName(schema.name) === toSafeTypeName(resource.entity))) {
-    declarations.push(`export interface ${toSafeTypeName(resource.entity)} {\n  [key: string]: unknown\n}`)
+  if (
+    !normalized.schemas.some(
+      (schema) => toSafeTypeName(schema.name) === toSafeTypeName(resource.entity),
+    )
+  ) {
+    declarations.push(
+      `export interface ${toSafeTypeName(resource.entity)} {\n  [key: string]: unknown\n}`,
+    )
   }
 
   declarations.push(createOperationAliases(normalized, resource))
@@ -68,10 +82,14 @@ export function createSharedSchemaTypes(normalized: NormalizedOpenApi): string {
   const enumAliases = new Map<string, string>()
 
   for (const schema of normalized.schemas) {
-    declarations.push(createSchemaDeclaration(normalized, toSafeTypeName(schema.name), schema.schema, enumAliases))
+    declarations.push(
+      createSchemaDeclaration(normalized, toSafeTypeName(schema.name), schema.schema, enumAliases),
+    )
   }
 
-  declarations.unshift(...[...enumAliases.entries()].map(([name, value]) => `export type ${name} = ${value}`))
+  declarations.unshift(
+    ...[...enumAliases.entries()].map(([name, value]) => `export type ${name} = ${value}`),
+  )
 
   return declarations.length > 0 ? `${declarations.filter(Boolean).join('\n\n')}\n` : 'export {}\n'
 }
@@ -79,7 +97,9 @@ export function createSharedSchemaTypes(normalized: NormalizedOpenApi): string {
 export function schemaToTypeScript(
   normalized: NormalizedOpenApi,
   schema: OpenApiSchema | null | undefined,
-  options: { mode: 'request' | 'response'; enumName?: string; indent?: number } = { mode: 'response' },
+  options: { mode: 'request' | 'response'; enumName?: string; indent?: number } = {
+    mode: 'response',
+  },
 ): string {
   if (!schema) return 'unknown'
   if (schema.$ref) return toSafeTypeName(schema.$ref.split('/').at(-1) ?? 'unknown')
@@ -94,16 +114,21 @@ export function schemaToTypeScript(
   if (schema.oneOf?.length || schema.anyOf?.length) {
     const branches = schema.oneOf ?? schema.anyOf ?? []
     const discriminator = getDiscriminatorInfo(schema)
-    return branches.map((branch) => renderUnionBranch(normalized, branch, options, discriminator)).join(' | ')
+    return branches
+      .map((branch) => renderUnionBranch(normalized, branch, options, discriminator))
+      .join(' | ')
   }
   if (hasConst(schema)) return enumValueToTypeScript(schema.const)
   if (schema.enum) return schema.enum.map(enumValueToTypeScript).join(' | ')
-  if (schema.type === 'string' && schema.format === 'binary') return options.mode === 'request' || options.indent !== undefined ? 'Blob | File' : 'Blob'
+  if (schema.type === 'string' && schema.format === 'binary')
+    return options.mode === 'request' || options.indent !== undefined ? 'Blob | File' : 'Blob'
   if (schema.type === 'string') return 'string'
   if (schema.type === 'number' || schema.type === 'integer') return 'number'
   if (schema.type === 'boolean') return 'boolean'
-  if (schema.type === 'array') return `${toArrayElementType(schemaToTypeScript(normalized, schema.items, options))}[]`
-  if (isPureDictionarySchema(schema)) return createDictionaryType(normalized, schema.additionalProperties, options)
+  if (schema.type === 'array')
+    return `${toArrayElementType(schemaToTypeScript(normalized, schema.items, options))}[]`
+  if (isPureDictionarySchema(schema))
+    return createDictionaryType(normalized, schema.additionalProperties, options)
   if (schema.type === 'object' && !schema.properties) return 'Record<string, unknown>'
   if (schema.type === 'object' || schema.properties) {
     const indent = options.indent ?? 0
@@ -111,16 +136,28 @@ export function schemaToTypeScript(
     const closeIndent = ' '.repeat(indent)
     const required = new Set(schema.required ?? [])
     const lines = Object.entries(schema.properties ?? {})
-      .filter(([, property]) => (options.mode === 'request' ? !property.readOnly : !property.writeOnly))
+      .filter(([, property]) =>
+        options.mode === 'request' ? !property.readOnly : !property.writeOnly,
+      )
       .map(([name, property]) => {
         const optional = required.has(name) ? '' : '?'
         const nullable = property.nullable ? ' | null' : ''
-        return `${childIndent}${quoteObjectKeyIfNeeded(name)}${optional}: ${schemaToTypeScript(normalized, property, {
-          ...options,
-          indent: indent + 2,
-        })}${nullable}`
+        return `${childIndent}${quoteObjectKeyIfNeeded(name)}${optional}: ${schemaToTypeScript(
+          normalized,
+          property,
+          {
+            ...options,
+            indent: indent + 2,
+          },
+        )}${nullable}`
       })
-    const indexSignature = createAdditionalPropertiesIndex(normalized, schema, options, childIndent, required)
+    const indexSignature = createAdditionalPropertiesIndex(
+      normalized,
+      schema,
+      options,
+      childIndent,
+      required,
+    )
     if (indexSignature) lines.push(indexSignature)
 
     return `{\n${lines.join('\n')}\n${closeIndent}}`
@@ -159,12 +196,13 @@ function renderUnionBranch(
 ): string {
   const type = schemaToTypeScript(normalized, branch, options)
   if (!discriminator || type === 'unknown' || !isObjectSchemaBranch(normalized, branch)) return type
-  const literal = discriminatorLiteral(discriminator, branch)
+  const literal = discriminatorLiteral(normalized, discriminator, branch)
   if (literal === null) return type
   return `(${type} & { ${quoteObjectKeyIfNeeded(discriminator.propertyName)}: ${JSON.stringify(literal)} })`
 }
 
 function discriminatorLiteral(
+  normalized: NormalizedOpenApi,
   discriminator: DiscriminatorInfo,
   branch: OpenApiSchema,
 ): string | null {
@@ -173,7 +211,58 @@ function discriminatorLiteral(
   for (const [key, target] of Object.entries(discriminator.mapping)) {
     if (target === branch.$ref || target.split('/').at(-1) === refName) return key
   }
+  // No explicit mapping. The implicit OpenAPI mapping is the schema name, but when the
+  // discriminator property is constrained to an enum/const (e.g. `kind: car|truck|drone`)
+  // the schema name often differs in case (`Car`). Prefer the enum value that matches the
+  // schema name so the narrowed literal actually inhabits the property type.
+  const candidates = discriminatorPropertyLiterals(normalized, branch, discriminator.propertyName)
+  if (candidates.length > 0) {
+    const exact = candidates.find((value) => value === refName)
+    if (exact !== undefined) return exact
+    const caseInsensitive = candidates.find(
+      (value) => value.toLowerCase() === refName.toLowerCase(),
+    )
+    if (caseInsensitive !== undefined) return caseInsensitive
+    if (candidates.length === 1) return candidates[0] ?? null
+  }
   return refName.length > 0 ? refName : null
+}
+
+function discriminatorPropertyLiterals(
+  normalized: NormalizedOpenApi,
+  branch: OpenApiSchema,
+  propertyName: string,
+): string[] {
+  const resolved = resolveSchema(normalized, branch)
+  const property = resolved?.properties?.[propertyName]
+  if (!property) return []
+  const propertySchema = resolveSchema(normalized, property) ?? property
+  const values = propertySchema.enum ?? (hasConst(propertySchema) ? [propertySchema.const] : [])
+  return values.filter((value): value is string => typeof value === 'string')
+}
+
+/**
+ * Resolves a `oneOf`/`anyOf` with a discriminator into the discriminant property and the
+ * literal that pins each branch, in branch order. Returns `null` unless every branch is an
+ * object with a derivable literal — i.e. only when the union can be emitted as a real
+ * discriminated union (TS narrowing, `z.discriminatedUnion`, `v.variant`).
+ */
+export function resolveDiscriminatedUnion(
+  normalized: NormalizedOpenApi,
+  schema: OpenApiSchema,
+): { propertyName: string; branches: Array<{ schema: OpenApiSchema; literal: string }> } | null {
+  const branches = schema.oneOf ?? schema.anyOf
+  if (!branches || branches.length === 0) return null
+  const info = getDiscriminatorInfo(schema)
+  if (!info) return null
+  if (!branches.every((branch) => isObjectSchemaBranch(normalized, branch))) return null
+  const resolved: Array<{ schema: OpenApiSchema; literal: string }> = []
+  for (const branch of branches) {
+    const literal = discriminatorLiteral(normalized, info, branch)
+    if (literal === null) return null
+    resolved.push({ schema: branch, literal })
+  }
+  return { propertyName: info.propertyName, branches: resolved }
 }
 
 export function isObjectSchemaBranch(
@@ -218,7 +307,9 @@ export function getHeaderParams(operation: NormalizedOperation | undefined): Ope
 }
 
 export function getOperationParams(operation: NormalizedOperation | undefined): OpenApiParameter[] {
-  return (operation?.parameters ?? []).filter((parameter) => parameter.in === 'path' || parameter.in === 'query' || parameter.in === 'header')
+  return (operation?.parameters ?? []).filter(
+    (parameter) => parameter.in === 'path' || parameter.in === 'query' || parameter.in === 'header',
+  )
 }
 
 export function getCollectionParams(resource: DetectedResource): OpenApiParameter[] {
@@ -237,14 +328,26 @@ export function getCollectionParams(resource: DetectedResource): OpenApiParamete
 }
 
 export function getIdentityParams(resource: DetectedResource): OpenApiParameter[] {
-  return [resource.operations.detail, resource.operations.update, resource.operations.delete].map((operation) => getPathParams(operation)).find((params) => params.length > 0) ?? []
+  return (
+    [resource.operations.detail, resource.operations.update, resource.operations.delete]
+      .map((operation) => getPathParams(operation))
+      .find((params) => params.length > 0) ?? []
+  )
 }
 
-export function resolveSchema(normalized: NormalizedOpenApi, schema: OpenApiSchema | null | undefined): OpenApiSchema | null {
+export function resolveSchema(
+  normalized: NormalizedOpenApi,
+  schema: OpenApiSchema | null | undefined,
+): OpenApiSchema | null {
   if (!schema) return null
   if (!schema.$ref) return schema
   const name = schema.$ref.split('/').at(-1)
-  return normalized.schemas.find((candidate) => candidate.name === name || toSafeTypeName(candidate.name) === toSafeTypeName(name ?? ''))?.schema ?? schema
+  return (
+    normalized.schemas.find(
+      (candidate) =>
+        candidate.name === name || toSafeTypeName(candidate.name) === toSafeTypeName(name ?? ''),
+    )?.schema ?? schema
+  )
 }
 
 export function resolveSchemaName(schema: OpenApiSchema | null | undefined): string | null {
@@ -258,12 +361,28 @@ function createSchemaDeclaration(
   schema: OpenApiSchema,
   enumAliases: Map<string, string>,
 ): string {
+  // OAS 3.0 `nullable: true` is carried on the schema as a boolean (the 3.1 `type: [..,'null']`
+  // form is handled inside schemaToTypeScript). Type-alias declarations must preserve it.
+  const nullableSuffix = schema.nullable ? ' | null' : ''
+
   if (schema.oneOf?.length || schema.anyOf?.length) {
-    return `export type ${name} = ${schemaToTypeScript(normalized, schema, { mode: 'response' })}`
+    return `export type ${name} = ${schemaToTypeScript(normalized, schema, { mode: 'response' })}${nullableSuffix}`
   }
 
   if (isPureDictionarySchema(schema)) {
-    return `export type ${name} = ${createDictionaryType(normalized, schema.additionalProperties, { mode: 'response' })}`
+    return `export type ${name} = ${createDictionaryType(normalized, schema.additionalProperties, { mode: 'response' })}${nullableSuffix}`
+  }
+
+  // Top-level enum/scalar/array component schemas are type aliases, not interfaces.
+  // Emitting `interface X {}` for an enum loses the literal union and silently widens
+  // the type to `{}` (which accepts anything), so callers lose enum safety.
+  const isScalarOrEnumDeclaration =
+    schema.enum !== undefined ||
+    hasConst(schema) ||
+    Array.isArray(schema.type) ||
+    (typeof schema.type === 'string' && schema.type !== 'object')
+  if (isScalarOrEnumDeclaration) {
+    return `export type ${name} = ${schemaToTypeScript(normalized, schema, { mode: 'response' })}${nullableSuffix}`
   }
 
   const mode = name.endsWith('Dto') ? 'request' : 'response'
@@ -280,7 +399,13 @@ function createSchemaDeclaration(
       const nullable = property.nullable ? ' | null' : ''
       return `  ${quoteObjectKeyIfNeeded(propertyName)}${optional}: ${baseType}${nullable}`
     })
-  const indexSignature = createAdditionalPropertiesIndex(normalized, schema, { mode, indent: 0 }, '  ', required)
+  const indexSignature = createAdditionalPropertiesIndex(
+    normalized,
+    schema,
+    { mode, indent: 0 },
+    '  ',
+    required,
+  )
   if (indexSignature) lines.push(indexSignature)
 
   return `export interface ${name} {\n${lines.join('\n')}\n}`
@@ -289,8 +414,8 @@ function createSchemaDeclaration(
 function isPureDictionarySchema(schema: OpenApiSchema): boolean {
   return Boolean(
     (schema.type === 'object' || schema.additionalProperties !== undefined) &&
-      schema.additionalProperties !== undefined &&
-      Object.keys(schema.properties ?? {}).length === 0,
+    schema.additionalProperties !== undefined &&
+    Object.keys(schema.properties ?? {}).length === 0,
   )
 }
 
@@ -300,7 +425,8 @@ function createDictionaryType(
   options: { mode: 'request' | 'response'; enumName?: string; indent?: number },
 ): string {
   if (additionalProperties === false) return 'Record<string, never>'
-  if (additionalProperties === true || additionalProperties === undefined) return 'Record<string, unknown>'
+  if (additionalProperties === true || additionalProperties === undefined)
+    return 'Record<string, unknown>'
   return `Record<string, ${schemaToTypeScript(normalized, additionalProperties, options)}>`
 }
 
@@ -311,7 +437,12 @@ function createAdditionalPropertiesIndex(
   childIndent: string,
   required: Set<string>,
 ): string | null {
-  if (schema.additionalProperties === undefined || schema.additionalProperties === false || isPureDictionarySchema(schema)) return null
+  if (
+    schema.additionalProperties === undefined ||
+    schema.additionalProperties === false ||
+    isPureDictionarySchema(schema)
+  )
+    return null
 
   const valueTypes = new Set<string>()
   if (schema.additionalProperties === true) {
@@ -341,7 +472,9 @@ function enumValueToTypeScript(value: string | number | boolean | null): string 
   return String(value)
 }
 
-function hasConst(schema: OpenApiSchema): schema is OpenApiSchema & { const: string | number | boolean | null } {
+function hasConst(
+  schema: OpenApiSchema,
+): schema is OpenApiSchema & { const: string | number | boolean | null } {
   return Object.hasOwn(schema, 'const')
 }
 
@@ -352,17 +485,41 @@ function createOperationAliases(normalized: NormalizedOpenApi, resource: Detecte
     identityParams.length > 1
       ? createParamsInterface(normalized, names.idType, identityParams)
       : `export type ${names.idType} = ${identityParams[0]?.schema ? schemaToTypeScript(normalized, identityParams[0].schema, { mode: 'request' }) : 'string'}`
-  const listParams = createParamsInterface(normalized, names.listParamsType, getCollectionParams(resource))
-  const listResponse = createResponseDeclaration(normalized, names.listResponseType, resource.operations.list)
-  const detailResponse = createResponseType(normalized, resource.operations.detail, names.entityType)
+  const listParams = createParamsInterface(
+    normalized,
+    names.listParamsType,
+    getCollectionParams(resource),
+  )
+  const listResponse = createResponseDeclaration(
+    normalized,
+    names.listResponseType,
+    resource.operations.list,
+  )
+  const detailResponse = createResponseType(
+    normalized,
+    resource.operations.detail,
+    names.entityType,
+  )
   const createRequest =
     createRequestBodyType(normalized, resource.operations.create) ?? `Partial<${names.entityType}>`
   const updateRequest =
     createRequestBodyType(normalized, resource.operations.update) ?? `Partial<${names.entityType}>`
-  const createResponse = createResponseType(normalized, resource.operations.create, names.entityType)
-  const updateResponse = createResponseType(normalized, resource.operations.update, names.entityType)
+  const createResponse = createResponseType(
+    normalized,
+    resource.operations.create,
+    names.entityType,
+  )
+  const updateResponse = createResponseType(
+    normalized,
+    resource.operations.update,
+    names.entityType,
+  )
   const operationAliases = resource.operationsList
-    .filter((operation) => operation.operationKind !== 'unsupported-operation' && !Object.values(resource.operations).includes(operation))
+    .filter(
+      (operation) =>
+        operation.operationKind !== 'unsupported-operation' &&
+        !Object.values(resource.operations).includes(operation),
+    )
     .map((operation) => createOperationAlias(normalized, operation))
 
   return [
@@ -380,21 +537,35 @@ function createOperationAliases(normalized: NormalizedOpenApi, resource: Detecte
     .join('\n\n')
 }
 
-function createOperationAlias(normalized: NormalizedOpenApi, operation: NormalizedOperation): string {
+function createOperationAlias(
+  normalized: NormalizedOpenApi,
+  operation: NormalizedOperation,
+): string {
   const names = createOperationTypeNames(operation)
   const params = createParamsInterface(normalized, names.paramsType, getOperationParams(operation))
   const request = createRequestBodyType(normalized, operation) ?? 'void'
   const response = createResponseType(normalized, operation, 'unknown')
 
-  return [params, `export type ${names.requestType} = ${request}`, `export type ${names.responseType} = ${response}`].join('\n\n')
+  return [
+    params,
+    `export type ${names.requestType} = ${request}`,
+    `export type ${names.responseType} = ${response}`,
+  ].join('\n\n')
 }
 
-function createRequestBodyType(normalized: NormalizedOpenApi, operation: NormalizedOperation | undefined): string | null {
+function createRequestBodyType(
+  normalized: NormalizedOpenApi,
+  operation: NormalizedOperation | undefined,
+): string | null {
   if (!operation?.requestBodySchema) return null
   if (operation.requestContentTypes.some(isMultipartContentType)) return 'FormData'
   if (operation.requestContentTypes.some(isFormUrlEncodedContentType)) return 'URLSearchParams'
-  if (operation.requestContentTypes.some(isBinaryContentType)) return 'Blob | ArrayBuffer | ReadableStream'
-  return resolveSchemaName(operation.requestBodySchema) ?? schemaToTypeScript(normalized, operation.requestBodySchema, { mode: 'request' })
+  if (operation.requestContentTypes.some(isBinaryContentType))
+    return 'Blob | ArrayBuffer | ReadableStream'
+  return (
+    resolveSchemaName(operation.requestBodySchema) ??
+    schemaToTypeScript(normalized, operation.requestBodySchema, { mode: 'request' })
+  )
 }
 
 function isMultipartContentType(contentType: string): boolean {
@@ -409,10 +580,18 @@ function isFormUrlEncodedContentType(contentType: string): boolean {
 
 function isBinaryContentType(contentType: string): boolean {
   const normalized = contentType.split(';')[0]?.trim().toLowerCase() ?? ''
-  return normalized === 'application/octet-stream' || normalized === 'application/pdf' || normalized.startsWith('image/')
+  return (
+    normalized === 'application/octet-stream' ||
+    normalized === 'application/pdf' ||
+    normalized.startsWith('image/')
+  )
 }
 
-function createParamsInterface(normalized: NormalizedOpenApi, name: string, params: OpenApiParameter[]): string {
+function createParamsInterface(
+  normalized: NormalizedOpenApi,
+  name: string,
+  params: OpenApiParameter[],
+): string {
   if (params.length === 0) {
     return `export type ${name} = Record<string, never>`
   }
@@ -425,7 +604,11 @@ function createParamsInterface(normalized: NormalizedOpenApi, name: string, para
   return `export interface ${name} {\n${lines.join('\n')}\n}`
 }
 
-function createResponseDeclaration(normalized: NormalizedOpenApi, name: string, operation: NormalizedOperation | undefined): string {
+function createResponseDeclaration(
+  normalized: NormalizedOpenApi,
+  name: string,
+  operation: NormalizedOperation | undefined,
+): string {
   if (operation?.responseBodyEmpty) return `export type ${name} = void`
   const schema = operation?.responseSchema
   const schemaName = resolveSchemaName(schema)
@@ -436,10 +619,17 @@ function createResponseDeclaration(normalized: NormalizedOpenApi, name: string, 
   return type.startsWith('{') ? `export interface ${name} ${type}` : `export type ${name} = ${type}`
 }
 
-function createResponseType(normalized: NormalizedOpenApi, operation: NormalizedOperation | undefined, fallback: string): string {
+function createResponseType(
+  normalized: NormalizedOpenApi,
+  operation: NormalizedOperation | undefined,
+  fallback: string,
+): string {
   if (operation?.responseBodyEmpty) return 'void'
   const schema = operation?.responseSchema
-  return resolveSchemaName(schema) ?? (schema ? schemaToTypeScript(normalized, schema, { mode: 'response' }) : fallback)
+  return (
+    resolveSchemaName(schema) ??
+    (schema ? schemaToTypeScript(normalized, schema, { mode: 'response' }) : fallback)
+  )
 }
 
 function collectSharedTypeImports(normalized: NormalizedOpenApi, content: string): string[] {

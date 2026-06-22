@@ -1,5 +1,5 @@
 // @archora-forge-generated
-// @archora-forge-meta {"version":"2.0.0","schemaHash":"5462738c2a15","configHash":"eade995640b5"}
+// @archora-forge-meta {"version":"2.1.0","schemaHash":"5462738c2a15","configHash":"eade995640b5"}
 import { useQuery, type UseQueryOptions } from '@tanstack/vue-query'
 import { ordersClient } from '../../../shared/api/generated/orders/orders.client'
 import { ordersQueryKeys } from '../../../shared/api/generated/orders/orders.query-keys'

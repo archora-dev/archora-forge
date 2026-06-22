@@ -1,0 +1,85 @@
+openapi: 3.0.3
+info:
+  title: Edge Type Shapes API
+  version: 1.0.0
+paths:
+  /widgets:
+    get:
+      operationId: listWidgets
+      tags: [Widgets]
+      responses:
+        '200':
+          description: Widgets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Widget' }
+    post:
+      operationId: createWidget
+      tags: [Widgets]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Widget' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Widget' }
+components:
+  schemas:
+    Priority:
+      type: integer
+      enum: [1, 2, 3]
+    Mode:
+      type: string
+      enum: [auto, manual]
+      nullable: true
+    Tag:
+      type: object
+      required: [key]
+      properties:
+        key: { type: string }
+        value: { type: string, nullable: true }
+    Metadata:
+      type: object
+      additionalProperties: { type: string }
+      properties:
+        owner: { type: string }
+    Widget:
+      type: object
+      required: [id, priority, variants]
+      properties:
+        id: { type: string, readOnly: true }
+        secret: { type: string, writeOnly: true }
+        priority: { $ref: '#/components/schemas/Priority' }
+        mode:
+          allOf:
+            - { $ref: '#/components/schemas/Mode' }
+        nickname:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items: { $ref: '#/components/schemas/Tag' }
+        variants:
+          type: array
+          items:
+            oneOf:
+              - { $ref: '#/components/schemas/Tag' }
+              - { type: string }
+        scores:
+          type: array
+          items:
+            type: array
+            items: { type: number }
+        attributes: { $ref: '#/components/schemas/Metadata' }
+        related:
+          type: object
+          nullable: true
+          properties:
+            parentId: { type: string }
+            depth: { type: integer }

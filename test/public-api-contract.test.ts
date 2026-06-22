@@ -16,12 +16,14 @@ const basicCrudSchema = join(process.cwd(), 'test/fixtures/openapi/basic-crud.ya
 describe('v1 public API contract', () => {
   test('keeps package runtime exports stable', () => {
     expect(Object.keys(adapters).sort()).toEqual([
+      'angularQueryComposables',
       'createQueryComposables',
       'mapMetadataField',
       'mapMetadataTableCell',
       'metadataFieldAdapter',
       'metadataTableAdapter',
       'resolveQueryComposables',
+      'svelteQueryComposables',
       'tanstackQueryComposables',
       'toFilterFields',
       'toFormFields',
@@ -76,6 +78,7 @@ describe('v1 public API contract', () => {
       'pruneGeneratedFiles',
       'quoteObjectKeyIfNeeded',
       'readGeneratedFileMetadata',
+      'resolveDiscriminatedUnion',
       'resolveSchema',
       'resolveSchemaName',
       'runPluginAfterGenerateHooks',

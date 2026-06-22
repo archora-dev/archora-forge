@@ -10,7 +10,9 @@ import {
 } from '../packages/core/src/index.js'
 import { resolveForgeConfig } from '../packages/config/src/index.js'
 import {
+  angularQueryComposables,
   resolveQueryComposables,
+  svelteQueryComposables,
   tanstackQueryComposables,
   vueQueryComposables,
   type ComposableGenerators,
@@ -125,6 +127,31 @@ describe('query adapters', () => {
     expect(resolveQueryComposables('unknown')).toBeUndefined()
     expect(resolveQueryComposables('tanstack-query')).toBe(tanstackQueryComposables)
     expect(resolveQueryComposables('vue-query')).toBe(vueQueryComposables)
+    expect(resolveQueryComposables('svelte-query')).toBe(svelteQueryComposables)
+    expect(resolveQueryComposables('angular-query')).toBe(angularQueryComposables)
+  })
+
+  test('svelte-query emits createQuery/createMutation from @tanstack/svelte-query', async () => {
+    const plan = await planFor(svelteQueryComposables)
+    const list = read(plan, 'useWidgetsQuery.ts')
+    const create = read(plan, 'useCreateWidgetMutation.ts')
+
+    expect(list).toContain("from '@tanstack/svelte-query'")
+    expect(list).toContain('createQuery({')
+    expect(create).toContain('createMutation({')
+    expect(create).toContain('useQueryClient()')
+  })
+
+  test('angular-query emits injectQuery/injectMutation with factory options', async () => {
+    const plan = await planFor(angularQueryComposables)
+    const list = read(plan, 'useWidgetsQuery.ts')
+    const create = read(plan, 'useCreateWidgetMutation.ts')
+
+    expect(list).toContain("from '@tanstack/angular-query-experimental'")
+    // Angular passes options through a factory function.
+    expect(list).toContain('injectQuery(() => ({')
+    expect(create).toContain('injectMutation(() => ({')
+    expect(create).toContain('injectQueryClient()')
   })
 
   test('tanstack-query emits real useQuery/useMutation hooks', async () => {
