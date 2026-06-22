@@ -2,7 +2,7 @@
 
 Open the public CRM audit report:
 
-[View the generated audit report](/demo-audit/)
+<a href="/demo-audit/" target="_blank" rel="noreferrer">View the generated audit report</a>
 
 This report is generated from the fictional public CRM schema. It contains no private customer data.
 

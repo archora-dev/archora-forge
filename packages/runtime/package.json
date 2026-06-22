@@ -1,8 +1,8 @@
 {
   "name": "@archora/forge-runtime",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Runtime helpers used by Archora Forge generated frontend modules.",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/archora-dev/archora-forge.git"

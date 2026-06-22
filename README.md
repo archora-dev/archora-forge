@@ -1,20 +1,22 @@
 # Archora Forge
 
-> ⚠ **Source-available, NOT open source.**
-> This repository is published for inspection and evaluation only.
-> **Any** use of the code or its generated output — commercial or
-> non-commercial, personal or organizational, including hobby and
-> educational projects — requires a paid commercial license from the
-> author.
-> See [`LICENSE`](./LICENSE) and [`COMMERCIAL-LICENSE.md`](./COMMERCIAL-LICENSE.md).
+> **Open-core.** The generator is free and open source under the
+> [MIT License](./LICENSE): `init`, `generate`, `inspect`, `validate`,
+> `diff`, `lint`, `doctor`, `demo`, `explain`. Use it however you like.
+>
+> **Forge Intelligence** — the team/CI layer (`pilot`, `ci`, `audit`,
+> `check`, `impact`) — ships as the separate `@archora/forge-pro` package
+> and requires a paid commercial license. See
+> [`packages/pro/LICENSE`](./packages/pro/LICENSE) and
+> [`COMMERCIAL-LICENSE.md`](./COMMERCIAL-LICENSE.md).
 >
 > Commercial licensing: **akotov@archora.dev** · Telegram **@akotofff**
 
 ---
 
-Archora Forge reviews OpenAPI changes before they break frontend code. It turns an API contract into PR-ready impact reports and a typed frontend resource layer.
+Archora Forge reviews OpenAPI changes before they break frontend code. It turns an API contract into a typed frontend resource layer, and — with Forge Intelligence — into PR-ready impact reports.
 
-Archora Forge is a local-first commercial developer tool. It is built for frontend teams that already have a framework and design system, but need to know the frontend impact of OpenAPI changes before merge. It generates PR impact reports, committed TypeScript clients, operation helpers, query keys, form/table metadata, permissions, labels, mocks and CI reports without forcing a UI framework or hosted workflow.
+Archora Forge is a local-first developer tool. It is built for frontend teams that already have a framework and design system, but need a typed contract between an API schema and frontend code — and want to know the frontend impact of OpenAPI changes before merge. The free generator produces committed TypeScript clients, operation helpers, query keys, form/table metadata, permissions, labels and mocks without forcing a UI framework or hosted workflow. Forge Intelligence adds impact reports, audits and CI gates on top.
 
 Forge is suitable for local evaluation and bounded commercial adoption packages with TypeScript frontend teams that want to evaluate one real schema in a branch. It is not positioned as unlimited production platform coverage for every OpenAPI contract.
 
@@ -55,7 +57,7 @@ It does not emit framework components, pages, drawers or generated HTML. That is
 
 ## Quick Start
 
-For the public demo:
+The free generator (MIT):
 
 ```bash
 pnpm install
@@ -64,6 +66,11 @@ pnpm build
 node packages/cli/dist/index.js inspect --config examples/public-crm/archora-forge.config.ts
 node packages/cli/dist/index.js lint --config examples/public-crm/archora-forge.config.ts --strict
 node packages/cli/dist/index.js generate --config examples/public-crm/archora-forge.config.ts --dry-run
+```
+
+Forge Intelligence (requires the `@archora/forge-pro` package and a commercial license):
+
+```bash
 node packages/cli/dist/index.js check --config examples/public-crm/archora-forge.config.ts --report html --report-file examples/public-crm/forge-check.html
 node packages/cli/dist/index.js audit --config examples/public-crm/archora-forge.config.ts --out /tmp/archora-forge-public-audit
 ```

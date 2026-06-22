@@ -16,7 +16,7 @@ Forge writes a marker at the top of generated TypeScript files:
 
 ```ts
 // @archora-forge-generated
-// @archora-forge-meta {"version":"1.0.0","schemaHash":"...","configHash":"..."}
+// @archora-forge-meta {"version":"2.0.0","schemaHash":"...","configHash":"..."}
 ```
 
 The ownership marker is used only for regeneration safety. Files without this marker are never deleted by Forge pruning.

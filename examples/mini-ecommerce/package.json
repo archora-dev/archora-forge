@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Mini e-commerce preview schema and generated output for Archora Forge.",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit"

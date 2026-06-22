@@ -49,8 +49,8 @@ Forge helps evaluate whether that resource layer can be generated consistently f
 
 - Forge is in public preview/private beta.
 - Private schema results depend on schema quality and API conventions.
-- Vue/TanStack integration is a guided pattern today, not a universal first-party adapter.
-- Zod and Valibot generation are experimental opt-in modes.
+- TanStack Query and Vue Query are first-party adapters (`target.query`); other frameworks follow a guided pattern on top of the generated clients.
+- Zod and Valibot generation are opt-in validator-schema modes.
 - Discriminator-heavy polymorphism, unusual serialization and unsupported transports may require manual handling.
 - Generated private artifacts should stay private unless explicitly cleared by the customer.
 

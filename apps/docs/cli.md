@@ -37,9 +37,10 @@ For purchase evaluation, pair CLI output with:
 - `validate` checks that the schema can be parsed and normalized.
 - `diff` shows create/update/protected file counts without writing files.
 - `lint` reports frontend generation readiness diagnostics.
+- `adoption` summarizes how much of a schema Forge can generate today: health score, operation coverage, committable file counts, blocking diagnostics and the first resources to adopt. It is free and does not compute API impact.
 - `audit` creates a local adoption package with HTML/JSON/Markdown reports, generated preview files, generated-output typecheck, CI workflow and adoption plan.
 - `pilot` creates a paid-pilot package with impact, audit, go/no-go and pilot-report artifacts.
-- `ci init github` writes a GitHub Actions workflow for PR impact review. Use `--gate comment` for advisory rollout or `--gate block` for merge enforcement.
+- `ci init github|gitlab` scaffolds a turnkey CI kit for PR/MR impact review: a dedicated workflow file plus a `FORGE_CI.md` handoff. Use `--gate comment` for advisory rollout or `--gate block` for merge enforcement. Re-running is idempotent; it overwrites a changed file only with `--force`.
 - `explain` explains a diagnostic code and the adoption risk behind it.
 - `contract-diff` compares old/new contracts and reports affected generated files.
 - `impact` creates a PR-ready frontend API impact report with merge risk, migration hints and affected generated surface.
@@ -65,13 +66,14 @@ For purchase evaluation, pair CLI output with:
 - `init --output <path> --features <path> --mocks <path>` sets starter output folders.
 - `init --validation none|zod|valibot` enables generated validation schemas in the starter config.
 - `inspect --json` includes resource names, entities, CRUD operation ids and missing CRUD operations.
+- `adoption --json` prints a machine-readable coverage and readiness summary; `adoption --out <path>` writes `report.md` and `report.json`.
 - `check --report markdown|json --report-file <path>` writes a CI artifact report.
 - `audit --out <path>` writes the full local adoption package.
 - `audit --skip-typecheck` skips the generated TypeScript typecheck gate when TypeScript is not available in the current environment.
 - `license request --plan trial|pilot|team|organization --out <path>` writes a license request markdown file without schemas, source code, env vars or private absolute paths.
 - `pilot --old <schema> --repo <path> --out <path>` writes `impact.md`, `impact-pr.md`, `audit/`, `go-no-go.md` and `pilot-report.md`.
 - `pilot --base <ref> --repo <path> --out <path>` reads the previous schema from git, for example `--base origin/main`.
-- `ci init github --schema <path> --base <ref> --mode impact|pilot --gate block|comment --force` writes a GitHub workflow.
+- `ci init github|gitlab --schema <path> --base <ref> --mode impact|pilot --gate block|comment --force` scaffolds the CI kit. GitHub writes `.github/workflows/archora-forge-impact.yml`; GitLab writes an includable `.gitlab/archora-forge-impact.yml`. Add `--no-readme` to skip the `FORGE_CI.md` handoff.
 - `impact --report markdown|json|html --report-file <path>` writes a contract impact artifact.
 - `impact <schema> --base <ref>` reads the previous schema from git instead of requiring an old schema file.
 - `impact --repo <path>` scans a frontend repository for impacted generated API usages.
@@ -81,8 +83,8 @@ For purchase evaluation, pair CLI output with:
 ## License Activation
 
 Commercial builds can enforce a signed local license by setting `ARCHORA_FORGE_LICENSE_PUBLIC_KEY_JWK`.
-When enforcement is configured, `generate`, `check`, `audit` and `impact` require an active license.
-Evaluation commands such as `init`, `doctor`, `inspect`, `validate`, `lint`, `diff` and `generate --dry-run` remain available.
+When enforcement is configured, only the Pro intelligence commands — `impact`, `check`, `audit`, `ci`, `pilot` and `contract-diff` — require an active license.
+The free generator — `init`, `generate`, `inspect`, `validate`, `diff`, `lint`, `doctor`, `demo`, `adoption` and `explain` — always runs without a license.
 
 ```bash
 archora-forge license activate ARCHORA-FORGE-...

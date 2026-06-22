@@ -118,7 +118,7 @@ This demo is for public preview and paid pilot evaluation. It is not a productio
 Known limits still apply:
 
 - Forge does not generate Vue pages or design-system components.
-- Zod and Valibot generation are experimental opt-in modes.
-- TanStack-style usage is an integration pattern, not a finished first-party adapter.
+- Zod and Valibot generation are opt-in modes that emit validator schemas.
+- First-party TanStack Query and Vue Query adapters generate real hooks via `target.query`; other frameworks stay consumer-owned.
 - Discriminator-heavy polymorphism and full OpenAPI serialization coverage are not claimed.
 - Private schema adoption should start with a branch, generated diff review and CI drift check.

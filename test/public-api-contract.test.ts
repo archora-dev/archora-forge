@@ -28,7 +28,12 @@ describe('v1 public API contract', () => {
       'toTableColumns',
       'vueQueryComposables',
     ])
-    expect(Object.keys(config).sort()).toEqual(['createForgeConfigPreset', 'defineForgeConfig', 'loadForgeConfig', 'resolveForgeConfig'])
+    expect(Object.keys(config).sort()).toEqual([
+      'createForgeConfigPreset',
+      'defineForgeConfig',
+      'loadForgeConfig',
+      'resolveForgeConfig',
+    ])
     expect(Object.keys(core).sort()).toEqual([
       'ForgeError',
       'calculateDrift',
@@ -85,8 +90,17 @@ describe('v1 public API contract', () => {
       'toWritableGeneratedContent',
       'writeGeneratedFiles',
     ])
-    expect(Object.keys(runtime).sort()).toEqual(['ForgeHttpError', 'createApiClient', 'createApiClientOptions', 'isForgeHttpError', 'queryParam'])
-    expect(Object.keys(templates).sort()).toEqual(['createBarrelTemplate', 'createPermissionsTemplate'])
+    expect(Object.keys(runtime).sort()).toEqual([
+      'ForgeHttpError',
+      'createApiClient',
+      'createApiClientOptions',
+      'isForgeHttpError',
+      'queryParam',
+    ])
+    expect(Object.keys(templates).sort()).toEqual([
+      'createBarrelTemplate',
+      'createPermissionsTemplate',
+    ])
     expect(typeof createCli).toBe('function')
     expect(typeof runCli).toBe('function')
     expect(defineForgeConfig({ input: './openapi.yaml' })).toEqual({ input: './openapi.yaml' })
@@ -128,60 +142,107 @@ describe('v1 public API contract', () => {
   test('keeps CLI JSON report top-level shapes stable', async () => {
     const cwd = await mkdtemp(join(tmpdir(), 'archora-public-contract-'))
 
-    await expectCliJsonKeys(cwd, ['inspect', basicCrudSchema, '--json'], [
-      'ok',
-      'schema',
-      'configPath',
-      'schemas',
-      'resourceCount',
-      'resources',
-      'health',
-      'diagnostics',
-    ])
-    await expectCliJsonKeys(cwd, ['validate', basicCrudSchema, '--json'], ['ok', 'schema', 'configPath', 'schemas', 'health', 'diagnostics'])
-    await expectCliJsonKeys(cwd, ['lint', basicCrudSchema, '--json'], ['ok', 'schema', 'configPath', 'schemas', 'score', 'diagnostics'])
-    await expectCliJsonKeys(cwd, ['generate', basicCrudSchema, '--dry-run', '--json'], [
-      'ok',
-      'schema',
-      'configPath',
-      'schemas',
-      'dryRun',
-      'resources',
-      'diagnostics',
-      'files',
-      'prune',
-    ])
-    await expectCliJsonKeys(cwd, ['diff', basicCrudSchema, '--json'], ['ok', 'schema', 'configPath', 'schemas', 'resources', 'files'])
-    await expectCliJsonKeys(cwd, ['impact', basicCrudSchema, basicCrudSchema, '--json'], [
-      'ok',
-      'oldSchema',
-      'newSchema',
-      'sourceUsages',
-      'changes',
-      'affectedResources',
-      'affectedFiles',
-      'changelog',
-      'summary',
-      'decision',
-      'impactedSurface',
-      'migrationHints',
-      'prSummary',
-    ])
-    await expectCliJsonKeys(cwd, ['check', basicCrudSchema, '--json'], [
-      'ok',
-      'schema',
-      'schemas',
-      'healthScore',
-      'resources',
-      'generatedFiles',
-      'protectedFiles',
-      'failedChecks',
-      'generator',
-      'coverage',
-      'readiness',
-      'drift',
-      'diagnostics',
-    ])
+    await expectCliJsonKeys(
+      cwd,
+      ['inspect', basicCrudSchema, '--json'],
+      [
+        'ok',
+        'schema',
+        'configPath',
+        'schemas',
+        'resourceCount',
+        'resources',
+        'health',
+        'diagnostics',
+      ],
+    )
+    await expectCliJsonKeys(
+      cwd,
+      ['validate', basicCrudSchema, '--json'],
+      ['ok', 'schema', 'configPath', 'schemas', 'health', 'diagnostics'],
+    )
+    await expectCliJsonKeys(
+      cwd,
+      ['lint', basicCrudSchema, '--json'],
+      ['ok', 'schema', 'configPath', 'schemas', 'score', 'diagnostics'],
+    )
+    await expectCliJsonKeys(
+      cwd,
+      ['generate', basicCrudSchema, '--dry-run', '--json'],
+      [
+        'ok',
+        'schema',
+        'configPath',
+        'schemas',
+        'dryRun',
+        'resources',
+        'diagnostics',
+        'files',
+        'prune',
+      ],
+    )
+    await expectCliJsonKeys(
+      cwd,
+      ['diff', basicCrudSchema, '--json'],
+      ['ok', 'schema', 'configPath', 'schemas', 'resources', 'files'],
+    )
+    await expectCliJsonKeys(
+      cwd,
+      ['adoption', basicCrudSchema, '--json'],
+      [
+        'ok',
+        'schema',
+        'configPath',
+        'schemas',
+        'healthScore',
+        'resources',
+        'generatedFiles',
+        'protectedFiles',
+        'drift',
+        'coverage',
+        'diagnostics',
+        'fixSuggestions',
+        'firstResources',
+      ],
+    )
+    await expectCliJsonKeys(
+      cwd,
+      ['impact', basicCrudSchema, basicCrudSchema, '--json'],
+      [
+        'ok',
+        'oldSchema',
+        'newSchema',
+        'sourceUsages',
+        'changes',
+        'affectedResources',
+        'affectedFiles',
+        'changelog',
+        'summary',
+        'decision',
+        'impactedSurface',
+        'migrationHints',
+        'prSummary',
+      ],
+    )
+    await expectCliJsonKeys(
+      cwd,
+      ['check', basicCrudSchema, '--json'],
+      [
+        'ok',
+        'schema',
+        'schemas',
+        'healthScore',
+        'resources',
+        'generatedFiles',
+        'protectedFiles',
+        'failedChecks',
+        'generator',
+        'coverage',
+        'readiness',
+        'drift',
+        'diagnostics',
+      ],
+    )
   })
 })
 
@@ -190,7 +251,10 @@ async function expectCliJsonKeys(cwd: string, args: string[], keys: string[]): P
   expect(Object.keys(JSON.parse(output))).toEqual(keys)
 }
 
-async function runCliInDirectory(cwd: string, args: string[]): Promise<{ exitCode: string | number | undefined; output: string }> {
+async function runCliInDirectory(
+  cwd: string,
+  args: string[],
+): Promise<{ exitCode: string | number | undefined; output: string }> {
   const previousExitCode = process.exitCode
   const previousCwd = process.cwd()
   const lines: string[] = []
@@ -201,7 +265,7 @@ async function runCliInDirectory(cwd: string, args: string[]): Promise<{ exitCod
   }
   try {
     process.chdir(cwd)
-    const cli = createCli()
+    const cli = await createCli()
     cli.parse(['node', 'archora-forge', ...args], { run: false })
     await cli.runMatchedCommand()
 

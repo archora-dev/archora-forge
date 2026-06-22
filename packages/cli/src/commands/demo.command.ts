@@ -8,7 +8,7 @@ import { createHtmlReport } from '../html-report.js'
 import { formatImpactReport, formatPullRequestComment, scanSourceUsages } from '../impact-report.js'
 import { writeReportFile } from '../report-file.js'
 import { logger } from '../ui/logger.js'
-import { runAuditPackage } from './audit.command.js'
+import { runAuditPackage } from '../audit-package.js'
 
 type DemoOptions = {
   out?: string

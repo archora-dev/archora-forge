@@ -22,13 +22,29 @@ const schema = {
   info: { title: 'Module API', version: '1.0.0' },
   paths: {
     '/users': {
-      get: { operationId: 'listUsers', tags: ['Users'], responses: { '200': { description: 'OK' } } },
-      post: { operationId: 'createUser', tags: ['Users'], responses: { '201': { description: 'OK' } } },
+      get: {
+        operationId: 'listUsers',
+        tags: ['Users'],
+        responses: { '200': { description: 'OK' } },
+      },
+      post: {
+        operationId: 'createUser',
+        tags: ['Users'],
+        responses: { '201': { description: 'OK' } },
+      },
     },
     '/users/{id}': {
       get: { operationId: 'getUser', tags: ['Users'], responses: { '200': { description: 'OK' } } },
-      patch: { operationId: 'updateUser', tags: ['Users'], responses: { '200': { description: 'OK' } } },
-      delete: { operationId: 'deleteUser', tags: ['Users'], responses: { '204': { description: 'OK' } } },
+      patch: {
+        operationId: 'updateUser',
+        tags: ['Users'],
+        responses: { '200': { description: 'OK' } },
+      },
+      delete: {
+        operationId: 'deleteUser',
+        tags: ['Users'],
+        responses: { '204': { description: 'OK' } },
+      },
     },
   },
   components: {
@@ -91,9 +107,9 @@ describe('framework-agnostic resource contract generation', () => {
 
     expect(result.created).toBeGreaterThan(10)
     expect(result.protected).toBe(0)
-    await expect(readFile(join(cwd, 'src/shared/api/generated/users/users.client.ts'), 'utf8')).resolves.toContain(
-      'listUsers',
-    )
+    await expect(
+      readFile(join(cwd, 'src/shared/api/generated/users/users.client.ts'), 'utf8'),
+    ).resolves.toContain('listUsers')
     expect(summarizeFilePlan(plan.files).protected).toBe(0)
   })
 
@@ -109,9 +125,9 @@ describe('framework-agnostic resource contract generation', () => {
 
     await writeGeneratedFiles(plan.files, { cwd, dryRun: false })
 
-    await expect(readFile(join(cwd, 'src/shared/api/generated/users/users.client.ts'), 'utf8')).resolves.toMatch(
-      /^\/\/ @archora-forge-generated\n/,
-    )
+    await expect(
+      readFile(join(cwd, 'src/shared/api/generated/users/users.client.ts'), 'utf8'),
+    ).resolves.toMatch(/^\/\/ @archora-forge-generated\n/)
   })
 
   test('writes generated metadata with version, schema hash and config hash', async () => {
@@ -127,11 +143,16 @@ describe('framework-agnostic resource contract generation', () => {
 
     await writeGeneratedFiles(plan.files, { cwd, dryRun: false })
 
-    const content = await readFile(join(cwd, 'src/shared/api/generated/users/users.client.ts'), 'utf8')
+    const content = await readFile(
+      join(cwd, 'src/shared/api/generated/users/users.client.ts'),
+      'utf8',
+    )
     expect(content).toMatch(/^\/\/ @archora-forge-generated\n\/\/ @archora-forge-meta /)
     const metadata = readGeneratedFileMetadata(content)
-    expect(metadata).toEqual(plan.files.find((file) => file.path.endsWith('users.client.ts'))?.metadata)
-    expect(metadata?.version).toBe('1.4.0')
+    expect(metadata).toEqual(
+      plan.files.find((file) => file.path.endsWith('users.client.ts'))?.metadata,
+    )
+    expect(metadata?.version).toBe('2.0.0')
     expect(metadata?.schemaHash).toMatch(/^[a-f0-9]{12}$/)
     expect(metadata?.configHash).toMatch(/^[a-f0-9]{12}$/)
   })
@@ -160,8 +181,16 @@ describe('framework-agnostic resource contract generation', () => {
     const plan = await createGenerationPlan({ config, normalized, resources, cwd })
     await writeGeneratedFiles(plan.files, { cwd, dryRun: false })
     await mkdir(join(cwd, 'src/features/users/api'), { recursive: true })
-    await writeFile(join(cwd, 'src/features/users/api/useLegacyUsersQuery.ts'), '// @archora-forge-generated\nexport const legacy = true\n', 'utf8')
-    await writeFile(join(cwd, 'src/features/users/api/local-helper.ts'), 'export const local = true\n', 'utf8')
+    await writeFile(
+      join(cwd, 'src/features/users/api/useLegacyUsersQuery.ts'),
+      '// @archora-forge-generated\nexport const legacy = true\n',
+      'utf8',
+    )
+    await writeFile(
+      join(cwd, 'src/features/users/api/local-helper.ts'),
+      'export const local = true\n',
+      'utf8',
+    )
 
     const candidates = await findPrunableGeneratedFiles(plan.files, {
       cwd,
@@ -204,21 +233,39 @@ describe('framework-agnostic resource contract generation', () => {
     const summary = await summarizeGeneratorMetadata(plan.files, { cwd })
 
     expect(summary.status).toBe('mismatch')
-    expect(summary.version).toBe('1.4.0')
+    expect(summary.version).toBe('2.0.0')
     expect(summary.files.total).toBe(plan.files.filter((file) => file.kind === 'generated').length)
-    expect(summary.files.missingMetadata).toEqual([{ path: 'src/shared/api/generated/users/users.types.ts' }])
-    expect(summary.files.versionMismatches).toEqual([{ path: 'src/shared/api/generated/users/users.client.ts', expected: '1.4.0', actual: '0.9.0' }])
+    expect(summary.files.missingMetadata).toEqual([
+      { path: 'src/shared/api/generated/users/users.types.ts' },
+    ])
+    expect(summary.files.versionMismatches).toEqual([
+      {
+        path: 'src/shared/api/generated/users/users.client.ts',
+        expected: '2.0.0',
+        actual: '0.9.0',
+      },
+    ])
     expect(summary.files.schemaHashMismatches).toEqual([
-      { path: 'src/shared/api/generated/users/users.client.ts', expected: plan.files[0]?.metadata?.schemaHash, actual: 'oldschema000' },
+      {
+        path: 'src/shared/api/generated/users/users.client.ts',
+        expected: plan.files[0]?.metadata?.schemaHash,
+        actual: 'oldschema000',
+      },
     ])
     expect(summary.files.configHashMismatches).toEqual([
-      { path: 'src/shared/api/generated/users/users.client.ts', expected: plan.files[0]?.metadata?.configHash, actual: 'oldconfig000' },
+      {
+        path: 'src/shared/api/generated/users/users.client.ts',
+        expected: plan.files[0]?.metadata?.configHash,
+        actual: 'oldconfig000',
+      },
     ])
   })
 })
 
 async function createTempDir(): Promise<string> {
-  const dir = await mkdir(join(tmpdir(), `archora-forge-${crypto.randomUUID()}`), { recursive: true })
+  const dir = await mkdir(join(tmpdir(), `archora-forge-${crypto.randomUUID()}`), {
+    recursive: true,
+  })
   if (!dir) {
     throw new Error('Failed to create temp dir')
   }

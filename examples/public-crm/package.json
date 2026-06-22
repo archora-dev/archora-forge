@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Public neutral Archora Forge CRM demo schema and generated output.",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit"

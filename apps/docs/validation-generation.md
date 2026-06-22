@@ -1,6 +1,6 @@
-# Experimental Validation Generation
+# Validation Generation
 
-Status: experimental opt-in. Zod and Valibot output are covered by generator tests and isolated generated TypeScript typechecks with the selected validation library installed. This is not full request/response runtime validation.
+Status: supported opt-in. Zod and Valibot output are covered by generator tests and isolated generated TypeScript typechecks with the selected validation library installed. Forge emits validator schemas you wire into your own checks; it does not install full request/response runtime validation for you.
 
 Validation schemas are opt-in.
 

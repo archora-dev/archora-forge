@@ -58,7 +58,7 @@ async function runCliInDirectory(cwd: string, args: string[]): Promise<{ exitCod
   }
   try {
     process.chdir(cwd)
-    const cli = createCli()
+    const cli = await createCli()
     cli.parse(['node', 'archora-forge', ...args], { run: false })
     try {
       await cli.runMatchedCommand()

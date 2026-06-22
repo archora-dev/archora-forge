@@ -1,13 +1,7 @@
 import type { CAC } from 'cac'
 import { diffOpenApiContracts, normalizeOpenApi, parseOpenApi } from '@archora/forge-core'
 
-import { createHtmlReport } from '../html-report.js'
-import { readGitBaseSchema } from '../git-base-schema.js'
-import { formatImpactReport, formatPullRequestComment, scanSourceUsages } from '../impact-report.js'
-import { requireCommercialLicense } from '../license.js'
-import { writeReportFile } from '../report-file.js'
-import { parseSchemaRequestHeaders, type SchemaRequestCliOptions } from '../schema-request.js'
-import { logger } from '../ui/logger.js'
+import { createHtmlReport, readGitBaseSchema, formatImpactReport, formatPullRequestComment, scanSourceUsages, requireCommercialLicense, writeReportFile, parseSchemaRequestHeaders, type SchemaRequestCliOptions, logger } from '@archora/forge-cli/internal'
 
 export function registerContractDiffCommand(cli: CAC): void {
   cli.command('contract-diff <oldSchema> <newSchema>', 'Compare two OpenAPI schemas and report frontend impact')

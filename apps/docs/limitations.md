@@ -1,6 +1,6 @@
 # Limitations
 
-Archora Forge 1.0 is in public preview/private beta for its documented generation workflow, with a deliberately focused scope. It is not positioned as production-ready.
+Archora Forge is in public preview/private beta for its documented generation workflow, with a deliberately focused scope. It is not positioned as production-ready.
 
 ## Current Scope
 
@@ -13,13 +13,13 @@ Archora Forge 1.0 is in public preview/private beta for its documented generatio
 
 - Framework component generation is intentionally out of core scope.
 - UI-kit adapters are expected to live outside the core generator.
-- Simple non-discriminated `oneOf` and `anyOf` unions are generated as broad unions; discriminator polymorphism remains diagnostic-only.
+- `oneOf` and `anyOf` unions are generated as TypeScript unions; discriminated unions narrow on the discriminator literal. A scalar (non-object) discriminator mapping remains diagnostic-only.
 - Simple object `allOf` merge is supported only when branches are safe and non-conflicting.
 - Multi-schema generation is supported for configured inputs and refuses duplicate generated paths; set distinct output directories for schemas that produce overlapping file names.
 - Non-CRUD operation helpers type OpenAPI header parameters; CRUD resource helpers still expect per-call headers through runtime options.
 - Transport behavior is minimal; OAuth refresh and typed error envelopes are application responsibilities.
-- Zod and Valibot generation are experimental opt-in.
-- TanStack-style integration is currently consumer-owned; Forge emits query keys and operation helpers, not a finished first-party TanStack adapter.
+- Zod and Valibot generation are an opt-in mode that emits validator schemas, not automatic request/response runtime validation.
+- First-party TanStack Query and Vue Query adapters generate real `useQuery`/`useMutation` hooks via `target.query`; other frameworks remain consumer-owned on top of the emitted clients, query keys and operation helpers.
 - Vue integration is through generated TypeScript clients, helpers and metadata; Forge does not emit Vue single-file components.
 - Full OpenAPI coverage is not claimed.
 
