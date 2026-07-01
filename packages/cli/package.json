@@ -42,14 +42,14 @@
     "cac": "^6.7.14",
     "jiti": "^2.7.0",
     "picocolors": "^1.1.1",
-    "prettier": "^3.5.3",
-    "yaml": "^2.8.4"
+    "prettier": "^3.9.4",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@archora/forge-adapters": "workspace:*",
     "@archora/forge-config": "workspace:*",
     "@archora/forge-core": "workspace:*",
-    "@types/node": "^22.15.17",
+    "@types/node": "^22.20.0",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3"
   }
