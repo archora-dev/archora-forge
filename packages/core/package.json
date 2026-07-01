@@ -32,15 +32,15 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^22.15.17",
+    "@types/node": "^22.20.0",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "@archora/forge-config": "workspace:^",
     "jiti": "^2.7.0",
-    "prettier": "^3.5.3",
-    "yaml": "^2.8.4"
+    "prettier": "^3.9.4",
+    "yaml": "^2.9.0"
   },
   "peerDependencies": {
     "valibot": ">=0.30.0",
